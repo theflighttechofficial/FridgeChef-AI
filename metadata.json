@@ -1,0 +1,8 @@
+{
+  "name": "FridgeChef AI - Smart Fridge & Culinary Assistant",
+  "description": "Snap a photo of your fridge to identify ingredients, filter dietary recipes, cook step-by-step with voice read-aloud, and manage smart shopping lists.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
