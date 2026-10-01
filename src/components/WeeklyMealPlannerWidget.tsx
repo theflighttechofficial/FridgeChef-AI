@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Sparkles, ChefHat, Clock, ArrowRight, ShoppingBag, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Calendar, ChefHat, Clock, ArrowRight, ShoppingBag, CheckCircle2, RefreshCw, Zap } from 'lucide-react';
 import { Ingredient, Recipe } from '../types';
 
 interface WeeklyMealPlannerWidgetProps {

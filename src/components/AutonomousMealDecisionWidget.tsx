@@ -1,22 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  Sparkles,
-  Clock,
-  Flame,
-  ShieldCheck,
-  TrendingDown,
-  DollarSign,
-  CloudSun,
-  Zap,
-  Play,
-  ArrowRight,
-  Layers,
-  CheckCircle2,
-  RefreshCw
-} from 'lucide-react';
+import { Brain, Clock, Flame, ShieldCheck, TrendingDown, DollarSign, CloudSun, Zap, Play, ArrowRight, Layers, CheckCircle2, RefreshCw } from 'lucide-react';
 import { AutonomousDecision, HouseholdMemoryProfile, Ingredient, Recipe } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface AutonomousMealDecisionWidgetProps {
   ingredients: Ingredient[];
@@ -73,11 +59,14 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
           }
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       if (data.recommendedMeal) {
         setDecision(data.recommendedMeal);
       }
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsComputing(false);
@@ -158,13 +147,13 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
       <div className="my-4 py-2 px-3 bg-slate-950/70 rounded-2xl border border-slate-800/80 overflow-x-auto no-scrollbar flex items-center justify-between text-[11px] font-mono text-slate-400 gap-2">
         <span className="text-rose-400 font-bold shrink-0">⏳ Expiring Items (35%)</span>
         <span>→</span>
-        <span className="text-purple-400 font-bold shrink-0">🧠 Taste & Spice (25%)</span>
+        <span className="text-purple-400 font-bold shrink-0">Taste & Spice (25%)</span>
         <span>→</span>
-        <span className="text-amber-400 font-bold shrink-0">⏱️ Time Budget (15%)</span>
+        <span className="text-amber-400 font-bold shrink-0">⏱Time Budget (15%)</span>
         <span>→</span>
-        <span className="text-emerald-400 font-bold shrink-0">🥗 Nutrition Target (15%)</span>
+        <span className="text-emerald-400 font-bold shrink-0">Nutrition Target (15%)</span>
         <span>→</span>
-        <span className="text-cyan-400 font-bold shrink-0">⚡ Energy & Temp (10%)</span>
+        <span className="text-cyan-400 font-bold shrink-0">Energy & Temp (10%)</span>
       </div>
 
       {/* Main Autonomous Recommendation Card */}
@@ -173,7 +162,6 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-xl">🍛</span>
                 <h4 className="text-lg font-extrabold text-white">{decision.title}</h4>
               </div>
               <p className="text-xs text-slate-300 mt-1">{decision.briefWhy}</p>

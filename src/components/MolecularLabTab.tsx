@@ -1,17 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Sparkles,
-  Flame,
-  Thermometer,
-  Zap,
-  Dna,
-  RefreshCw,
-  Info,
-  CheckCircle2,
-  Atom,
-  Eye,
-  Sliders
-} from 'lucide-react';
+import { Flame, Thermometer, Zap, Dna, RefreshCw, Info, CheckCircle2, Atom, Eye, Sliders } from 'lucide-react';
 import { Ingredient } from '../types';
 
 interface MolecularLabTabProps {
@@ -297,7 +285,7 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
                   </p>
                 ) : thermalTemp > 145 ? (
                   <p className="text-xs font-extrabold text-rose-400">
-                    High Heat Sear — Pull from skillet soon to rest
+                    High Heat Sear, Pull from skillet soon to rest
                   </p>
                 ) : (
                   <p className="text-xs font-semibold text-slate-300">

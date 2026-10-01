@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
-import { TrendingUp, AlertTriangle, CheckCircle2, ShieldAlert, Sparkles, Filter } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle2, ShieldAlert, Filter, Zap } from 'lucide-react';
 
 interface CategoryData {
   category: string;
@@ -117,7 +117,7 @@ export const ConsumptionWasteTrendChart: React.FC = () => {
             <span className="text-slate-400 font-bold block uppercase text-[10px]">Fridge Efficiency Score</span>
             <span className="text-xl font-extrabold text-teal-300 font-mono">{overallEfficiency}% Utilized</span>
           </div>
-          <Sparkles className="w-6 h-6 text-teal-400/80" />
+          <Zap className="w-6 h-6 text-teal-400/80" />
         </div>
       </div>
 

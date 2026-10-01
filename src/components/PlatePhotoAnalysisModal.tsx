@@ -1,19 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Camera,
-  Sparkles,
-  Award,
-  Upload,
-  CheckCircle2,
-  X,
-  Play,
-  RotateCcw,
-  Utensils,
-  Maximize2
-} from 'lucide-react';
+import { Camera, Award, Upload, CheckCircle2, X, Play, RotateCcw, Utensils, Maximize2, Zap } from 'lucide-react';
 import { PlateAnalysisResult } from '../types';
 import { compressImageFile, getDataUrlMimeType } from '../utils/imageUtils';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface PlatePhotoAnalysisModalProps {
   isOpen: boolean;
@@ -81,9 +71,11 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
         body: JSON.stringify({ imageBase64: imgUrl, mimeType: getDataUrlMimeType(imgUrl) }),
       });
       if (!res.ok) throw new Error(`Plate analysis failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       setAnalysisResult(data);
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsAnalyzing(false);
@@ -211,7 +203,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
                   <div className="space-y-2">
                     <div>
                       <div className="flex justify-between text-xs mb-1 font-bold">
-                        <span className="text-slate-300">🍽️ Presentation & Appetite Appeal</span>
+                        <span className="text-slate-300">Presentation & Appetite Appeal</span>
                         <span className="font-mono text-amber-400">{analysisResult.plateScores.presentation}%</span>
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
@@ -221,7 +213,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
 
                     <div>
                       <div className="flex justify-between text-xs mb-1 font-bold">
-                        <span className="text-slate-300">🥦 Nutritional Balance</span>
+                        <span className="text-slate-300">Nutritional Balance</span>
                         <span className="font-mono text-emerald-400">{analysisResult.plateScores.nutritionalBalance}%</span>
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
@@ -231,7 +223,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
 
                     <div>
                       <div className="flex justify-between text-xs mb-1 font-bold">
-                        <span className="text-slate-300">🌈 Color Diversity</span>
+                        <span className="text-slate-300">Color Diversity</span>
                         <span className="font-mono text-purple-400">{analysisResult.plateScores.colorDiversity}%</span>
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
@@ -241,7 +233,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
 
                     <div>
                       <div className="flex justify-between text-xs mb-1 font-bold">
-                        <span className="text-slate-300">📐 Plating Geometry & Negative Space</span>
+                        <span className="text-slate-300">Plating Geometry & Negative Space</span>
                         <span className="font-mono text-cyan-400">{analysisResult.plateScores.platingGeometry}%</span>
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
@@ -262,7 +254,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
                 {/* Actionable Elevation Tip */}
                 <div className="p-4 bg-amber-950/20 rounded-2xl border border-amber-500/30 space-y-1">
                   <span className="text-[10px] font-mono text-amber-400 uppercase font-bold flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Zap className="w-3.5 h-3.5" />
                     <span>ACTIONABLE PLATING ELEVATION TIP</span>
                   </span>
                   <p className="text-xs text-slate-200 leading-relaxed font-medium">

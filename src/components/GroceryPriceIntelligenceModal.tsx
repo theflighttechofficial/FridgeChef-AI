@@ -1,21 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  DollarSign,
-  TrendingDown,
-  ShieldCheck,
-  Users,
-  Sparkles,
-  ShoppingBag,
-  Play,
-  X,
-  Plus,
-  RefreshCw,
-  Clock,
-  ArrowRight,
-  Receipt
-} from 'lucide-react';
+import { DollarSign, TrendingDown, ShieldCheck, Users, ShoppingBag, Play, X, Plus, RefreshCw, Clock, ArrowRight, Receipt, Zap } from 'lucide-react';
 import { Ingredient, BudgetMealPlanResult, Recipe } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface GroceryPriceIntelligenceModalProps {
   isOpen: boolean;
@@ -77,9 +64,12 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
           availableIngredients: availableIngredients.map((i) => i.name),
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       setBudgetPlan(data);
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -227,7 +217,7 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
             {/* Crucial requested metric: Cost per 10g protein */}
             <div className="p-4 bg-gradient-to-b from-emerald-950/40 to-slate-950 rounded-2xl border border-emerald-500/40 shadow-lg shadow-emerald-500/10">
               <span className="text-[10px] text-emerald-300 font-bold uppercase block">
-                COST / 10g PROTEIN ⚡
+                COST / 10g PROTEIN 
               </span>
               <strong className="text-lg font-black text-white font-mono mt-0.5 block">
                 {budgetPlan.costPer10gProtein}

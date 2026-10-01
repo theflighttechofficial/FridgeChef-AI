@@ -1,19 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  Sparkles,
-  GitFork,
-  Layers,
-  Flame,
-  CheckCircle2,
-  X,
-  ChevronRight,
-  Info,
-  Atom,
-  Search,
-  Share2
-} from 'lucide-react';
+import { Brain, GitFork, Layers, Flame, CheckCircle2, X, ChevronRight, Info, Atom, Search, Share2, Zap } from 'lucide-react';
 import { KnowledgeGraphNode } from '../types';
 
 interface RecipeKnowledgeGraphModalProps {

@@ -1,22 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Trophy,
-  Flame,
-  Award,
-  Sparkles,
-  CheckCircle2,
-  Dice5,
-  Play,
-  X,
-  Target,
-  BarChart3,
-  TrendingUp,
-  ShieldCheck,
-  Zap,
-  Users
-} from 'lucide-react';
+import { Trophy, Flame, Award, CheckCircle2, Dice5, Play, X, Target, BarChart3, TrendingUp, ShieldCheck, Zap, Users } from 'lucide-react';
 import { Ingredient, PantryChallengeScore, Recipe } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface PantryChallengeModalProps {
   isOpen: boolean;
@@ -77,9 +63,12 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
           userDishIdea: 'Creative Zero-Waste Pantry Creation',
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       setChallengeResult(data);
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsJudging(false);
@@ -166,7 +155,7 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 font-bold font-mono">
               <Flame className="w-4 h-4 text-orange-400" />
-              <span>5-DAY STREAK 🔥</span>
+              <span>5-DAY STREAK </span>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-xl text-purple-300 font-bold font-mono">
               <Award className="w-4 h-4 text-purple-400" />
@@ -210,7 +199,7 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
                         : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'
                     }`}
                   >
-                    <span>{isSelected ? '✓' : '+'}</span>
+                    <span>{isSelected ? '' : '+'}</span>
                     <span>{ing.name}</span>
                   </button>
                 );
@@ -224,7 +213,7 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
               disabled={isJudging || selectedIngredients.length < 2}
               className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/25 hover:opacity-95 transition-all flex items-center gap-2 active:scale-95"
             >
-              <Sparkles className="w-4 h-4 fill-slate-950" />
+              <Zap className="w-4 h-4 fill-slate-950" />
               <span>{isJudging ? 'AI Culinary Jury Scoring...' : 'Submit Challenge to AI Jury'}</span>
             </button>
           </div>
@@ -250,7 +239,7 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
                     +{challengeResult.xpEarned} XP AWARDED
                   </span>
                   <span className="block text-[10px] text-purple-300 font-mono mt-1">
-                    Unlocked: 🏆 {challengeResult.badgeUnlocked}
+                    Unlocked: {challengeResult.badgeUnlocked}
                   </span>
                 </div>
               </div>

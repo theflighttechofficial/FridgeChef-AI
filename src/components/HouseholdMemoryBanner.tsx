@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Brain, Sparkles, ChevronRight, Zap } from 'lucide-react';
+import { Brain, ChevronRight, Zap } from 'lucide-react';
 import { HouseholdMemoryProfile } from '../types';
 
 interface HouseholdMemoryBannerProps {

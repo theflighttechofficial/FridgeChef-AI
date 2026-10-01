@@ -1,20 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Users,
-  Sparkles,
-  Heart,
-  Flame,
-  ShieldCheck,
-  CheckCircle2,
-  X,
-  Play,
-  ArrowRight,
-  UserCheck,
-  Layers,
-  ChefHat
-} from 'lucide-react';
+import { Users, Heart, Flame, ShieldCheck, CheckCircle2, X, Play, ArrowRight, UserCheck, Layers, ChefHat, Zap } from 'lucide-react';
 import { DinnerMember, DinnerForEveryoneResult, Ingredient, Recipe } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface DinnerForEveryoneModalProps {
   isOpen: boolean;
@@ -28,7 +16,7 @@ export const INITIAL_HOUSEHOLD_MEMBERS: DinnerMember[] = [
     id: 'mem-1',
     name: 'Varun',
     role: 'Fitness Enthusiast',
-    avatar: '🏋️',
+    avatar: '',
     dietaryPreference: 'High Protein (40g+)',
     spiceTolerance: 'Level 4/5 (Spicy)',
     dislikedIngredients: ['Mushrooms', 'Cilantro stems'],
@@ -39,7 +27,7 @@ export const INITIAL_HOUSEHOLD_MEMBERS: DinnerMember[] = [
     id: 'mem-2',
     name: 'Mom',
     role: 'Vegetarian Cook',
-    avatar: '🥗',
+    avatar: '',
     dietaryPreference: 'Vegetarian (No meat/fish)',
     spiceTolerance: 'Level 1/5 (Mild Aromatic)',
     dislikedIngredients: ['Excessive raw onions'],
@@ -50,7 +38,7 @@ export const INITIAL_HOUSEHOLD_MEMBERS: DinnerMember[] = [
     id: 'mem-3',
     name: 'Dad',
     role: 'Cardio Health',
-    avatar: '🫀',
+    avatar: '',
     dietaryPreference: 'Low Sodium (< 400mg/meal)',
     spiceTolerance: 'Level 2/5 (Gentle)',
     dislikedIngredients: ['Heavily salted pickles'],
@@ -61,7 +49,7 @@ export const INITIAL_HOUSEHOLD_MEMBERS: DinnerMember[] = [
     id: 'mem-4',
     name: 'Arjun',
     role: 'Child / Student',
-    avatar: '🧒',
+    avatar: '',
     dietaryPreference: 'Kid-Friendly Familiar',
     spiceTolerance: 'Level 1/5 (Zero Heat)',
     dislikedIngredients: ['Bitter greens', 'Spicy chiles'],
@@ -165,9 +153,12 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
           availableIngredients: availableIngredients.map((i) => i.name),
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       setDinnerPlan(data);
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -250,7 +241,7 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
             disabled={isLoading}
             className="shrink-0 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5"
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Zap className="w-3.5 h-3.5" />
             <span>{isLoading ? 'Resolving Dietary Matrix...' : 'Re-Synthesize Harmony Meal'}</span>
           </button>
         </div>
@@ -275,7 +266,7 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
             </div>
 
             <p className="text-xs text-purple-200/90 bg-purple-950/30 p-2.5 rounded-xl border border-purple-900/40 leading-relaxed">
-              💡 <strong>Diplomatic Strategy:</strong> {dinnerPlan.harmonyReason}
+              <strong>Diplomatic Strategy:</strong> {dinnerPlan.harmonyReason}
             </p>
           </div>
 
@@ -335,7 +326,7 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
                 <div key={st.stepNumber} className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs space-y-1">
                   <div className="flex justify-between items-center text-[10px] text-purple-400 font-mono font-bold">
                     <span>STEP {st.stepNumber}</span>
-                    {st.timerSeconds && <span>⏱️ {Math.round(st.timerSeconds / 60)} min</span>}
+                    {st.timerSeconds && <span>⏱{Math.round(st.timerSeconds / 60)} min</span>}
                   </div>
                   <p className="text-slate-300 text-[11px] leading-relaxed">{st.instruction}</p>
                 </div>

@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  DollarSign,
-  TrendingDown,
-  PieChart,
-  AlertTriangle,
-  Sparkles,
-  ShieldCheck,
-  CheckCircle2,
-  X,
-  Receipt,
-  ArrowRight,
-  TrendingUp
-} from 'lucide-react';
+import { DollarSign, TrendingDown, PieChart, AlertTriangle, ShieldCheck, CheckCircle2, X, Receipt, ArrowRight, TrendingUp, Zap } from 'lucide-react';
 import { PantryFinancialAudit } from '../types';
 
 interface PantryFinancialIntelligenceModalProps {

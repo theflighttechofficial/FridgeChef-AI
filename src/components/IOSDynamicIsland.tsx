@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Camera, Mic, Activity, Battery, Wifi, Check, Zap } from 'lucide-react';
+import { Camera, Mic, Activity, Battery, Wifi, Check, Zap } from 'lucide-react';
 
 interface IOSDynamicIslandProps {
   activeTab: string;
@@ -19,7 +19,7 @@ export const IOSDynamicIsland: React.FC<IOSDynamicIslandProps> = ({
   const [statusMessage, setStatusMessage] = useState('Fridge AI Online');
 
   useEffect(() => {
-    if (sensorAnomaly) setStatusMessage('⚠️ 8.1°C Temp Anomaly (27m)');
+    if (sensorAnomaly) setStatusMessage('8.1°C Temp Anomaly (27m)');
     else if (activeTab === 'scan') setStatusMessage(`${currentIngredientsCount} Items Monitored`);
     else if (activeTab === 'recipes') setStatusMessage('AI Culinary Matrix Sync');
     else if (activeTab === 'molecular') setStatusMessage('VOC Sensor Active (37°F)');
@@ -93,7 +93,7 @@ export const IOSDynamicIsland: React.FC<IOSDynamicIslandProps> = ({
                 </div>
 
                 <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800 flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
                   <div>
                     <span className="text-slate-400 block text-[9px]">AI Vision Latency</span>
                     <strong className="text-white font-mono">140ms (On-Device)</strong>

@@ -19,11 +19,11 @@ export const FlavorDnaRadarChart: React.FC<FlavorDnaRadarChartProps> = ({
   height = 190,
 }) => {
   const data = [
-    { subject: 'Salt 🧂', value: flavorDna.salt, fullMark: 100 },
-    { subject: 'Sweet 🍯', value: flavorDna.sweet, fullMark: 100 },
-    { subject: 'Acid 🍋', value: flavorDna.acid, fullMark: 100 },
-    { subject: 'Heat 🌶️', value: flavorDna.heat, fullMark: 100 },
-    { subject: 'Umami 🍄', value: flavorDna.umami, fullMark: 100 },
+    { subject: 'Salt ', value: flavorDna.salt, fullMark: 100 },
+    { subject: 'Sweet ', value: flavorDna.sweet, fullMark: 100 },
+    { subject: 'Acid ', value: flavorDna.acid, fullMark: 100 },
+    { subject: 'Heat ', value: flavorDna.heat, fullMark: 100 },
+    { subject: 'Umami ', value: flavorDna.umami, fullMark: 100 },
   ];
 
   return (

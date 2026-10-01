@@ -1,26 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  X,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
-  SkipForward,
-  SkipBack,
-  RotateCcw,
-  CheckCircle2,
-  Clock,
-  Sparkles,
-  ChevronRight,
-  ChevronLeft,
-  List,
-  Award,
-  BellRing,
-  Plus,
-  Trash2,
-  Timer,
-  WifiOff
-} from 'lucide-react';
+import { X, Volume2, VolumeX, Play, Pause, SkipForward, SkipBack, RotateCcw, CheckCircle2, Clock, ChevronRight, ChevronLeft, List, Award, BellRing, Plus, Trash2, Timer, WifiOff, Zap } from 'lucide-react';
 import { Recipe } from '../types';
 import { speechEngine } from '../utils/speechUtils';
 import { VoiceInteractionHapticPulse } from './VoiceInteractionHapticPulse';
@@ -168,9 +147,15 @@ export const StepByStepCookingModal: React.FC<StepByStepCookingModalProps> = ({
   }, [customTimers]);
 
   // Multi-Timer Actions
+  const [formError, setFormError] = useState<string | null>(null);
   const handleAddCustomTimer = (e: React.FormEvent) => {
     e.preventDefault();
-    const mins = parseFloat(newTimerMins) || 1;
+    const mins = parseFloat(newTimerMins);
+    if (!Number.isFinite(mins) || mins <= 0 || mins > 600) {
+      setFormError('Enter a time between 0.1 and 600 minutes.');
+      return;
+    }
+    setFormError(null);
     const secs = Math.round(mins * 60);
     const newTimer: CustomTimer = {
       id: `custom-timer-${Date.now()}`,
@@ -278,7 +263,7 @@ export const StepByStepCookingModal: React.FC<StepByStepCookingModalProps> = ({
       <header className="px-6 py-4 border-b border-slate-800/80 bg-slate-900/80 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-            <Sparkles className="w-5 h-5" />
+            <Zap className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] uppercase font-semibold text-emerald-400 tracking-wider">
@@ -396,7 +381,7 @@ export const StepByStepCookingModal: React.FC<StepByStepCookingModalProps> = ({
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    {lvl === 'Beginner' ? '🟢 Beginner' : lvl === 'Intermediate' ? '🟡 Mid' : '🔴 Advanced'}
+                    {lvl === 'Beginner' ? 'Beginner' : lvl === 'Intermediate' ? 'Mid' : 'Advanced'}
                   </button>
                 ))}
               </div>
@@ -599,7 +584,7 @@ export const StepByStepCookingModal: React.FC<StepByStepCookingModalProps> = ({
               </div>
 
               {/* Add Custom Timer Form */}
-              <form onSubmit={handleAddCustomTimer} className="space-y-2 pt-1">
+              <form onSubmit={handleAddCustomTimer} noValidate onInput={() => setFormError(null)} className="space-y-2 pt-1">
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -626,6 +611,11 @@ export const StepByStepCookingModal: React.FC<StepByStepCookingModalProps> = ({
                     <span>Add</span>
                   </button>
                 </div>
+                {formError && (
+                  <p role="alert" className="text-xs text-rose-300 basis-full w-full">
+                    {formError}
+                  </p>
+                )}
               </form>
 
               {/* Active Timers List */}

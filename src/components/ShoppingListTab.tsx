@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Plus, Trash2, CheckCircle2, Copy, Check, Printer, Sparkles, Filter } from 'lucide-react';
+import { ShoppingBag, Plus, Trash2, CheckCircle2, Copy, Check, Printer, Filter, Zap } from 'lucide-react';
 import { ShoppingItem } from '../types';
 
 interface ShoppingListTabProps {
@@ -34,9 +34,18 @@ export const ShoppingListTab: React.FC<ShoppingListTabProps> = ({
   const [copied, setCopied] = useState(false);
   const [filterCategory, setFilterCategory] = useState('All');
 
+  const [formError, setFormError] = useState<string | null>(null);
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newItemName.trim()) return;
+    if (!newItemName.trim()) {
+      setFormError('Enter an item name to add it to the list.');
+      return;
+    }
+    if (items.some((i) => !i.checked && i.name.trim().toLowerCase() === newItemName.trim().toLowerCase())) {
+      setFormError(`${newItemName.trim()} is already on your list.`);
+      return;
+    }
+    setFormError(null);
     onAddItem(newItemName.trim(), newItemCategory, newItemQuantity.trim() || '1 item');
     setNewItemName('');
     setNewItemQuantity('1 item');
@@ -124,7 +133,7 @@ export const ShoppingListTab: React.FC<ShoppingListTabProps> = ({
           <Plus className="w-4 h-4 text-emerald-400" />
           <span>Add Custom Item to Shopping List</span>
         </h3>
-        <form onSubmit={handleFormSubmit} className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <form onSubmit={handleFormSubmit} noValidate onInput={() => setFormError(null)} className="grid grid-cols-1 sm:grid-cols-12 gap-3">
           <input
             type="text"
             placeholder="Item name (e.g., Almond Milk, Rosemary...)"
@@ -157,6 +166,11 @@ export const ShoppingListTab: React.FC<ShoppingListTabProps> = ({
             <Plus className="w-4 h-4" />
             <span>Add Item</span>
           </button>
+          {formError && (
+            <p role="alert" className="text-xs text-rose-300 basis-full w-full">
+              {formError}
+            </p>
+          )}
         </form>
       </div>
 
@@ -200,7 +214,7 @@ export const ShoppingListTab: React.FC<ShoppingListTabProps> = ({
               >
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Zap className="w-3.5 h-3.5" />
                     <span>{catKey}</span>
                   </h3>
                   <span className="text-[11px] text-slate-500">

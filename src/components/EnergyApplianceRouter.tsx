@@ -32,7 +32,7 @@ export const EnergyApplianceRouter: React.FC = () => {
               isPeakHour ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-slate-950 text-slate-400 border-slate-800'
             }`}
           >
-            {isPeakHour ? '⚡ Peak Rates ($0.38/kWh)' : 'Off-Peak Rates ($0.12/kWh)'}
+            {isPeakHour ? 'Peak Rates ($0.38/kWh)' : 'Off-Peak Rates ($0.12/kWh)'}
           </button>
         </div>
       </div>

@@ -1,16 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import {
-  Clock,
-  Flame,
-  Sparkles,
-  Zap,
-  Wine,
-  Users,
-  Award,
-  SlidersHorizontal,
-  ChevronRight
-} from 'lucide-react';
+import { Clock, Flame, Zap, Wine, Users, Award, SlidersHorizontal, ChevronRight } from 'lucide-react';
 import { CookingTimeBudget, CookingMoodMode, CookingSkillAdaptationLevel } from '../types';
 
 interface ContextAwareCookingBarProps {
@@ -57,14 +47,14 @@ export const ContextAwareCookingBar: React.FC<ContextAwareCookingBarProps> = ({
         {/* Mood Mode */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
             <span>Mood:</span>
           </span>
           {[
             { id: 'Standard' as const, label: 'Everyday' },
-            { id: 'Starving' as const, label: '🏃 Starving' },
-            { id: 'Gourmet' as const, label: '🍷 Impress / Gourmet' },
-            { id: 'Hosting' as const, label: '🥂 Hosting Guests' },
+            { id: 'Starving' as const, label: 'Starving' },
+            { id: 'Gourmet' as const, label: 'Impress / Gourmet' },
+            { id: 'Hosting' as const, label: 'Hosting Guests' },
           ].map((m) => (
             <button
               key={m.id}
@@ -96,7 +86,7 @@ export const ContextAwareCookingBar: React.FC<ContextAwareCookingBarProps> = ({
                   : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
               }`}
             >
-              {level === 'Beginner' ? '🟢 Beginner' : level === 'Intermediate' ? '🟡 Intermediate' : '🔴 Advanced'}
+              {level === 'Beginner' ? 'Beginner' : level === 'Intermediate' ? 'Intermediate' : 'Advanced'}
             </button>
           ))}
         </div>

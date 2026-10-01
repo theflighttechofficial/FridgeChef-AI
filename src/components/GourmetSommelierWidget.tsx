@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Wine, GlassWater, Sparkles, Flame, RefreshCw, Check } from 'lucide-react';
+import { Wine, GlassWater, Flame, RefreshCw, Check, Zap } from 'lucide-react';
 
 interface PairingNote {
   dish: string;

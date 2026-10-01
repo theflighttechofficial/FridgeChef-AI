@@ -1,23 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Sparkles,
-  Dna,
-  Flame,
-  ShieldCheck,
-  Zap,
-  TrendingDown,
-  DollarSign,
-  Utensils,
-  Clock,
-  CheckCircle2,
-  X,
-  Play,
-  ArrowRight,
-  Layers,
-  ChefHat
-} from 'lucide-react';
+import { Dna, Flame, ShieldCheck, Zap, TrendingDown, DollarSign, Utensils, Clock, CheckCircle2, X, Play, ArrowRight, Layers, ChefHat } from 'lucide-react';
 import { Recipe, RecipeEvolutionSet, RecipeEvolutionItem, EvolutionType } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface RecipeEvolutionModalProps {
   isOpen: boolean;
@@ -50,9 +35,12 @@ export const RecipeEvolutionModal: React.FC<RecipeEvolutionModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ baseRecipe }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       setEvolutionData(data);
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -129,12 +117,12 @@ export const RecipeEvolutionModal: React.FC<RecipeEvolutionModalProps> = ({
         {/* 6 Evolution Variant Selection Tabs */}
         <div className="px-6 py-2.5 bg-slate-900 border-b border-slate-800 flex gap-2 overflow-x-auto no-scrollbar">
           {[
-            { id: 'higher-protein' as const, label: 'Higher Protein', icon: '💪', color: 'emerald' },
-            { id: 'lower-calorie' as const, label: 'Lower Calorie', icon: '🥗', color: 'teal' },
-            { id: 'more-spicy' as const, label: 'More Spicy', icon: '🌶️', color: 'rose' },
-            { id: 'restaurant-style' as const, label: 'Restaurant Style', icon: '🍷', color: 'purple' },
-            { id: 'budget-version' as const, label: 'Budget Version', icon: '💰', color: 'amber' },
-            { id: '15-minute' as const, label: '15-Minute Flash', icon: '⚡', color: 'cyan' },
+            { id: 'higher-protein' as const, label: 'Higher Protein', icon: '', color: 'emerald' },
+            { id: 'lower-calorie' as const, label: 'Lower Calorie', icon: '', color: 'teal' },
+            { id: 'more-spicy' as const, label: 'More Spicy', icon: '', color: 'rose' },
+            { id: 'restaurant-style' as const, label: 'Restaurant Style', icon: '', color: 'purple' },
+            { id: 'budget-version' as const, label: 'Budget Version', icon: '', color: 'amber' },
+            { id: '15-minute' as const, label: '15-Minute Flash', icon: '', color: 'cyan' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -145,7 +133,6 @@ export const RecipeEvolutionModal: React.FC<RecipeEvolutionModalProps> = ({
                   : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
               }`}
             >
-              <span>{tab.icon}</span>
               <span>{tab.label}</span>
             </button>
           ))}
@@ -210,7 +197,7 @@ export const RecipeEvolutionModal: React.FC<RecipeEvolutionModalProps> = ({
                 {/* Key Evolutionary Modifications */}
                 <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-3">
                   <span className="text-xs font-bold text-violet-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                    <Zap className="w-3.5 h-3.5 text-violet-400" />
                     <span>Evolutionary Recipe Modifications</span>
                   </span>
                   <div className="space-y-2">
@@ -256,7 +243,7 @@ export const RecipeEvolutionModal: React.FC<RecipeEvolutionModalProps> = ({
                       <div key={st.stepNumber} className="p-3 bg-slate-900 rounded-xl border border-slate-800/80 text-xs space-y-1">
                         <div className="flex justify-between items-center text-[10px] text-violet-400 font-mono font-bold">
                           <span>STEP {st.stepNumber}</span>
-                          {st.timerSeconds && <span>⏱️ {Math.round(st.timerSeconds / 60)} min</span>}
+                          {st.timerSeconds && <span>⏱{Math.round(st.timerSeconds / 60)} min</span>}
                         </div>
                         <p className="text-slate-300 text-[11px] leading-relaxed">{st.instruction}</p>
                       </div>

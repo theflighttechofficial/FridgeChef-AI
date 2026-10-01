@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2, Sparkles, Check, AlertCircle } from 'lucide-react';
+import { Mic, MicOff, Volume2, Check, AlertCircle, Zap } from 'lucide-react';
 import { speechEngine } from '../utils/speechUtils';
+import { showToast } from '../utils/toast';
 
 interface VoiceNavigationProps {
   activeTab: 'scan' | 'recipes' | 'shopping' | 'saved' | 'molecular';
@@ -112,7 +113,7 @@ export const VoiceNavigationController: React.FC<VoiceNavigationProps> = ({
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
-      alert('Speech recognition is not supported on this browser version.');
+      showToast('Speech recognition is not supported on this browser version.');
       return;
     }
 
@@ -164,7 +165,7 @@ export const VoiceNavigationController: React.FC<VoiceNavigationProps> = ({
         <div className="absolute top-10 right-0 z-50 bg-slate-900 border border-emerald-500/40 p-3 rounded-xl shadow-2xl w-64 space-y-1.5 text-xs animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center justify-between text-[11px] font-bold text-emerald-400">
             <span className="flex items-center gap-1">
-              <Sparkles className="w-3 h-3" /> Listening...
+              <Zap className="w-3 h-3" /> Listening...
             </span>
             <span className="text-slate-500 font-mono">Commands: Scan, Recipes, Shopping</span>
           </div>

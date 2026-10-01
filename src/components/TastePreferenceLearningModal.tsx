@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  Star,
-  Sparkles,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  X,
-  Heart,
-  ThumbsUp,
-  ThumbsDown,
-  Award
-} from 'lucide-react';
+import { Brain, Star, TrendingUp, TrendingDown, CheckCircle2, X, Heart, ThumbsUp, ThumbsDown, Award, Zap } from 'lucide-react';
 import { TastePreferenceVector } from '../types';
 
 interface TastePreferenceLearningModalProps {
@@ -216,7 +204,7 @@ export const TastePreferenceLearningModal: React.FC<TastePreferenceLearningModal
               {/* Liked Textures */}
               <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2.5">
                 <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Zap className="w-3.5 h-3.5" />
                   <span>Texture Profile (Weight ↑)</span>
                 </span>
                 <div className="space-y-2">

@@ -1,23 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Receipt,
-  Camera,
-  Upload,
-  Sparkles,
-  ArrowRight,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  X,
-  Plus,
-  Scale,
-  DollarSign,
-  TrendingUp,
-  ChefHat
-} from 'lucide-react';
+import { Receipt, Camera, Upload, ArrowRight, CheckCircle2, AlertCircle, Clock, X, Plus, Scale, DollarSign, TrendingUp, ChefHat, Zap } from 'lucide-react';
 import { ReceiptAnalysisResult, Ingredient } from '../types';
 import { compressImageFile, getDataUrlMimeType } from '../utils/imageUtils';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface ReceiptScannerModalProps {
   isOpen: boolean;
@@ -66,9 +52,11 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
         body: JSON.stringify({ imageBase64: base64, mimeType: getDataUrlMimeType(base64) }),
       });
       if (!res.ok) throw new Error(`Receipt analysis failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       if (Array.isArray(data?.items)) setAnalysisResult(data);
     } catch (err) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(err);
     } finally {
       setIsAnalyzing(false);
@@ -219,7 +207,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {analysisResult.mealSuggestions.map((meal, idx) => (
                     <div key={idx} className="p-2.5 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-white font-medium flex items-center gap-2">
-                      <Sparkles className="w-3 h-3 text-purple-400 shrink-0" />
+                      <Zap className="w-3 h-3 text-purple-400 shrink-0" />
                       <span className="line-clamp-2">{meal}</span>
                     </div>
                   ))}

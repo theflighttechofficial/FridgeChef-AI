@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CloudRain, Moon, Dna, Mountain, Sparkles, SlidersHorizontal, Check } from 'lucide-react';
+import { CloudRain, Moon, Dna, Mountain, SlidersHorizontal, Check, Zap } from 'lucide-react';
 
 export const BioEnvironmentBar: React.FC = () => {
   const [altitudeFt, setAltitudeFt] = useState(5280); // Denver / High Altitude default
@@ -17,7 +17,7 @@ export const BioEnvironmentBar: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-            <Sparkles className="w-4 h-4" />
+            <Zap className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -55,7 +55,7 @@ export const BioEnvironmentBar: React.FC = () => {
             {sleepScore < 70 ? 'Serotonin & Tryptophan Priority' : 'High Energy Balanced'}
           </p>
           <p className="text-[10px] text-slate-500 italic">
-            {weatherCondition} — Prioritizing cozy warm comfort meals.
+            {weatherCondition}, Prioritizing cozy warm comfort meals.
           </p>
         </div>
 

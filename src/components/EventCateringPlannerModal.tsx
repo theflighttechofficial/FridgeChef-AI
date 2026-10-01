@@ -1,19 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  PartyPopper,
-  Users,
-  DollarSign,
-  Clock,
-  ShoppingBag,
-  Sparkles,
-  CheckCircle2,
-  X,
-  Play,
-  Calendar,
-  ChefHat
-} from 'lucide-react';
+import { PartyPopper, Users, DollarSign, Clock, ShoppingBag, CheckCircle2, X, Play, Calendar, ChefHat, Zap } from 'lucide-react';
 import { EventCateringPlanResult, Ingredient } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface EventCateringPlannerModalProps {
   isOpen: boolean;
@@ -125,9 +114,12 @@ export const EventCateringPlannerModal: React.FC<EventCateringPlannerModalProps>
           availableIngredients: availableIngredients.map((i) => i.name),
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       setCateringPlan(data);
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -240,7 +232,7 @@ export const EventCateringPlannerModal: React.FC<EventCateringPlannerModalProps>
               disabled={isLoading}
               className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
             >
-              <Sparkles className="w-3.5 h-3.5 fill-slate-950" />
+              <Zap className="w-3.5 h-3.5 fill-slate-950" />
               <span>{isLoading ? 'Planning...' : 'Generate Plan'}</span>
             </button>
           </div>

@@ -1,0 +1,35 @@
+import React from 'react';
+
+interface LogoMarkProps {
+  className?: string;
+  title?: string;
+}
+
+// FridgeChef mark: a fridge wearing a chef's toque, with an AI spark on the door
+export const LogoMark: React.FC<LogoMarkProps> = ({ className = 'w-9 h-9', title = 'FridgeChef.AI' }) => (
+  <svg viewBox="0 0 64 64" className={className} role="img" aria-label={title}>
+    <rect x="2" y="2" width="60" height="60" rx="16" fill="#FF5A3C" />
+    {/* Chef toque */}
+    <path
+      d="M22 22c-3.6 0-6-2.6-6-5.6 0-3.2 2.7-5.6 5.9-5.4C23.1 8.6 25.4 7 28 7c1.6 0 3 .6 4 1.6C33 7.6 34.4 7 36 7c2.6 0 4.9 1.6 6.1 4 3.2-.2 5.9 2.2 5.9 5.4 0 3-2.4 5.6-6 5.6z"
+      fill="#F5F1E8"
+    />
+    {/* Fridge body */}
+    <rect x="20" y="21" width="24" height="36" rx="5" fill="#0A0C0B" stroke="#F5F1E8" strokeWidth="2.5" />
+    <line x1="20" y1="33" x2="44" y2="33" stroke="#F5F1E8" strokeWidth="2.5" />
+    {/* Handles */}
+    <line x1="25" y1="25.5" x2="25" y2="29" stroke="#FF5A3C" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="25" y1="37.5" x2="25" y2="44" stroke="#FF5A3C" strokeWidth="2.5" strokeLinecap="round" />
+    {/* AI spark */}
+    <path d="M36 40l1.5 3.5L41 45l-3.5 1.5L36 50l-1.5-3.5L31 45l3.5-1.5z" fill="#3DDC84" />
+  </svg>
+);
+
+export const Logo: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <span className={`flex items-center gap-2 ${className}`}>
+    <LogoMark className="w-8 h-8 sm:w-9 sm:h-9 transition-transform duration-300 group-hover:rotate-[-6deg] group-hover:scale-105" />
+    <span className="text-base sm:text-xl font-extrabold tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+      FridgeChef<span className="text-emerald-400">.AI</span>
+    </span>
+  </span>
+);

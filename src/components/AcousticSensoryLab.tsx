@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Volume2, Sparkles, Clock, AlertTriangle, Activity, CheckCircle2, Flame, ShieldAlert } from 'lucide-react';
+import { Mic, Volume2, Clock, AlertTriangle, Activity, CheckCircle2, Flame, ShieldAlert, Zap } from 'lucide-react';
 
 export const AcousticSensoryLab: React.FC = () => {
   const [isListeningSonic, setIsListeningSonic] = useState(false);
@@ -210,7 +210,7 @@ export const AcousticSensoryLab: React.FC = () => {
                 {hoursLeft} Hours Remaining
               </p>
               <p className="text-[10px] text-slate-400 italic">
-                {hoursLeft < 12 ? '⚠️ High Priority: Cook within today!' : 'Fresh & ready to use.'}
+                {hoursLeft < 12 ? 'High Priority: Cook within today!' : 'Fresh & ready to use.'}
               </p>
             </div>
           </div>

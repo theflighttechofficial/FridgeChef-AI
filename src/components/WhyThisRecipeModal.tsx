@@ -1,17 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  Sparkles,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  AlertCircle,
-  X,
-  ShieldCheck,
-  Zap,
-  Info
-} from 'lucide-react';
+import { Brain, TrendingUp, TrendingDown, CheckCircle2, AlertCircle, X, ShieldCheck, Zap, Info } from 'lucide-react';
 import { Recipe, WhyThisRecipeExplainability } from '../types';
 
 interface WhyThisRecipeModalProps {

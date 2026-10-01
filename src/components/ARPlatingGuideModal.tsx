@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, X, Sparkles, Layers, Award, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Camera, X, Layers, Award, CheckCircle2, RotateCcw, Zap } from 'lucide-react';
+import { showToast } from '../utils/toast';
 
 interface ARPlatingGuideModalProps {
   recipeTitle: string;
@@ -43,7 +44,7 @@ export const ARPlatingGuideModal: React.FC<ARPlatingGuideModalProps> = ({
 
   const startCamera = async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      alert('Camera is not supported in this browser.');
+      showToast('Camera is not supported in this browser.');
       return;
     }
     try {
@@ -52,7 +53,7 @@ export const ARPlatingGuideModal: React.FC<ARPlatingGuideModalProps> = ({
       setIsCameraActive(true);
     } catch (e) {
       console.warn('Camera access error:', e);
-      alert('Camera permissions required for live AR projection overlay.');
+      showToast('Camera permissions required for live AR projection overlay.');
       setIsCameraActive(false);
     }
   };

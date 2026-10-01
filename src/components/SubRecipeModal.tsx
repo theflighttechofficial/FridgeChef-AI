@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Utensils, CheckCircle2, X, ArrowRight } from 'lucide-react';
+import { Utensils, CheckCircle2, X, ArrowRight, Zap } from 'lucide-react';
 
 interface SubRecipeModalProps {
   missingIngredient: string;
@@ -42,7 +42,7 @@ export const SubRecipeModal: React.FC<SubRecipeModalProps> = ({ missingIngredien
       <header className="px-6 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-            <Sparkles className="w-5 h-5" />
+            <Zap className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">

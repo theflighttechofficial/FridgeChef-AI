@@ -1,19 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Leaf,
-  Droplets,
-  DollarSign,
-  TrendingDown,
-  Globe,
-  Sparkles,
-  ShieldCheck,
-  CheckCircle2,
-  X,
-  Award,
-  Zap,
-  BarChart3
-} from 'lucide-react';
+import { Leaf, Droplets, DollarSign, TrendingDown, Globe, ShieldCheck, CheckCircle2, X, Award, Zap, BarChart3 } from 'lucide-react';
 import { SustainabilityMetrics } from '../types';
 
 interface FoodWasteCarbonCalculatorModalProps {
@@ -84,7 +71,7 @@ export const FoodWasteCarbonCalculatorModal: React.FC<FoodWasteCarbonCalculatorM
               <span className="text-[10px] text-emerald-400 uppercase font-mono font-bold tracking-wider">
                 COMMUNITY RANK: TOP 6% ZERO-WASTE HOMES
               </span>
-              <h4 className="text-base font-extrabold text-white">🌱 Household Sustainability Score</h4>
+              <h4 className="text-base font-extrabold text-white">Household Sustainability Score</h4>
               <p className="text-xs text-slate-300">
                 You prevent 82% more food spoilage than the average urban refrigerator.
               </p>
@@ -93,7 +80,7 @@ export const FoodWasteCarbonCalculatorModal: React.FC<FoodWasteCarbonCalculatorM
 
           <div className="flex items-center gap-2">
             <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold">
-              🏅 ECO-CHEF CERTIFIED
+              ECO-CHEF CERTIFIED
             </span>
           </div>
         </div>

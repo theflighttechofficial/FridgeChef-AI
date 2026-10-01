@@ -1,23 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  Users,
-  Flame,
-  Clock,
-  Heart,
-  ThumbsDown,
-  Sparkles,
-  ShieldAlert,
-  Save,
-  Plus,
-  Trash2,
-  X,
-  ChefHat,
-  Zap,
-  Info
-} from 'lucide-react';
+import { Brain, Users, Flame, Clock, Heart, ThumbsDown, ShieldAlert, Save, Plus, Trash2, X, ChefHat, Zap, Info } from 'lucide-react';
 import { HouseholdMemoryProfile, HouseholdMember, Ingredient } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface HouseholdMemoryEngineModalProps {
   isOpen: boolean;
@@ -62,11 +47,14 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
           currentIngredients: currentIngredients,
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       if (data.conversationalGreeting) {
         setLiveInsight(data.conversationalGreeting);
       }
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsGeneratingInsight(false);
@@ -112,7 +100,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
         {/* Ambient AI Proactive Insight Callout */}
         <div className="px-6 py-3.5 bg-purple-950/40 border-b border-purple-900/30 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
+            <Zap className="w-4 h-4 text-purple-400 shrink-0" />
             <p className="text-xs sm:text-sm font-semibold text-purple-200 italic">
               "{liveInsight}"
             </p>
@@ -159,7 +147,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Zap className="w-3.5 h-3.5" />
             <span>Learned Memory Graph</span>
           </button>
         </div>
@@ -274,7 +262,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                             key={idx}
                             className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold"
                           >
-                            ⚠️ {a}
+                            {a}
                           </span>
                         ))
                       )}
@@ -309,7 +297,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                   <div className="flex flex-wrap gap-2">
                     {profile.preferredAppliances.map((app, i) => (
                       <span key={i} className="px-3 py-1 bg-teal-500/20 text-teal-300 rounded-xl text-xs font-bold border border-teal-500/30">
-                        ⚡ {app}
+                        {app}
                       </span>
                     ))}
                   </div>
@@ -366,7 +354,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                 <div className="flex flex-wrap gap-2">
                   {profile.frequentlyPurchased.map((item, i) => (
                     <span key={i} className="px-2.5 py-1 bg-slate-900 text-slate-300 rounded-lg text-xs border border-slate-800">
-                      ✓ {item}
+                      {item}
                     </span>
                   ))}
                 </div>

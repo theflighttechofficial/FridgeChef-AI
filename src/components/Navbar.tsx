@@ -1,32 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Utensils,
-  Camera,
-  ShoppingBag,
-  Bookmark,
-  Sparkles,
-  ChefHat,
-  Atom,
-  Trophy,
-  Award,
-  Menu,
-  X,
-  Brain,
-  Receipt,
-  FlaskConical,
-  Activity,
-  Globe,
-  Thermometer,
-  ShieldAlert,
-  Users,
-  Mic,
-  GitFork,
-  Bot,
-  PartyPopper,
-  DollarSign
-} from 'lucide-react';
+import { Utensils, Camera, ShoppingBag, Bookmark, ChefHat, Atom, Trophy, Award, Menu, X, Brain, Receipt, FlaskConical, Activity, Globe, Thermometer, ShieldAlert, Users, Mic, GitFork, Bot, PartyPopper, DollarSign, Zap } from 'lucide-react';
 import { VoiceNavigationController } from './VoiceNavigationController';
+import { ToolsMenu, ToolsGrid, ToolItem } from './ToolsMenu';
+import { Logo } from './Logo';
 
 const useHorizontalWheelScroll = <T extends HTMLElement>() => {
   const ref = useRef<T>(null);
@@ -108,9 +85,33 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Every secondary feature lives in the "AI Tools" dropdown so the bar keeps only the 5 core tabs
+  const tools: ToolItem[] = [
+    { group: 'AI Agents', label: 'Culinary OS', description: 'Autonomous 12-stage meal planning agent', icon: Bot, onSelect: onOpenAutonomousAgentModal, highlight: true },
+    { group: 'AI Agents', label: 'Voice Kitchen', description: 'Talk to your kitchen assistant hands-free', icon: Mic, onSelect: onOpenKitchenVoiceModal },
+    { group: 'AI Agents', label: 'Knowledge Graph', description: 'Flavor compounds and recipe connections', icon: GitFork, onSelect: onOpenKnowledgeGraphModal },
+    { group: 'AI Agents', label: 'Taste Model', description: 'Learns your taste preferences over time', icon: Brain, onSelect: onOpenTasteModal },
+    { group: 'AI Agents', label: 'Household Memory', description: 'What your household likes and avoids', icon: Brain, onSelect: onOpenMemoryModal },
+    { group: 'AI Agents', label: 'Neuro-Gastronomy', description: 'Mood-based dishes and historic time machine', icon: Atom, onSelect: onOpenNeuroModal },
+    { group: 'Cook & Create', label: 'Chef Personas', description: 'Recipes in 10 master chef styles', icon: ChefHat, onSelect: onOpenChefPersonaModal },
+    { group: 'Cook & Create', label: 'Pantry Challenge', description: 'Cook with only what you have', icon: Trophy, onSelect: onOpenPantryChallengeModal },
+    { group: 'Cook & Create', label: 'Iron Chef', description: 'Mystery box cooking game', icon: Trophy, onSelect: onOpenIronChefModal },
+    { group: 'Cook & Create', label: 'Substitutes', description: 'Swap any ingredient intelligently', icon: FlaskConical, onSelect: onOpenSubstitutionsModal },
+    { group: 'Cook & Create', label: 'AR Plating', description: 'Michelin-style plating guide', icon: Award, onSelect: onOpenARPlatingModal },
+    { group: 'Cook & Create', label: 'Plate Vision', description: 'Score a photo of your plated dish', icon: Camera, onSelect: onOpenPlateAnalysisModal },
+    { group: 'Cook & Create', label: 'Event Catering', description: 'Plan menus for guests and parties', icon: PartyPopper, onSelect: onOpenCateringModal },
+    { group: 'Cook & Create', label: 'Dinner for Everyone', description: 'One meal for every household diet', icon: Users, onSelect: onOpenDinnerForEveryoneModal },
+    { group: 'Health & Safety', label: 'Nutrition Dashboard', description: 'Personal macro and nutrient tracking', icon: Activity, onSelect: onOpenNutritionModal },
+    { group: 'Health & Safety', label: 'Food Safety', description: 'HACCP windows and spoilage risk', icon: ShieldAlert, onSelect: onOpenFoodSafetyModal },
+    { group: 'Health & Safety', label: 'Fridge Sensors', description: 'Temperature, humidity, door and VOC', icon: Thermometer, onSelect: onOpenSensorModal },
+    { group: 'Health & Safety', label: 'Carbon Calculator', description: 'Food waste carbon and water impact', icon: Globe, onSelect: onOpenCarbonModal },
+    { group: 'Money & Pantry', label: 'Budget Mode', description: 'Grocery price intelligence', icon: Receipt, onSelect: onOpenBudgetModeModal },
+    { group: 'Money & Pantry', label: 'Pantry Financials', description: 'Where your food money goes', icon: Receipt, onSelect: onOpenFinancialModal },
+    { group: 'Money & Pantry', label: 'Receipt to Pantry', description: 'Scan a receipt into your fridge', icon: Receipt, onSelect: onOpenReceiptModal },
+  ];
+
   // Let the vertical mouse wheel scroll the horizontal tab rows while the pointer is over them
   const desktopNavScrollRef = useHorizontalWheelScroll<HTMLDivElement>();
-  const mobileNavScrollRef = useHorizontalWheelScroll<HTMLDivElement>();
 
   return (
     <>
@@ -122,24 +123,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('scan')}
               className="flex items-center gap-2 text-left focus:outline-none group shrink-0"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                  <ChefHat className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
-                </div>
-              </div>
-              <div>
-                <span className="text-base sm:text-xl font-extrabold tracking-tight text-white group-hover:text-emerald-400 transition-colors">
-                  FridgeChef<span className="text-emerald-400">.AI</span>
-                </span>
-              </div>
+              <Logo />
             </button>
 
             {/* Middle Horizontally Scrollable Navigation Container (with custom scrollbar) */}
-            <div ref={desktopNavScrollRef} className="hidden md:flex items-center gap-3 overflow-x-auto nav-scrollbar py-2 px-1 flex-1 max-w-full mx-2">
+            <div ref={desktopNavScrollRef} className="hidden md:flex items-center justify-center overflow-x-auto no-scrollbar py-2 px-1 flex-1 min-w-0 mx-2">
               {/* Zone 2: Navigation Tabs */}
               <nav className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80 shrink-0">
                 <button
                   onClick={() => setActiveTab('scan')}
+                  title="Fridge Scanner"
+                  aria-label="Fridge Scanner"
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg relative isolate text-xs font-semibold transition-all whitespace-nowrap min-h-[38px] ${
                     activeTab === 'scan'
                       ? 'text-slate-950 font-bold'
@@ -154,11 +148,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                     />
                   )}
                   <Camera className="w-3.5 h-3.5" />
-                  <span>Fridge Scanner</span>
+                  <span className="hidden lg:inline">Scanner</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('recipes')}
+                  title="Recipe Discovery"
+                  aria-label="Recipe Discovery"
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg relative isolate text-xs font-semibold transition-all whitespace-nowrap min-h-[38px] ${
                     activeTab === 'recipes'
                       ? 'text-slate-950 font-bold'
@@ -173,11 +169,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                     />
                   )}
                   <Utensils className="w-3.5 h-3.5" />
-                  <span>Recipe Discovery</span>
+                  <span className="hidden lg:inline">Recipes</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('molecular')}
+                  title="Molecular VOC Lab"
+                  aria-label="Molecular VOC Lab"
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap relative isolate min-h-[38px] ${
                     activeTab === 'molecular'
                       ? 'text-slate-950 font-bold'
@@ -192,11 +190,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                     />
                   )}
                   <Atom className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Molecular VOC Lab</span>
+                  <span className="hidden lg:inline">Lab</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('shopping')}
+                  title="Shopping List"
+                  aria-label="Shopping List"
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap relative isolate min-h-[38px] ${
                     activeTab === 'shopping'
                       ? 'text-slate-950 font-bold'
@@ -211,7 +211,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     />
                   )}
                   <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>Shopping List</span>
+                  <span className="hidden lg:inline">Shopping</span>
                   {shoppingListCount > 0 && (
                     <span className="ml-1 px-1.5 py-0.2 text-[10px] rounded-full bg-emerald-400 text-slate-950 font-bold">
                       {shoppingListCount}
@@ -221,6 +221,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 <button
                   onClick={() => setActiveTab('saved')}
+                  title="Saved Recipes"
+                  aria-label="Saved Recipes"
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap relative isolate min-h-[38px] ${
                     activeTab === 'saved'
                       ? 'text-slate-950 font-bold'
@@ -235,7 +237,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     />
                   )}
                   <Bookmark className="w-3.5 h-3.5" />
-                  <span>Saved</span>
+                  <span className="hidden lg:inline">Saved</span>
                   {savedCount > 0 && (
                     <span className="ml-1 px-1.5 py-0.2 text-[10px] rounded-full bg-slate-800 text-emerald-400 font-bold">
                       {savedCount}
@@ -244,243 +246,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </nav>
 
-              <div className="h-6 w-px bg-slate-800 shrink-0" />
-
-              {/* Zone 3: AI Culinary Tools & Intelligence Bar */}
-              <div className="flex items-center gap-2 shrink-0">
-                {onOpenAutonomousAgentModal && (
-                  <button
-                    onClick={onOpenAutonomousAgentModal}
-                    className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-emerald-400 via-teal-400 to-indigo-400 text-slate-950 font-black text-xs rounded-xl shadow-xl shadow-emerald-500/25 hover:scale-105 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Autonomous Culinary Operating System (12-Stage Agent)"
-                  >
-                    <Bot className="w-4 h-4 fill-slate-950 animate-pulse" />
-                    <span>Culinary OS</span>
-                  </button>
-                )}
-
-                {onOpenKitchenVoiceModal && (
-                  <button
-                    onClick={onOpenKitchenVoiceModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-xl hover:bg-emerald-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Natural Conversational Kitchen Agent (Spoken Dialogue)"
-                  >
-                    <Mic className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                    <span>Voice</span>
-                  </button>
-                )}
-
-                {onOpenKnowledgeGraphModal && (
-                  <button
-                    onClick={onOpenKnowledgeGraphModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-purple-500/10 border border-purple-500/40 text-purple-300 font-bold text-xs rounded-xl hover:bg-purple-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Recipe Knowledge Graph (Flavor Compounds & Chemistry)"
-                  >
-                    <GitFork className="w-3.5 h-3.5 text-purple-400" />
-                    <span>Graph</span>
-                  </button>
-                )}
-
-                {onOpenPlateAnalysisModal && (
-                  <button
-                    onClick={onOpenPlateAnalysisModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-amber-500/10 border border-amber-500/40 text-amber-300 font-bold text-xs rounded-xl hover:bg-amber-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Plate Photo -> Food & Plating Analysis"
-                  >
-                    <Camera className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Plate Vision</span>
-                  </button>
-                )}
-
-                {onOpenTasteModal && (
-                  <button
-                    onClick={onOpenTasteModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-purple-500/10 border border-purple-500/40 text-purple-300 font-bold text-xs rounded-xl hover:bg-purple-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Taste Preference Learning Engine"
-                  >
-                    <Brain className="w-3.5 h-3.5 text-purple-400" />
-                    <span>Taste Model</span>
-                  </button>
-                )}
-
-                {onOpenCateringModal && (
-                  <button
-                    onClick={onOpenCateringModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-orange-500/10 border border-orange-500/40 text-orange-300 font-bold text-xs rounded-xl hover:bg-orange-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Event / Guest Mode (Mini AI Catering Planner)"
-                  >
-                    <PartyPopper className="w-3.5 h-3.5 text-orange-400" />
-                    <span>Catering</span>
-                  </button>
-                )}
-
-                {onOpenFinancialModal && (
-                  <button
-                    onClick={onOpenFinancialModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-xl hover:bg-emerald-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Pantry Financial Intelligence (Where is my money going?)"
-                  >
-                    <Receipt className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Financials</span>
-                  </button>
-                )}
-
-                {onOpenNutritionModal && (
-                  <button
-                    onClick={onOpenNutritionModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-xl hover:bg-emerald-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Personal Nutrition Dashboard"
-                  >
-                    <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Nutrition</span>
-                  </button>
-                )}
-
-                {onOpenCarbonModal && (
-                  <button
-                    onClick={onOpenCarbonModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-teal-500/10 border border-teal-500/40 text-teal-300 font-bold text-xs rounded-xl hover:bg-teal-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Food Waste Carbon Calculator"
-                  >
-                    <Globe className="w-3.5 h-3.5 text-teal-400" />
-                    <span>Carbon</span>
-                  </button>
-                )}
-
-                {onOpenDinnerForEveryoneModal && (
-                  <button
-                    onClick={onOpenDinnerForEveryoneModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-purple-500/10 border border-purple-500/40 text-purple-300 font-bold text-xs rounded-xl hover:bg-purple-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Multi-Person Household: Dinner for Everyone"
-                  >
-                    <Users className="w-3.5 h-3.5 text-purple-400" />
-                    <span>Household</span>
-                  </button>
-                )}
-
-                {onOpenFoodSafetyModal && (
-                  <button
-                    onClick={onOpenFoodSafetyModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-rose-500/10 border border-rose-500/40 text-rose-300 font-bold text-xs rounded-xl hover:bg-rose-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Food Safety Intelligence & HACCP Window"
-                  >
-                    <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Food Safety</span>
-                  </button>
-                )}
-
-                {onOpenSensorModal && (
-                  <button
-                    onClick={onOpenSensorModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-cyan-500/10 border border-cyan-500/40 text-cyan-300 font-bold text-xs rounded-xl hover:bg-cyan-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Smart Fridge IoT Sensors (Temp, Humidity, Door, VOC)"
-                  >
-                    <Thermometer className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Sensors</span>
-                  </button>
-                )}
-
-                {onOpenChefPersonaModal && (
-                  <button
-                    onClick={onOpenChefPersonaModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-amber-500/10 border border-amber-500/40 text-amber-300 font-bold text-xs rounded-xl hover:bg-amber-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Chef Persona Engine (10 Master Styles)"
-                  >
-                    <ChefHat className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Personas</span>
-                  </button>
-                )}
-
-                {onOpenPantryChallengeModal && (
-                  <button
-                    onClick={onOpenPantryChallengeModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-rose-500/10 border border-rose-500/40 text-rose-300 font-bold text-xs rounded-xl hover:bg-rose-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="“Cook With What You Have” Challenge"
-                  >
-                    <Trophy className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Challenge</span>
-                  </button>
-                )}
-
-                {onOpenBudgetModeModal && (
-                  <button
-                    onClick={onOpenBudgetModeModal}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-xl hover:bg-emerald-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                    title="Grocery Price Intelligence & Budget Mode"
-                  >
-                    <Receipt className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Budget Mode</span>
-                  </button>
-                )}
-
-                <button
-                  onClick={onOpenMemoryModal}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-purple-500/10 border border-purple-500/40 text-purple-300 font-bold text-xs rounded-xl hover:bg-purple-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                  title="FridgeChef Memory Engine"
-                >
-                  <Brain className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Memory</span>
-                </button>
-
-                <button
-                  onClick={onOpenReceiptModal}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-xl hover:bg-emerald-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                  title="Receipt -> Pantry AI"
-                >
-                  <Receipt className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Receipt AI</span>
-                </button>
-
-                <button
-                  onClick={onOpenSubstitutionsModal}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-teal-500/10 border border-teal-500/40 text-teal-300 font-bold text-xs rounded-xl hover:bg-teal-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                  title="Ingredient Substitution Intelligence"
-                >
-                  <FlaskConical className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Substitutes</span>
-                </button>
-
-                <button
-                  onClick={onOpenNeuroModal}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-purple-500/10 border border-purple-500/40 text-purple-300 font-bold text-xs rounded-xl hover:bg-purple-500/20 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                  title="Neuro-Gastronomy & Historic Time Machine"
-                >
-                  <Atom className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Neuro</span>
-                </button>
-
-                <button
-                  onClick={onOpenIronChefModal}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-rose-500/20 to-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-xs rounded-xl hover:bg-amber-500/30 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                  title="Iron Chef Mystery Box Mode"
-                >
-                  <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Iron Chef</span>
-                </button>
-
-                <button
-                  onClick={onOpenARPlatingModal}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-slate-950 border border-slate-800 text-slate-300 font-bold text-xs rounded-xl hover:border-amber-400 hover:text-amber-400 transition-all min-h-[38px] shrink-0 whitespace-nowrap"
-                  title="3-Michelin-Star AR Plating Guide"
-                >
-                  <Award className="w-3.5 h-3.5 text-amber-400" />
-                  <span>AR Plating</span>
-                </button>
-
-                <VoiceNavigationController
-                  activeTab={activeTab}
-                  setActiveTab={setActiveTab}
-                />
-              </div>
             </div>
 
             {/* Right Action Trigger Bar */}
             <div className="flex items-center gap-2 shrink-0">
+              <div className="hidden md:block">
+                <ToolsMenu tools={tools} />
+              </div>
+              <div className="hidden xl:block">
+                <VoiceNavigationController activeTab={activeTab} setActiveTab={setActiveTab} />
+              </div>
               <button
                 onClick={onQuickScanClick}
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 hover:from-emerald-400 hover:to-teal-400 transition-all active:scale-95 whitespace-nowrap min-h-[38px]"
               >
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-slate-950" />
+                <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-slate-950" />
                 <span className="hidden xs:inline">Snap Fridge</span>
                 <span className="xs:hidden">Snap</span>
               </button>
@@ -496,160 +276,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mobile Horizontal Quick Action Strip */}
-        <div ref={mobileNavScrollRef} className="md:hidden overflow-x-auto no-scrollbar border-t border-slate-800/60 bg-slate-950/80 px-3 py-2 flex items-center gap-2">
-          {onOpenAutonomousAgentModal && (
-            <button
-              onClick={onOpenAutonomousAgentModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 font-black text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <Bot className="w-3.5 h-3.5 fill-slate-950 animate-pulse" />
-              <span>Culinary OS</span>
-            </button>
-          )}
-
-          {onOpenKitchenVoiceModal && (
-            <button
-              onClick={onOpenKitchenVoiceModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <Mic className="w-3.5 h-3.5 fill-slate-950 animate-pulse" />
-              <span>Voice Kitchen</span>
-            </button>
-          )}
-
-          {onOpenNutritionModal && (
-            <button
-              onClick={onOpenNutritionModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Nutrition</span>
-            </button>
-          )}
-
-          {onOpenCarbonModal && (
-            <button
-              onClick={onOpenCarbonModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-teal-500/10 border border-teal-500/30 text-teal-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <Globe className="w-3.5 h-3.5 text-teal-400" />
-              <span>Carbon</span>
-            </button>
-          )}
-
-          {onOpenDinnerForEveryoneModal && (
-            <button
-              onClick={onOpenDinnerForEveryoneModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 text-purple-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <Users className="w-3.5 h-3.5 text-purple-400" />
-              <span>Household</span>
-            </button>
-          )}
-
-          {onOpenFoodSafetyModal && (
-            <button
-              onClick={onOpenFoodSafetyModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-              <span>Food Safety</span>
-            </button>
-          )}
-
-          {onOpenSensorModal && (
-            <button
-              onClick={onOpenSensorModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <Thermometer className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Sensors</span>
-            </button>
-          )}
-
-          {onOpenChefPersonaModal && (
-            <button
-              onClick={onOpenChefPersonaModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <ChefHat className="w-3.5 h-3.5 text-amber-400" />
-              <span>Personas</span>
-            </button>
-          )}
-
-          {onOpenPantryChallengeModal && (
-            <button
-              onClick={onOpenPantryChallengeModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <Trophy className="w-3.5 h-3.5 text-rose-400" />
-              <span>Challenge</span>
-            </button>
-          )}
-
-          {onOpenBudgetModeModal && (
-            <button
-              onClick={onOpenBudgetModeModal}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-            >
-              <Receipt className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Budget Mode</span>
-            </button>
-          )}
-
-          <button
-            onClick={onOpenMemoryModal}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 text-purple-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-          >
-            <Brain className="w-3.5 h-3.5 text-purple-400" />
-            <span>Memory</span>
-          </button>
-
-          <button
-            onClick={onOpenReceiptModal}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-          >
-            <Receipt className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Receipt AI</span>
-          </button>
-
-          <button
-            onClick={onOpenSubstitutionsModal}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-teal-500/10 border border-teal-500/30 text-teal-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-          >
-            <FlaskConical className="w-3.5 h-3.5 text-teal-400" />
-            <span>Substitutes</span>
-          </button>
-
-          <button
-            onClick={onOpenIronChefModal}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-          >
-            <Trophy className="w-3.5 h-3.5 text-amber-400" />
-            <span>Iron Chef</span>
-          </button>
-
-          <button
-            onClick={onOpenARPlatingModal}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 text-slate-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-          >
-            <Award className="w-3.5 h-3.5 text-amber-400" />
-            <span>AR Plating</span>
-          </button>
-
-          <button
-            onClick={onOpenNeuroModal}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 text-purple-300 font-bold text-xs rounded-lg whitespace-nowrap min-h-[36px]"
-          >
-            <Atom className="w-3.5 h-3.5 text-purple-400" />
-            <span>Neuro & History</span>
-          </button>
-        </div>
-
         {/* Mobile Expanded Drawer Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-slate-900/98 border-t border-slate-800 p-4 space-y-2 animate-in slide-in-from-top duration-200">
+          <div className="md:hidden bg-slate-900/98 border-t border-slate-800 p-4 space-y-2 max-h-[calc(100dvh-8rem)] overflow-y-auto">
             <button
               onClick={() => { setActiveTab('recipes'); setMobileMenuOpen(false); }}
               className={`w-full flex items-center justify-between p-3 rounded-xl text-xs font-bold ${
@@ -719,6 +348,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               )}
             </button>
+
+            <div className="pt-4 mt-2 border-t border-slate-800">
+              <ToolsGrid tools={tools} onPicked={() => setMobileMenuOpen(false)} />
+            </div>
           </div>
         )}
       </header>
@@ -785,19 +418,25 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         <button
-          onClick={onOpenIronChefModal}
-          className="flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 text-[10px] rounded-xl text-amber-400 font-bold"
+          onClick={() => setActiveTab('saved')}
+          className={`flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 text-[10px] rounded-xl relative isolate transition-all ${
+            activeTab === 'saved' ? 'text-emerald-400 font-bold' : 'text-slate-400'
+          }`}
         >
-          <Trophy className="w-4 h-4" />
-          <span>Iron Chef</span>
-        </button>
-
-        <button
-          onClick={onOpenARPlatingModal}
-          className="flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 text-[10px] rounded-xl text-amber-300 font-bold"
-        >
-          <Award className="w-4 h-4" />
-          <span>AR Guide</span>
+          {activeTab === 'saved' && (
+            <motion.span
+              layoutId="mobile-nav-pill"
+              className="absolute inset-0 -z-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30"
+              transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+            />
+          )}
+          <Bookmark className="w-4 h-4" />
+          <span>Saved</span>
+          {savedCount > 0 && (
+            <span className="absolute top-1 right-2 px-1 text-[8px] bg-emerald-500 text-slate-950 font-extrabold rounded-full">
+              {savedCount}
+            </span>
+          )}
         </button>
       </div>
     </>

@@ -175,6 +175,8 @@ ${extraPrompt ? `Additional note from user: ${extraPrompt}` : ''}`;
     const parsedData = JSON.parse(textOutput);
     res.json(parsedData);
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error analyzing fridge:', err);
     res.status(500).json({
       error: 'Failed to analyze fridge image',
@@ -345,6 +347,8 @@ Each recipe must strictly contain:
     const parsedData = JSON.parse(textOutput);
     res.json(parsedData);
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error generating recipes:', err);
     res.status(500).json({
       error: 'Failed to generate recipes',
@@ -395,6 +399,8 @@ app.post('/api/tts', async (req, res) => {
       return res.status(500).json({ error: 'No audio generated' });
     }
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error with TTS:', err);
     res.status(500).json({ error: 'TTS failed', details: err.message });
   }
@@ -452,6 +458,8 @@ Return strictly JSON matching this schema.`;
     const parsed = JSON.parse(response.text || '{}');
     return res.json(parsed);
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error analyzing receipt:', err);
     // Robust fallback for testing/offline receipts
     return res.json({
@@ -506,6 +514,8 @@ Return strictly valid JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error in memory insight:', err);
     return res.json({
       conversationalGreeting: "You usually prefer spicy South Indian breakfasts and you haven't used the spinach you bought 4 days ago.",
@@ -579,6 +589,8 @@ Return valid JSON only.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error in autonomous decision:', err);
     return res.json({
       recommendedMeal: {
@@ -644,6 +656,8 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error in substitutes:', err);
     // Return high quality fallback
     return res.json({
@@ -755,6 +769,8 @@ Return JSON with format:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error in recipe evolution:', err);
     // Robust high-fidelity fallbacks
     const title = req.body?.baseRecipe?.title || 'Skillet Mediterranean Bowl';
@@ -954,6 +970,8 @@ Return JSON with:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error in chef persona:', err);
     const p = req.body?.persona || 'Indian';
     return res.json({
@@ -1012,6 +1030,8 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error in pantry challenge:', err);
     return res.json({
       challengeDishTitle: 'Crispy Pan-Seared Pantry Medley',
@@ -1061,6 +1081,8 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error in budget meal plan:', err);
     const curr = req.body?.currency || '₹';
     return res.json({
@@ -1140,6 +1162,8 @@ Return JSON:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error in household dinner:', err);
     return res.json({
       baseRecipeTitle: 'Fragrant Turmeric Rice & Roasted Mediterranean Veg Base',
@@ -1234,6 +1258,8 @@ Return strictly JSON:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error in voice kitchen agent:', err);
     const msg = (req.body?.message || '').toLowerCase();
     if (msg.includes('start') || msg.includes('cook')) {
@@ -1330,6 +1356,8 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error analyzing plate photo:', err);
     return res.json({
       dishName: 'Pan-Seared Golden Protein Bowl with Herb Wilted Greens',
@@ -1390,6 +1418,8 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error generating event catering plan:', err);
     const curr = req.body?.currency || '₹';
     return res.json({
@@ -1503,6 +1533,8 @@ Return JSON with format:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
+    // Responses from here are offline sample data, not AI output
+    res.set('X-AI-Fallback', '1');
     console.error('Error running autonomous culinary agent:', err);
     return res.json({
       goal: req.body?.goal || 'Plan my meals for this week while minimizing food waste and keeping groceries below ₹2,500.',
@@ -1551,6 +1583,96 @@ Return JSON with format:
   }
 });
 
+// ---------- Site endpoints: contact form, analytics, robots, sitemap ----------
+
+const DATA_DIR = path.resolve(process.env.DATA_DIR || 'data');
+const appendJsonLine = async (file: string, record: unknown) => {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.appendFile(path.join(DATA_DIR, file), JSON.stringify(record) + '\n', 'utf-8');
+};
+
+// Public origin for absolute URLs (sitemap, Open Graph). APP_URL wins; otherwise use the request host.
+const siteOrigin = (req: express.Request) => {
+  const configured = process.env.APP_URL;
+  if (configured && configured !== 'MY_APP_URL') return configured.replace(/\/$/, '');
+  return `${req.protocol}://${req.get('host')}`;
+};
+
+// Very small in-memory rate limiter, keyed by IP (IPs are never written to disk)
+const rateBuckets = new Map<string, number[]>();
+const rateLimited = (key: string, limit: number, windowMs: number) => {
+  const now = Date.now();
+  const hits = (rateBuckets.get(key) || []).filter((t) => now - t < windowMs);
+  hits.push(now);
+  rateBuckets.set(key, hits);
+  return hits.length > limit;
+};
+
+app.post('/api/contact', async (req, res) => {
+  const { name, email, message, website } = req.body || {};
+  // Honeypot: bots fill the hidden field; pretend success
+  if (website) return res.json({ ok: true });
+  if (rateLimited(`contact:${req.ip}`, 5, 10 * 60 * 1000)) {
+    return res.status(429).json({ error: 'Too many messages. Please try again later.' });
+  }
+  const fields: Record<string, string> = {};
+  if (typeof name !== 'string' || !name.trim()) fields.name = 'Please enter your name.';
+  if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) fields.email = 'Please enter a valid email.';
+  if (typeof message !== 'string' || message.trim().length < 10) fields.message = 'Please write at least 10 characters.';
+  else if (message.length > 4000) fields.message = 'Please keep it under 4,000 characters.';
+  if (Object.keys(fields).length) return res.status(400).json({ error: 'Please fix the highlighted fields.', fields });
+
+  try {
+    await appendJsonLine('contact-messages.jsonl', {
+      receivedAt: new Date().toISOString(),
+      name: name.trim().slice(0, 200),
+      email: email.trim().slice(0, 320),
+      message: message.trim(),
+    });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('Could not store contact message:', err);
+    return res.status(500).json({ error: 'Your message could not be saved. Please try again.' });
+  }
+});
+
+const ANALYTICS_EVENTS = new Set(['page_view', 'contact_submitted']);
+app.post('/api/analytics', express.json({ type: ['application/json', 'text/plain'] }), async (req, res) => {
+  const { event, props, path: pagePath, ref } = req.body || {};
+  if (!ANALYTICS_EVENTS.has(event) || rateLimited(`analytics:${req.ip}`, 120, 60 * 1000)) return res.status(204).end();
+  const safeProps: Record<string, string | number | boolean> = {};
+  if (props && typeof props === 'object') {
+    for (const [k, v] of Object.entries(props).slice(0, 10)) {
+      if (['string', 'number', 'boolean'].includes(typeof v)) safeProps[k.slice(0, 40)] = typeof v === 'string' ? v.slice(0, 120) : (v as number | boolean);
+    }
+  }
+  appendJsonLine('analytics.jsonl', {
+    ts: new Date().toISOString(),
+    event,
+    props: safeProps,
+    path: typeof pagePath === 'string' ? pagePath.slice(0, 200) : undefined,
+    ref: typeof ref === 'string' ? ref.slice(0, 200) : undefined,
+  }).catch((err) => console.error('Analytics write failed:', err));
+  return res.status(204).end();
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${siteOrigin(req)}/sitemap.xml\n`);
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const origin = siteOrigin(req);
+  const lastmod = new Date().toISOString().split('T')[0];
+  // Hash routes are not crawlable as separate URLs, so only the app root is listed
+  res.type('application/xml').send(
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${origin}/</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>\n</urlset>\n`
+  );
+});
+
+// Fill absolute-URL placeholders in index.html; any path other than / gets a real 404 status
+const renderIndexHtml = (html: string, req: express.Request) => html.replaceAll('%SITE_URL%', siteOrigin(req));
+const isAppRoot = (p: string) => p === '/' || p === '/index.html';
+
 // Unknown API routes return JSON 404 instead of falling through to the SPA HTML
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Not found' });
@@ -1583,8 +1705,8 @@ async function setupServer() {
       try {
         // Use the real index.html so dev and prod share the same meta tags
         const rawHtml = await fs.readFile(path.resolve('index.html'), 'utf-8');
-        const template = await vite.transformIndexHtml(url, rawHtml);
-        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+        const template = await vite.transformIndexHtml(url, renderIndexHtml(rawHtml, req));
+        res.status(isAppRoot(req.path) ? 200 : 404).set({ 'Content-Type': 'text/html' }).end(template);
       } catch (e: any) {
         vite.ssrFixStacktrace(e);
         next(e);
@@ -1598,9 +1720,10 @@ async function setupServer() {
       express.static(path.join(distDir, 'assets'), { immutable: true, maxAge: '1y' })
     );
     app.use(express.static(distDir, { index: false }));
-    app.get('*', (_req, res) => {
+    const indexHtmlPromise = fs.readFile(path.join(distDir, 'index.html'), 'utf-8');
+    app.get('*', async (req, res) => {
       res.set('Cache-Control', 'no-cache');
-      res.sendFile(path.join(distDir, 'index.html'));
+      res.status(isAppRoot(req.path) ? 200 : 404).type('html').send(renderIndexHtml(await indexHtmlPromise, req));
     });
   }
 

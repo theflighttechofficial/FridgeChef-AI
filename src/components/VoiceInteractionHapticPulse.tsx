@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, Mic, Sparkles } from 'lucide-react';
+import { Volume2, Mic, Zap } from 'lucide-react';
 
 interface VoiceInteractionHapticPulseProps {
   isActive: boolean;

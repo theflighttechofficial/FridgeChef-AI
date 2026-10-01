@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ShieldAlert,
-  ShieldCheck,
-  AlertTriangle,
-  Flame,
-  Thermometer,
-  Layers,
-  Sparkles,
-  CheckCircle2,
-  X,
-  Info,
-  Clock
-} from 'lucide-react';
+import { ShieldAlert, ShieldCheck, AlertTriangle, Flame, Thermometer, Layers, CheckCircle2, X, Info, Clock, Zap } from 'lucide-react';
 import { Ingredient, FoodSafetyProfile, SafetyWindowStatus } from '../types';
 
 interface FoodSafetyIntelligenceModalProps {
@@ -183,7 +171,7 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
                       : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                   }`}
                 >
-                  🟢 {currentProfile.safetyStatus.toUpperCase()}
+                  {currentProfile.safetyStatus.toUpperCase()}
                 </span>
                 <span className="text-xs text-slate-400 font-mono">Opened {currentProfile.openedDaysAgo} days ago</span>
               </div>

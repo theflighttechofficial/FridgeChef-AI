@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, MapPin, Tag, RefreshCw, Sparkles, ShoppingCart, Trees, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Camera, MapPin, Tag, RefreshCw, ShoppingCart, Trees, ShieldAlert, CheckCircle2, Zap } from 'lucide-react';
 
 export const EcologyArbitrageWidget: React.FC = () => {
   const [cameraActive, setCameraActive] = useState(true);

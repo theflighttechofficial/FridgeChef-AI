@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Music, Volume2, VolumeX, Sparkles, Play, Pause, Waves } from 'lucide-react';
+import { Music, Volume2, VolumeX, Play, Pause, Waves, Zap } from 'lucide-react';
 
 export const KitchenSoundscapePlayer: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);

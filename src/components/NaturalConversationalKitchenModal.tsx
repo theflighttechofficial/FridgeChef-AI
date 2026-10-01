@@ -1,20 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Mic,
-  MicOff,
-  Volume2,
-  Sparkles,
-  Play,
-  X,
-  Send,
-  Flame,
-  Clock,
-  ShieldCheck,
-  CheckCircle2,
-  MessageSquare
-} from 'lucide-react';
+import { Mic, MicOff, Volume2, Play, X, Send, Flame, Clock, ShieldCheck, CheckCircle2, MessageSquare, Zap } from 'lucide-react';
 import { KitchenConversationMessage, Ingredient, Recipe } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface NaturalConversationalKitchenModalProps {
   isOpen: boolean;
@@ -154,6 +142,8 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
           availableIngredients: availableIngredients.map((i) => i.name),
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
 
       const assistantMsg: KitchenConversationMessage = {
@@ -177,6 +167,7 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
         }, 1500);
       }
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsProcessing(false);

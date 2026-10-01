@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Flame, Trophy, Sparkles, Clock, ShieldAlert, Award, Play, CheckCircle2, X, RefreshCw } from 'lucide-react';
+import { Flame, Trophy, Clock, ShieldAlert, Award, Play, CheckCircle2, X, RefreshCw, Zap } from 'lucide-react';
 import { Ingredient, Recipe } from '../types';
 
 interface IronChefGameModalProps {
@@ -136,13 +136,13 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
           </h4>
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-medium">
-              🏆 Zero-Waste Hero (+250 XP)
+              Zero-Waste Hero (+250 XP)
             </span>
             <span className="px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-medium">
-              ⚡ Mystery Box Master
+              Mystery Box Master
             </span>
             <span className="px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-medium">
-              🧪 Culinary Alchemist
+              Culinary Alchemist
             </span>
           </div>
         </div>

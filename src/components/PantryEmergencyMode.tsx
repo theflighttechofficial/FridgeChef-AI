@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, Flame, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ShieldAlert, Flame, CheckCircle2, ArrowRight, Zap } from 'lucide-react';
 import { Recipe } from '../types';
 
 interface PantryEmergencyModeProps {

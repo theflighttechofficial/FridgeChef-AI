@@ -1,20 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Refrigerator,
-  Snowflake,
-  Sparkles,
-  Thermometer,
-  Layers,
-  ChevronRight,
-  Info,
-  Clock,
-  Flame,
-  X,
-  Utensils,
-  Droplets,
-  Calendar
-} from 'lucide-react';
+import { Refrigerator, Snowflake, Thermometer, Layers, ChevronRight, Info, Clock, Flame, X, Utensils, Droplets, Calendar, Zap } from 'lucide-react';
 import { Ingredient, FridgeLocation } from '../types';
 
 interface FridgeDigitalTwinProps {
@@ -43,26 +29,26 @@ export const FridgeDigitalTwin: React.FC<FridgeDigitalTwinProps> = ({
 
   const getItemEmoji = (name: string, category: string): string => {
     const n = name.toLowerCase();
-    if (n.includes('milk')) return '🥛';
-    if (n.includes('cheese') || n.includes('cheddar') || n.includes('feta')) return '🧀';
-    if (n.includes('egg')) return '🥚';
-    if (n.includes('chicken') || n.includes('poultry')) return '🍗';
-    if (n.includes('salmon') || n.includes('fish')) return '🐟';
-    if (n.includes('spinach') || n.includes('greens') || n.includes('bok choy')) return '🥬';
-    if (n.includes('tomato')) return '🍅';
-    if (n.includes('carrot')) return '🥕';
-    if (n.includes('pepper') || n.includes('bell pepper')) return '🫑';
-    if (n.includes('tofu')) return '🧊';
-    if (n.includes('yogurt')) return '🥣';
-    if (n.includes('kimchi') || n.includes('miso')) return '🏺';
-    if (n.includes('bread') || n.includes('sourdough')) return '🍞';
-    if (n.includes('edamame') || n.includes('peas')) return '🫛';
-    if (n.includes('avocado')) return '🥑';
-    if (n.includes('butter')) return '🧈';
-    if (category === 'Produce') return '🥦';
-    if (category === 'Meat & Seafood') return '🥩';
-    if (category === 'Dairy & Eggs') return '🧀';
-    return '🥫';
+    if (n.includes('milk')) return '';
+    if (n.includes('cheese') || n.includes('cheddar') || n.includes('feta')) return '';
+    if (n.includes('egg')) return '';
+    if (n.includes('chicken') || n.includes('poultry')) return '';
+    if (n.includes('salmon') || n.includes('fish')) return '';
+    if (n.includes('spinach') || n.includes('greens') || n.includes('bok choy')) return '';
+    if (n.includes('tomato')) return '';
+    if (n.includes('carrot')) return '';
+    if (n.includes('pepper') || n.includes('bell pepper')) return '';
+    if (n.includes('tofu')) return '';
+    if (n.includes('yogurt')) return '';
+    if (n.includes('kimchi') || n.includes('miso')) return '';
+    if (n.includes('bread') || n.includes('sourdough')) return '';
+    if (n.includes('edamame') || n.includes('peas')) return '';
+    if (n.includes('avocado')) return '';
+    if (n.includes('butter')) return '';
+    if (category === 'Produce') return '';
+    if (category === 'Meat & Seafood') return '';
+    if (category === 'Dairy & Eggs') return '';
+    return '';
   };
 
   const topShelfItems = ingredients.filter((i) => getLocationForItem(i) === 'Top Shelf');
@@ -119,7 +105,7 @@ export const FridgeDigitalTwin: React.FC<FridgeDigitalTwinProps> = ({
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-3 relative group">
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-2 border-b border-slate-800/60 pb-1">
               <span className="font-bold text-cyan-300 flex items-center gap-1.5">
-                <span>🥛 TOP SHELF</span>
+                <span>TOP SHELF</span>
                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-400">38°F / Dairy & Eggs</span>
               </span>
               <span>{topShelfItems.length} items</span>
@@ -157,7 +143,7 @@ export const FridgeDigitalTwin: React.FC<FridgeDigitalTwinProps> = ({
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-3 relative group">
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-2 border-b border-slate-800/60 pb-1">
               <span className="font-bold text-amber-300 flex items-center gap-1.5">
-                <span>🍗 MIDDLE SHELF</span>
+                <span>MIDDLE SHELF</span>
                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400">36°F / Proteins & Prepared</span>
               </span>
               <span>{middleShelfItems.length} items</span>
@@ -194,7 +180,7 @@ export const FridgeDigitalTwin: React.FC<FridgeDigitalTwinProps> = ({
           <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-2xl p-3 relative group">
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-2 border-b border-emerald-900/50 pb-1">
               <span className="font-bold text-emerald-300 flex items-center gap-1.5">
-                <span>🥬 HUMIDITY CRISPER DRAWER</span>
+                <span>HUMIDITY CRISPER DRAWER</span>
                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">85% Humidity / Fresh Greens</span>
               </span>
               <span>{crisperItems.length} items</span>
@@ -230,7 +216,7 @@ export const FridgeDigitalTwin: React.FC<FridgeDigitalTwinProps> = ({
           <div className="bg-blue-950/30 border border-blue-500/40 rounded-2xl p-3 relative group">
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-2 border-b border-blue-900/50 pb-1">
               <span className="font-bold text-blue-300 flex items-center gap-1.5">
-                <span>❄️ DEEP FREEZER</span>
+                <span>DEEP FREEZER</span>
                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300">-18°C / 0°F / Sub-Zero Preservation</span>
               </span>
               <span>{freezerItems.length} items</span>
@@ -251,7 +237,7 @@ export const FridgeDigitalTwin: React.FC<FridgeDigitalTwinProps> = ({
                         : 'bg-slate-800/90 text-slate-200 border-slate-700 hover:border-blue-400'
                     }`}
                   >
-                    <span>❄️ {getItemEmoji(item.name, item.category)}</span>
+                    <span>{getItemEmoji(item.name, item.category)}</span>
                     <span>{item.name}</span>
                     {item.quantity && <span className="text-[10px] opacity-70 font-mono">({item.quantity})</span>}
                   </motion.button>

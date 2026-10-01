@@ -1,19 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Sparkles,
-  FlaskConical,
-  Search,
-  CheckCircle2,
-  AlertCircle,
-  ArrowRight,
-  ShieldCheck,
-  Percent,
-  X,
-  Layers,
-  ChefHat
-} from 'lucide-react';
+import { FlaskConical, Search, CheckCircle2, AlertCircle, ArrowRight, ShieldCheck, Percent, X, Layers, ChefHat, Zap } from 'lucide-react';
 import { Ingredient, IngredientSubstituteAnalysis, SubstituteOption } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface IngredientSubstitutionLabProps {
   currentIngredients: Ingredient[];
@@ -101,11 +90,14 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
           availableIngredients: currentIngredients.map(i => i.name),
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       if (data.substitutes) {
         setSubstitutesData(data);
       }
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsAnalyzing(false);
@@ -182,7 +174,7 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
             disabled={isAnalyzing}
             className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5"
           >
-            <Sparkles className="w-3.5 h-3.5 fill-slate-950" />
+            <Zap className="w-3.5 h-3.5 fill-slate-950" />
             <span>{isAnalyzing ? 'Analyzing...' : 'Find Substitutes'}</span>
           </button>
         </div>
@@ -221,7 +213,7 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
                     <span>{sub.name}</span>
                     {isAvailable && (
                       <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold border border-emerald-500/30">
-                        IN YOUR FRIDGE ✅
+                        IN YOUR FRIDGE 
                       </span>
                     )}
                   </h4>

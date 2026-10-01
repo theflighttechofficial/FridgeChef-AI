@@ -1,17 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ShieldCheck,
-  CheckCircle2,
-  AlertTriangle,
-  Flame,
-  Thermometer,
-  Activity,
-  Layers,
-  Sparkles,
-  X,
-  Award
-} from 'lucide-react';
+import { ShieldCheck, CheckCircle2, AlertTriangle, Flame, Thermometer, Activity, Layers, X, Award, Zap } from 'lucide-react';
 import { Recipe, RecipeScientificValidation } from '../types';
 
 interface ScientificValidationModalProps {
@@ -156,13 +145,13 @@ export const ScientificValidationModal: React.FC<ScientificValidationModalProps>
 
             <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
               <div className="p-2 bg-slate-900 rounded-xl border border-slate-800 text-center text-emerald-300">
-                ✓ Internal Temp Safe
+                Internal Temp Safe
               </div>
               <div className="p-2 bg-slate-900 rounded-xl border border-slate-800 text-center text-emerald-300">
-                ✓ Cross-Contact Safe
+                Cross-Contact Safe
               </div>
               <div className="p-2 bg-slate-900 rounded-xl border border-slate-800 text-center text-emerald-300">
-                ✓ Holding Temp Bound
+                Holding Temp Bound
               </div>
             </div>
 

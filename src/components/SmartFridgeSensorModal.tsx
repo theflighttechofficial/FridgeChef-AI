@@ -1,22 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Thermometer,
-  Droplets,
-  DoorClosed,
-  DoorOpen,
-  Scale,
-  Wind,
-  AlertTriangle,
-  Sparkles,
-  CheckCircle2,
-  X,
-  RefreshCw,
-  Zap,
-  Activity,
-  ShieldAlert,
-  Sliders
-} from 'lucide-react';
+import { Thermometer, Droplets, DoorClosed, DoorOpen, Scale, Wind, AlertTriangle, CheckCircle2, X, RefreshCw, Zap, Activity, ShieldAlert, Sliders } from 'lucide-react';
 import { SmartFridgeSensors } from '../types';
 
 interface SmartFridgeSensorModalProps {
@@ -76,13 +60,13 @@ export const SmartFridgeSensorModal: React.FC<SmartFridgeSensorModalProps> = ({
               <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5 animate-bounce" />
               <div>
                 <strong className="text-rose-200 text-sm font-extrabold block">
-                  ⚠️ Temperature Anomaly Detected
+                  Temperature Anomaly Detected
                 </strong>
                 <p className="text-rose-300/90 leading-snug mt-0.5">
                   Fridge temperature increased from <strong>3.8°C → 8.1°C</strong> for 27 minutes. Refrigerator door was left slightly unlatched.
                 </p>
                 <div className="mt-2 text-[11px] text-rose-200 bg-rose-900/40 px-2.5 py-1 rounded-lg border border-rose-500/30 inline-block">
-                  🚨 Action: Inspect raw poultry on shelf 2. Safe cook immediately.
+                  Action: Inspect raw poultry on shelf 2. Safe cook immediately.
                 </div>
               </div>
             </div>

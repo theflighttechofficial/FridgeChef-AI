@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Award, Trophy, CheckCircle2, Plus, Sparkles } from 'lucide-react';
+import { Users, Award, Trophy, CheckCircle2, Plus, Zap } from 'lucide-react';
 
 interface Member {
   name: string;
@@ -10,9 +10,9 @@ interface Member {
 }
 
 const INITIAL_MEMBERS: Member[] = [
-  { name: 'Chef Alex', role: 'Head Prep & Waste Arbitrage', points: 420, completedTasks: 14, avatar: '👨‍🍳' },
-  { name: 'Sam', role: 'Sous Chef & Pantry Auditor', points: 310, completedTasks: 9, avatar: '👩‍🍳' },
-  { name: 'Jordan', role: 'Dish & Tupperware Manager', points: 260, completedTasks: 8, avatar: '🧑‍🍳' },
+  { name: 'Chef Alex', role: 'Head Prep & Waste Arbitrage', points: 420, completedTasks: 14, avatar: '' },
+  { name: 'Sam', role: 'Sous Chef & Pantry Auditor', points: 310, completedTasks: 9, avatar: '' },
+  { name: 'Jordan', role: 'Dish & Tupperware Manager', points: 260, completedTasks: 8, avatar: '' },
 ];
 
 export const HouseholdChoreLeaderboardWidget: React.FC = () => {

@@ -19,9 +19,14 @@ export const TupperwareTrackerWidget: React.FC = () => {
   const [newDish, setNewDish] = useState('');
   const [newShelf, setNewShelf] = useState('Middle Shelf');
 
+  const [formError, setFormError] = useState<string | null>(null);
   const handleAddContainer = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newDish.trim()) return;
+    if (!newDish.trim()) {
+      setFormError('Enter what is in the container.');
+      return;
+    }
+    setFormError(null);
     const newC: LeftoverContainer = {
       id: `c-${Date.now()}`,
       qrTagId: `QR-TUPPER-${Math.floor(10 + Math.random() * 90)}`,
@@ -60,7 +65,7 @@ export const TupperwareTrackerWidget: React.FC = () => {
       </div>
 
       {/* Log Form */}
-      <form onSubmit={handleAddContainer} className="flex flex-col sm:flex-row gap-2">
+      <form onSubmit={handleAddContainer} noValidate onInput={() => setFormError(null)} className="flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           placeholder="Dish name in container (e.g., Vegetable Curry)..."
@@ -85,6 +90,11 @@ export const TupperwareTrackerWidget: React.FC = () => {
           <Plus className="w-4 h-4" />
           <span>Log Tupperware Tag</span>
         </button>
+        {formError && (
+          <p role="alert" className="text-xs text-rose-300 basis-full w-full">
+            {formError}
+          </p>
+        )}
       </form>
 
       {/* Containers List */}

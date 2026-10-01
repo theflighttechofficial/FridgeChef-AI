@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, History, Music, Lightbulb, HeartPulse, ShieldAlert, Award, X, Play, CheckCircle2 } from 'lucide-react';
+import { History, Music, Lightbulb, HeartPulse, ShieldAlert, Award, X, Play, CheckCircle2, Zap } from 'lucide-react';
 import { Ingredient, Recipe } from '../types';
 
 interface NeuroGastronomyModalProps {
@@ -13,21 +13,21 @@ const HISTORIC_ERAS = [
     id: 'medieval-14th',
     name: '14th-Century Medieval Feast',
     description: 'Slow-simmered pottage with warm fragrant spicing (cinnamon, cloves, ginger) and whole grains.',
-    era: '1380 AD — Royal Court of Richard II',
+    era: '1380 AD, Royal Court of Richard II',
     recipeTitle: 'Reconstructed 14th-Century Medieval Spice Pottage',
   },
   {
     id: 'ancient-roman',
     name: 'Ancient Roman Empire',
     description: 'Savory garum-infused reduction with honeyed herbs and braised roots.',
-    era: '1st Century AD — Apicius Culinary Archives',
+    era: '1st Century AD, Apicius Culinary Archives',
     recipeTitle: 'Ancient Roman Honey & Herb Reduction Skillet',
   },
   {
     id: 'speakeasy-1920',
     name: '1920s Speakeasy Supper',
     description: 'Pan-browned skillet chops with rich butter onion jus and toasted crusts.',
-    era: '1924 — Jazz Age Supper Club',
+    era: '1924, Jazz Age Supper Club',
     recipeTitle: '1920s Jazz Age Cast-Iron Skillet Chop',
   },
 ];

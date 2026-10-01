@@ -1,21 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Activity,
-  Heart,
-  TrendingUp,
-  AlertTriangle,
-  Sparkles,
-  Zap,
-  CheckCircle2,
-  X,
-  Apple,
-  Salad,
-  Flame,
-  ArrowRight,
-  ShieldCheck,
-  ChevronRight
-} from 'lucide-react';
+import { Activity, Heart, TrendingUp, AlertTriangle, Zap, CheckCircle2, X, Apple, Salad, Flame, ArrowRight, ShieldCheck, ChevronRight } from 'lucide-react';
 import { WeeklyNutritionProfile, Recipe } from '../types';
 
 interface PersonalNutritionDashboardModalProps {
@@ -137,7 +122,7 @@ export const PersonalNutritionDashboardModal: React.FC<PersonalNutritionDashboar
             </div>
 
             <div className="p-4 bg-slate-950 rounded-2xl border border-rose-500/30">
-              <span className="text-[10px] text-rose-300 font-bold uppercase block">DAILY FIBER AVG ⚠️</span>
+              <span className="text-[10px] text-rose-300 font-bold uppercase block">DAILY FIBER AVG </span>
               <strong className="text-xl font-black text-rose-400 font-mono mt-0.5 block">
                 {profile.weeklyAverages.fiberGrams}g
               </strong>
@@ -183,7 +168,7 @@ export const PersonalNutritionDashboardModal: React.FC<PersonalNutritionDashboar
           {/* Corrective Meal Recommendations */}
           <div className="bg-gradient-to-r from-teal-950/40 via-slate-950 to-emerald-950/40 p-5 rounded-2xl border border-teal-500/30 space-y-3">
             <span className="text-xs font-bold text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+              <Zap className="w-3.5 h-3.5 text-teal-400" />
               <span>Corrective Balancing Meals Recommended by AI</span>
             </span>
             <div className="space-y-2">

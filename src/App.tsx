@@ -1,6 +1,15 @@
-import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, Variants, MotionConfig } from 'framer-motion';
 import { Reveal } from './components/Reveal';
+import { LogoMark } from './components/Logo';
+import { IntroShowreel } from './components/IntroShowreel';
+import { LegalPage } from './components/LegalPage';
+import { ContactPage, ThanksPage, NotFoundPage } from './components/StaticPages';
+import { ConsentBanner } from './components/ConsentBanner';
+import { setPageMeta } from './utils/seo';
+import { track } from './utils/analytics';
+import { Toaster } from './components/Toaster';
+import { showToast, noteIfFallback } from './utils/toast';
 import { Navbar } from './components/Navbar';
 import { FridgeScanner } from './components/FridgeScanner';
 import { SidebarFilter } from './components/SidebarFilter';
@@ -48,7 +57,7 @@ import {
 } from './data/sampleData';
 import { usePersistentState } from './hooks/usePersistentState';
 
-import { Utensils, RefreshCw, ChefHat } from 'lucide-react';
+import { Utensils, RefreshCw, ChefHat, Bookmark } from 'lucide-react';
 
 // Code-split: modals and non-default tabs load on demand to keep the initial bundle small
 const StepByStepCookingModal = lazy(() => import('./components/StepByStepCookingModal').then((m) => ({ default: m.StepByStepCookingModal })));
@@ -106,6 +115,31 @@ const itemVariants: Variants = {
   },
 };
 
+type SiteRoute = 'app' | 'terms' | 'privacy' | 'contact' | 'thanks' | 'notfound';
+
+const readRoute = (): SiteRoute => {
+  if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return 'notfound';
+  const h = window.location.hash;
+  if (!h || h === '#' || h === '#/') return 'app';
+  const known: Record<string, SiteRoute> = {
+    '#/terms': 'terms',
+    '#/privacy': 'privacy',
+    '#/contact': 'contact',
+    '#/thanks': 'thanks',
+  };
+  if (known[h]) return known[h];
+  // In-page anchors (no leading slash) belong to the app; unknown #/routes are 404s
+  return h.startsWith('#/') ? 'notfound' : 'app';
+};
+
+const TAB_META: Record<string, [string, string]> = {
+  scan: ['Fridge Scanner', 'Photograph your fridge and FridgeChef lists what is inside and what to use first.'],
+  recipes: ['Recipes', 'Recipes built from the ingredients already in your fridge, filtered by diet, time and cuisine.'],
+  saved: ['Saved Recipes', 'Recipes you bookmarked in FridgeChef, kept on this device.'],
+  shopping: ['Shopping List', 'Your FridgeChef shopping list, filled from missing recipe ingredients.'],
+  molecular: ['Food Science Lab', 'Flavour chemistry, sizzle sounds and spoilage timing for the food in your fridge.'],
+};
+
 const DEFAULT_FILTERS: FilterOptions = {
   dietary: [],
   maxPrepTime: 60,
@@ -145,13 +179,67 @@ const ModalFallback = () => (
   </div>
 );
 
+// Placeholder shaped like a RecipeCard, shown while new recipes are being generated
+const RecipeCardSkeleton = () => (
+  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden animate-pulse">
+    <div className="h-48 bg-slate-800/70" />
+    <div className="p-5 space-y-3">
+      <div className="h-4 w-2/3 rounded bg-slate-800" />
+      <div className="h-3 w-full rounded bg-slate-800/70" />
+      <div className="h-3 w-5/6 rounded bg-slate-800/70" />
+      <div className="grid grid-cols-3 gap-2 pt-2">
+        <div className="h-10 rounded-lg bg-slate-800/70" />
+        <div className="h-10 rounded-lg bg-slate-800/70" />
+        <div className="h-10 rounded-lg bg-slate-800/70" />
+      </div>
+      <div className="h-10 rounded-xl bg-slate-800 mt-3" />
+    </div>
+  </div>
+);
+
 const SectionFallback = () => (
   <div className="h-40 rounded-2xl bg-slate-900/60 border border-slate-800 animate-pulse" />
 );
 
 export default function App() {
   // Navigation State - Default to 'scan' as the primary tab
+  // Hash routes for standalone pages. Any unknown path or #/route shows the 404 page.
+  const [route, setRoute] = useState<SiteRoute>(readRoute);
+  useEffect(() => {
+    const onHash = () => setRoute(readRoute());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  // Intro showreel plays once per browser session
+  const [showIntro, setShowIntro] = useState(() => {
+    try {
+      return sessionStorage.getItem('fridgechef.introSeen') !== '1';
+    } catch {
+      return true;
+    }
+  });
+  const dismissIntro = useCallback(() => {
+    try {
+      sessionStorage.setItem('fridgechef.introSeen', '1');
+    } catch {}
+    setShowIntro(false);
+  }, []);
+
   const [activeTab, setActiveTab] = useState<'scan' | 'recipes' | 'shopping' | 'saved' | 'molecular'>('scan');
+
+  // Per-view title/description + anonymous page view (only sent with consent)
+  useEffect(() => {
+    if (route !== 'app') return;
+    if (showIntro) {
+      setPageMeta('FridgeChef', 'Photograph your fridge and FridgeChef suggests a meal from what you already have, then talks you through cooking it.');
+      track('page_view', { page: 'intro' });
+      return;
+    }
+    const [title, description] = TAB_META[activeTab];
+    setPageMeta(title, description);
+    track('page_view', { page: activeTab });
+  }, [activeTab, showIntro, route]);
 
   // Modals
   const [isIronChefOpen, setIsIronChefOpen] = useState(false);
@@ -262,6 +350,7 @@ export default function App() {
       if (!response.ok) {
         throw new Error('Failed to analyze fridge photo');
       }
+      noteIfFallback(response);
 
       const data = await response.json();
 
@@ -309,7 +398,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('Error analyzing image:', err);
-      alert('Could not analyze photo. Please check your network or try another image.');
+      showToast("Couldn't read that photo. Check your connection or try a clearer picture.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -342,6 +431,7 @@ export default function App() {
       if (!response.ok) {
         throw new Error('Failed to generate customized recipes');
       }
+      noteIfFallback(response);
 
       const data = await response.json();
 
@@ -373,7 +463,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('Error generating recipes:', err);
-      alert('Could not generate recipes right now. Displaying available curated recipes.');
+      showToast("Couldn't generate new recipes right now. Showing the current list.");
     } finally {
       setIsGeneratingRecipes(false);
     }
@@ -512,8 +602,28 @@ export default function App() {
     setShoppingList((prev) => prev.filter((i) => !i.checked));
   };
 
+  if (route !== 'app') {
+    return (
+      <>
+        {route === 'terms' || route === 'privacy' ? (
+          <LegalPage doc={route} />
+        ) : route === 'contact' ? (
+          <ContactPage />
+        ) : route === 'thanks' ? (
+          <ThanksPage />
+        ) : (
+          <NotFoundPage />
+        )}
+        <ConsentBanner />
+      </>
+    );
+  }
+
   return (
     <MotionConfig reducedMotion="user">
+    <AnimatePresence>{showIntro && <IntroShowreel onContinue={dismissIntro} />}</AnimatePresence>
+    <Toaster />
+    <ConsentBanner />
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between pt-12 md:pt-0">
       {/* Floating iOS Dynamic Island */}
       <IOSDynamicIsland
@@ -704,7 +814,27 @@ export default function App() {
               </div>
 
               <div className="lg:col-span-8 xl:col-span-9">
-                {filteredRecipes.length === 0 ? (
+                {(isGeneratingRecipes || isAnalyzing) ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 min-[2200px]:grid-cols-4 gap-4 sm:gap-6" aria-busy="true" aria-label="Generating recipes">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <RecipeCardSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : activeTab === 'saved' && savedRecipes.length === 0 ? (
+                  <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+                    <Bookmark className="w-10 h-10 text-slate-600 mx-auto" />
+                    <h3 className="text-lg font-bold text-white">No saved recipes yet</h3>
+                    <p className="text-sm text-slate-400 max-w-sm mx-auto">
+                      Tap the bookmark on any recipe card to keep it here. Saved recipes stay on this device.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('recipes')}
+                      className="px-4 py-2 bg-emerald-500 text-slate-950 hover:bg-emerald-400 font-bold text-xs rounded-xl"
+                    >
+                      Browse recipes
+                    </button>
+                  </div>
+                ) : filteredRecipes.length === 0 ? (
                   <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
                     <ChefHat className="w-12 h-12 text-slate-600 mx-auto" />
                     <h3 className="text-lg font-bold text-white">No recipes match your filters!</h3>
@@ -1089,18 +1219,21 @@ export default function App() {
       </Suspense>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 text-slate-500 py-6 text-xs text-center mt-12">
+      <footer className="border-t border-slate-800/80 bg-slate-950 text-slate-500 py-6 text-xs mt-12">
         <div className="w-full px-3 sm:px-6 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="font-medium text-slate-400">
-            FridgeChef.AI — Smart Refrigerator, Batch Prep & Emergency Survival Kitchen
+          <p className="text-slate-400 flex items-center gap-2">
+            <LogoMark className="w-6 h-6 shrink-0" />
+            FridgeChef. Suggestions are AI-generated, so check allergens and food safety yourself.
           </p>
-          <div className="flex items-center gap-4 text-slate-500">
-            <span>Powered by Gemini AI</span>
-            <span>·</span>
-            <span>Meal Prep Multiplier</span>
-            <span>·</span>
-            <span>QR Tupperware Sync</span>
-          </div>
+          <nav className="flex items-center gap-5">
+            <a href="#/contact" className="hover:text-slate-200">Contact</a>
+            <a href="#/terms" className="hover:text-slate-200">Terms</a>
+            <a href="#/privacy" className="hover:text-slate-200">Privacy</a>
+            <button onClick={() => window.dispatchEvent(new Event('fridgechef:open-consent'))} className="hover:text-slate-200">
+              Cookie settings
+            </button>
+            <span>&copy; 2026 FridgeChef</span>
+          </nav>
         </div>
       </footer>
     </div>

@@ -1,20 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ChefHat,
-  Sparkles,
-  Flame,
-  Clock,
-  Play,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  X,
-  Zap,
-  Layers,
-  Utensils
-} from 'lucide-react';
+import { ChefHat, Flame, Clock, Play, ArrowRight, ShieldCheck, CheckCircle2, X, Zap, Layers, Utensils } from 'lucide-react';
 import { ChefPersonaType, ChefPersonaMeta, ChefPersonaRecipe, Ingredient, Recipe } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface ChefPersonaEngineModalProps {
   isOpen: boolean;
@@ -26,7 +14,7 @@ interface ChefPersonaEngineModalProps {
 export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   {
     type: 'Indian',
-    flagEmoji: '🇮🇳',
+    flagEmoji: '',
     name: 'Indian Master Chef',
     subtitle: 'Aromatic Tadka & Claypot Braises',
     signatureStyle: 'Layered blooming spices, roasted aromatics, mustard & curry leaves',
@@ -34,7 +22,7 @@ export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   },
   {
     type: 'Japanese',
-    flagEmoji: '🇯🇵',
+    flagEmoji: '',
     name: 'Japanese Washoku Shokunin',
     subtitle: 'Dashi Broths & Umami Precision',
     signatureStyle: 'Subtle dashi infusions, precision knife cuts, balanced mirin-soy glaze',
@@ -42,7 +30,7 @@ export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   },
   {
     type: 'Italian',
-    flagEmoji: '🇮🇹',
+    flagEmoji: '',
     name: 'Italian Nonna & Trattoria',
     subtitle: 'San Marzano Acidity & Silky Olive Emulsions',
     signatureStyle: 'High-heat blistering, emulsified starchy cooking water, al dente discipline',
@@ -50,7 +38,7 @@ export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   },
   {
     type: 'French',
-    flagEmoji: '🇫🇷',
+    flagEmoji: '',
     name: 'French Haute Cuisine',
     subtitle: 'Foaming Butter Basting & Velouté Reductions',
     signatureStyle: 'Arroser pan-basting, shallot pan fond deglazing, refined brigade garnishes',
@@ -58,7 +46,7 @@ export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   },
   {
     type: 'Korean',
-    flagEmoji: '🇰🇷',
+    flagEmoji: '',
     name: 'Korean Hansik Master',
     subtitle: 'Fermented Gochujang & Scorched Stone Pot',
     signatureStyle: 'Aged kimchi acid balance, toasted sesame oil finish, bold umami crunch',
@@ -66,7 +54,7 @@ export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   },
   {
     type: 'Mexican',
-    flagEmoji: '🇲🇽',
+    flagEmoji: '',
     name: 'Mexican Abuela & Taqueria',
     subtitle: 'Charred Fire Chiles & Vibrant Citrus Zest',
     signatureStyle: 'Comal blistering, toasted dried chiles, fresh cilantro and lime acid punch',
@@ -74,7 +62,7 @@ export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   },
   {
     type: 'Molecular',
-    flagEmoji: '🧪',
+    flagEmoji: '',
     name: 'Modernist Gastronomist',
     subtitle: 'Agar Pearls & Precision Thermal Science',
     signatureStyle: 'Deconstructed textures, savory light espumas, sous-vide tenderization',
@@ -82,7 +70,7 @@ export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   },
   {
     type: 'Fitness',
-    flagEmoji: '💪',
+    flagEmoji: '',
     name: 'Macro & Performance Coach',
     subtitle: 'Max Lean Protein per Calorie',
     signatureStyle: 'Clean macro ratios, healthy fats, minimal seed oils, high satiety density',
@@ -90,7 +78,7 @@ export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   },
   {
     type: 'Budget',
-    flagEmoji: '💰',
+    flagEmoji: '',
     name: 'Frugal Pantry Wizard',
     subtitle: 'Maximum Caloric Volume per Rupee/Cent',
     signatureStyle: 'Root-to-stem zero-waste usage, grain stretching, rich fond pan gravies',
@@ -98,11 +86,11 @@ export const CHEF_PERSONAS: ChefPersonaMeta[] = [
   },
   {
     type: 'Homestyle',
-    flagEmoji: '🏠',
+    flagEmoji: '',
     name: 'Homestyle Comfort Kitchen',
     subtitle: 'One-Pot Nostalgia & Zero-Fuss Cleanup',
     signatureStyle: 'Hearty warming stews, easy sheet pans, satisfying family portions',
-    quote: 'No fussy tweezers—just delicious, comforting nourishment.'
+    quote: 'No fussy tweezers, just delicious, comforting nourishment.'
   }
 ];
 
@@ -132,9 +120,12 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
           ingredients: availableIngredients.map((i) => i.name),
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       setCreatedDish(data);
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsSynthesizing(false);
@@ -209,7 +200,6 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
                       : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'
                   }`}
                 >
-                  <span className="text-xl">{persona.flagEmoji}</span>
                   <div>
                     <strong className="block text-xs font-bold leading-tight">{persona.name}</strong>
                     <span className="text-[10px] text-slate-400 block line-clamp-1">{persona.subtitle}</span>
@@ -225,7 +215,6 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
           {/* Active Chef Banner */}
           <div className="p-4 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">{currentMeta.flagEmoji}</span>
               <div>
                 <h4 className="text-sm font-bold text-white">{currentMeta.name}</h4>
                 <p className="text-xs text-amber-300 italic font-serif">"{currentMeta.quote}"</p>
@@ -236,7 +225,7 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
               disabled={isSynthesizing}
               className="shrink-0 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5"
             >
-              <Sparkles className="w-3.5 h-3.5 fill-slate-950" />
+              <Zap className="w-3.5 h-3.5 fill-slate-950" />
               <span>{isSynthesizing ? 'Synthesizing...' : 'Re-Cook This Style'}</span>
             </button>
           </div>
@@ -322,7 +311,7 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
                       <div key={st.stepNumber} className="p-3 bg-slate-900 rounded-xl border border-slate-800/80 text-xs space-y-1">
                         <div className="flex justify-between items-center text-[10px] text-amber-400 font-mono font-bold">
                           <span>STEP {st.stepNumber}</span>
-                          {st.timerSeconds && <span>⏱️ {Math.round(st.timerSeconds / 60)} min</span>}
+                          {st.timerSeconds && <span>⏱{Math.round(st.timerSeconds / 60)} min</span>}
                         </div>
                         <p className="text-slate-300 text-[11px] leading-relaxed">{st.instruction}</p>
                       </div>
@@ -341,7 +330,6 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
             </div>
           ) : (
             <div className="p-8 text-center bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-              <span className="text-3xl">👨🍳</span>
               <h4 className="text-sm font-bold text-white">Select any Chef Persona above</h4>
               <p className="text-xs text-slate-400">
                 Click any chef persona (Indian, Japanese, Italian, French, etc.) to immediately synthesize a custom dish from your current fridge ingredients!

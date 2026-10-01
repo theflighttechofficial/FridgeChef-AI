@@ -1,6 +1,6 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Flame, ChefHat, Plus, Check, Bookmark, Heart, Play, AlertCircle, Activity, ChevronDown, ChevronUp, Layers, Sparkles, Dna, Brain, DollarSign } from 'lucide-react';
+import { Clock, Flame, ChefHat, Plus, Check, Bookmark, Heart, Play, AlertCircle, Activity, ChevronDown, ChevronUp, Layers, Dna, Brain, DollarSign, Zap } from 'lucide-react';
 import { D3RadarChart, NutritionPoint } from './D3RadarChart';
 import { MealPrepBatchModal } from './MealPrepBatchModal';
 import { SubRecipeModal } from './SubRecipeModal';
@@ -265,7 +265,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  <Zap className="w-3 h-3 text-amber-400" />
                   <span>Flavor DNA</span>
                 </button>
 
@@ -353,7 +353,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                   onClick={() => setSelectedSubIngredient(recipe.missingIngredients[0])}
                   className="text-[10px] text-amber-400 font-bold hover:underline flex items-center gap-1"
                 >
-                  <Sparkles className="w-3 h-3" />
+                  <Zap className="w-3 h-3" />
                   <span>DIY Scratch: {recipe.missingIngredients[0]}</span>
                 </button>
 
@@ -370,7 +370,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             </div>
           ) : (
             <div className="bg-emerald-950/20 border border-emerald-500/20 p-2.5 rounded-xl text-center text-xs text-emerald-400 font-medium">
-              ✓ All ingredients available in your fridge!
+              All ingredients available in your fridge!
             </div>
           )}
         </div>

@@ -1,22 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Bot,
-  Sparkles,
-  Zap,
-  CheckCircle2,
-  X,
-  Play,
-  RotateCcw,
-  Calendar,
-  Layers,
-  ArrowRight,
-  TrendingDown,
-  DollarSign,
-  ShieldCheck,
-  Send
-} from 'lucide-react';
+import { Bot, Zap, CheckCircle2, X, Play, RotateCcw, Calendar, Layers, ArrowRight, TrendingDown, DollarSign, ShieldCheck, Send } from 'lucide-react';
 import { AutonomousCulinaryAgentResult, Ingredient, Recipe } from '../types';
+import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface AutonomousCulinaryAgentModalProps {
   isOpen: boolean;
@@ -97,9 +83,12 @@ export const AutonomousCulinaryAgentModal: React.FC<AutonomousCulinaryAgentModal
           budget: 2500,
         }),
       });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      noteIfFallback(res);
       const data = await res.json();
       setAgentResult(data);
     } catch (e) {
+      showToast(AI_OFFLINE_MESSAGE);
       console.error(e);
     } finally {
       setIsRunning(false);
@@ -140,7 +129,7 @@ export const AutonomousCulinaryAgentModal: React.FC<AutonomousCulinaryAgentModal
         {/* Goal Input & Agent Runner Bar */}
         <div className="p-5 bg-slate-950 border-b border-slate-800 flex flex-col sm:flex-row gap-3 items-center">
           <div className="flex-1 w-full flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-2xl px-4 py-2.5">
-            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+            <Zap className="w-4 h-4 text-emerald-400 shrink-0" />
             <input
               type="text"
               value={goalText}
@@ -192,7 +181,7 @@ export const AutonomousCulinaryAgentModal: React.FC<AutonomousCulinaryAgentModal
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {/* Executive Summary */}
           <div className="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-2xl text-xs text-slate-200 leading-relaxed">
-            <strong className="text-emerald-400 block mb-1">🤖 Agent Executive Summary:</strong>
+            <strong className="text-emerald-400 block mb-1">Agent Executive Summary:</strong>
             {agentResult.agentExecutiveSummary}
           </div>
 
@@ -236,7 +225,7 @@ export const AutonomousCulinaryAgentModal: React.FC<AutonomousCulinaryAgentModal
                   </div>
 
                   <div className="flex items-center gap-4 text-slate-400 font-mono text-[11px]">
-                    <span>⏱️ {m.cookTime}</span>
+                    <span>⏱{m.cookTime}</span>
                     <span className="text-emerald-400">{m.protein} protein</span>
                     <span>{m.calories} kcal</span>
                   </div>

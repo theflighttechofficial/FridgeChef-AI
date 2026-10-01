@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, Bell, Check, ArrowRight, AlertTriangle, Snowflake, Sparkles, X } from 'lucide-react';
+import { ShieldAlert, Bell, Check, ArrowRight, AlertTriangle, Snowflake, X, Zap } from 'lucide-react';
 import { Ingredient } from '../types';
 
 interface PantryHealthNotificationBannerProps {
@@ -100,7 +100,7 @@ export const PantryHealthNotificationBanner: React.FC<PantryHealthNotificationBa
                 onClick={onStartCookingFromAlert}
                 className="px-3.5 py-1.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-extrabold text-xs rounded-xl hover:opacity-90 transition-all shadow-lg shadow-rose-500/25 flex items-center gap-1.5"
               >
-                <Sparkles className="w-3.5 h-3.5 fill-current" />
+                <Zap className="w-3.5 h-3.5 fill-current" />
                 <span>Cook Recipes Now</span>
               </button>
             )}

@@ -62,3 +62,6 @@ desktop.ini
 *.seed
 *.pid.lock
 
+
+# Contact messages and analytics written by the server
+data/

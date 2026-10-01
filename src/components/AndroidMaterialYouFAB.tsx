@@ -11,7 +11,7 @@ const fabItemVariants: Variants = {
   open: { opacity: 1, x: 0, y: 0, scale: 1, transition: { type: 'spring', stiffness: 420, damping: 26 } },
   closed: { opacity: 0, x: 24, y: 12, scale: 0.85, transition: { duration: 0.15 } },
 };
-import { Camera, Sparkles, Trophy, Mic, Plus, X, ShieldAlert, Receipt, Brain, ChefHat, DollarSign, Activity, Bot, GitFork } from 'lucide-react';
+import { Camera, Trophy, Mic, Plus, X, ShieldAlert, Receipt, Brain, ChefHat, DollarSign, Activity, Bot, GitFork, Zap } from 'lucide-react';
 
 interface AndroidMaterialYouFABProps {
   onQuickSnapClick: () => void;

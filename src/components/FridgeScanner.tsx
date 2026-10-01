@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
-import { Camera, Upload, Sparkles, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCw, Layers } from 'lucide-react';
+import { Camera, Upload, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCw, Layers, Zap } from 'lucide-react';
 import { Ingredient, PresetFridge } from '../types';
 import { compressImageFile, drawToJpeg } from '../utils/imageUtils';
+import { showToast } from '../utils/toast';
 
 // recharts is heavy; keep it out of the initial bundle
 const ConsumptionWasteTrendChart = lazy(() =>
@@ -44,7 +45,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
       await onAnalyzeImage(base64, extraNote);
     } catch (err) {
       console.error('Image read error:', err);
-      alert('Could not read that image. Please try another file.');
+      showToast('Could not read that image. Please try another file.');
     }
   };
 
@@ -74,7 +75,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
   // Live Camera Trigger
   const startCamera = async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      alert('Camera is not supported in this browser. Please upload an image instead.');
+      showToast('Camera is not supported in this browser. Please upload an image instead.');
       return;
     }
     try {
@@ -85,7 +86,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
       setIsWebcamActive(true);
     } catch (err) {
       console.error('Camera access error:', err);
-      alert('Could not access device camera. Please check camera permissions or upload an image.');
+      showToast('Could not access device camera. Please check camera permissions or upload an image.');
       setIsWebcamActive(false);
     }
   };
@@ -114,9 +115,18 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
   };
 
   // Add Manual Ingredient
+  const [formError, setFormError] = useState<string | null>(null);
   const handleAddManualIngredient = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newIngredientName.trim()) return;
+    if (!newIngredientName.trim()) {
+      setFormError('Type an ingredient name first.');
+      return;
+    }
+    if (currentIngredients.some((i) => i.name.trim().toLowerCase() === newIngredientName.trim().toLowerCase())) {
+      setFormError(`${newIngredientName.trim()} is already in your fridge list.`);
+      return;
+    }
+    setFormError(null);
     const newItem: Ingredient = {
       id: `manual-${Date.now()}`,
       name: newIngredientName.trim(),
@@ -140,7 +150,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
         <div className="absolute -right-12 -top-12 w-72 h-72 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-3xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold tracking-wide uppercase">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <Zap className="w-3.5 h-3.5 text-emerald-400" />
             <span>AI Vision Powered Culinary Intelligence</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
@@ -413,7 +423,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
               )}
 
               {/* Add Custom Ingredient Form */}
-              <form onSubmit={handleAddManualIngredient} className="space-y-2 pt-2 border-t border-slate-800">
+              <form onSubmit={handleAddManualIngredient} noValidate onInput={() => setFormError(null)} className="space-y-2 pt-2 border-t border-slate-800">
                 <label className="text-xs font-semibold text-slate-400">
                   Add Missing or Extra Ingredient:
                 </label>
@@ -444,6 +454,11 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
+                {formError && (
+                  <p role="alert" className="text-xs text-rose-300 basis-full w-full">
+                    {formError}
+                  </p>
+                )}
               </form>
             </div>
 
@@ -454,7 +469,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
                 disabled={currentIngredients.length === 0 || isAnalyzing}
                 className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 text-slate-950 font-bold text-sm rounded-xl shadow-xl shadow-emerald-500/25 hover:from-emerald-400 hover:to-teal-400 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <Sparkles className="w-4 h-4 fill-slate-950" />
+                <Zap className="w-4 h-4 fill-slate-950" />
                 <span>Suggest Recipes from {currentIngredients.length} Ingredients</span>
               </button>
             </div>
