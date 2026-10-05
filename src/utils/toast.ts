@@ -24,10 +24,17 @@ export const subscribeToasts = (listener: Listener) => {
 
 export const AI_OFFLINE_MESSAGE = "Couldn't reach the AI service. Showing sample results instead.";
 
-// Server marks offline sample responses with this header. Tell the user once per session.
-let fallbackNoticeShown = false;
+// Server marks offline answers with X-AI-Fallback and a route-specific X-AI-Fallback-Message.
+// Each distinct message is shown once per page load so repeated calls don't spam notices.
+const shownFallbackMessages = new Set<string>();
 export const noteIfFallback = (res: Response) => {
-  if (fallbackNoticeShown || !res.headers.get('X-AI-Fallback')) return;
-  fallbackNoticeShown = true;
-  showToast('AI service is offline, so you are seeing sample results.', 'info');
+  if (!res.headers.get('X-AI-Fallback')) return;
+  let message = 'AI service is offline, so you are seeing sample results.';
+  try {
+    const header = res.headers.get('X-AI-Fallback-Message');
+    if (header) message = decodeURIComponent(header);
+  } catch {}
+  if (shownFallbackMessages.has(message)) return;
+  shownFallbackMessages.add(message);
+  showToast(message, 'info');
 };

@@ -307,7 +307,7 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 ## 🚀 Complete Feature Inventory
 
 ### 1. AI Vision & Fridge Scanner
-- **Multi-Modal Image Analysis**: Upload or capture an image of any refrigerator or pantry. Google Gemini (`gemini-3.8-flash`) inspects visible items, predicts ingredient categories, measures confidence scores, and determines freshness stages.
+- **Multi-Modal Image Analysis**: Upload or capture an image of any refrigerator or pantry. Google Gemini (`gemini-3.5-flash-lite`) inspects visible items, predicts ingredient categories, measures confidence scores, and determines freshness stages.
 - **Structured Shelf Inventory**: Categorizes items into *Produce, Dairy & Eggs, Meat & Seafood, Pantry, Condiments, Fermented, Bakery, Grains & Pulses*.
 - **Interactive Stash Editor**: Add items manually, modify quantities, update freshness levels, or delete consumed goods.
 - **Curated Preset Fridges**: Test out preset inventories with pre-loaded ingredient sets:
@@ -452,7 +452,7 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 The backend server is implemented in `server.ts` utilizing `@google/genai`:
 
 ### `POST /api/analyze-fridge`
-- **Description**: Accepts a base64 encoded image of a fridge interior. Uses `gemini-3.8-flash` to return detected ingredients (with categories, freshness, and quantities) alongside 3 custom suggested recipes.
+- **Description**: Accepts a base64 encoded image of a fridge interior. Uses `gemini-3.5-flash-lite` to return detected ingredients (with categories, freshness, and quantities) alongside 3 custom suggested recipes.
 - **Request Body**:
   ```json
   {
@@ -476,7 +476,7 @@ The backend server is implemented in `server.ts` utilizing `@google/genai`:
   ```
 
 ### `POST /api/tts`
-- **Description**: Generates warm, crystal-clear culinary assistant audio narration using `gemini-3.8-flash-lite-tts`.
+- **Description**: Generates warm, crystal-clear culinary assistant audio narration using `gemini-3.5-flash-lite` (audio output may not be supported by this model).
 - **Request Body**:
   ```json
   {

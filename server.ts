@@ -1,5 +1,7 @@
 import express from 'express';
-import { GoogleGenAI, Type } from '@google/genai';
+import { Type } from '@google/genai';
+import { llm, llmConfigured, llmStatus, GEMINI_MODEL as ACTIVE_MODEL } from './server/llm';
+import { markFallback, offlineFridgeAnalysis, offlineRecipes, offlineTts, personalise } from './server/fallbacks';
 import path from 'path';
 import fs from 'fs/promises';
 import dotenv from 'dotenv';
@@ -9,37 +11,27 @@ dotenv.config();
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production' || process.argv.includes('--prod');
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-const GEMINI_TTS_MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-lite-tts';
+// The gateway always uses its single configured model; these values are ignored
+const GEMINI_MODEL = 'auto';
+const GEMINI_TTS_MODEL = 'auto';
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '20mb' }));
 
-// Shared Gemini client, created once and reused across requests.
-// Without a real key, throwing here lets each route's catch return its offline fallback
-// immediately instead of waiting on a doomed network round-trip.
-let geminiClient: GoogleGenAI | null = null;
-const getGeminiClient = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
-    throw new Error('GEMINI_API_KEY is not configured');
+// Provider health, queue and cache stats. Open in development; needs ADMIN_TOKEN in production.
+app.get('/api/llm/status', async (req, res) => {
+  if (IS_PRODUCTION && (!process.env.ADMIN_TOKEN || req.get('x-admin-token') !== process.env.ADMIN_TOKEN)) {
+    return res.status(404).json({ error: 'Not found' });
   }
-  if (!geminiClient) {
-    geminiClient = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
-    });
-  }
-  return geminiClient;
-};
+  res.json(llmStatus());
+});
 
-if (!process.env.GEMINI_API_KEY) {
-  console.warn('GEMINI_API_KEY is missing; AI routes will serve offline fallback data.');
-}
+// All AI routes go through the Gemini gateway (server/llm.ts): one model, cached, rate-limit aware.
+// Throwing here when nothing is configured lets each route return its offline sample data immediately.
+const getGeminiClient = () => {
+  if (!llmConfigured()) throw new Error('No LLM provider configured');
+  return llm;
+};
 
 // Route: Analyze Fridge Photo / Image
 app.post('/api/analyze-fridge', async (req, res) => {
@@ -175,13 +167,10 @@ ${extraPrompt ? `Additional note from user: ${extraPrompt}` : ''}`;
     const parsedData = JSON.parse(textOutput);
     res.json(parsedData);
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error analyzing fridge:', err);
-    res.status(500).json({
-      error: 'Failed to analyze fridge image',
-      details: err.message || 'Unknown error',
-    });
+    res.json(offlineFridgeAnalysis());
   }
 });
 
@@ -347,13 +336,10 @@ Each recipe must strictly contain:
     const parsedData = JSON.parse(textOutput);
     res.json(parsedData);
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error generating recipes:', err);
-    res.status(500).json({
-      error: 'Failed to generate recipes',
-      details: err.message || 'Unknown error',
-    });
+    res.json(offlineRecipes(req.body));
   }
 });
 
@@ -399,10 +385,10 @@ app.post('/api/tts', async (req, res) => {
       return res.status(500).json({ error: 'No audio generated' });
     }
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error with TTS:', err);
-    res.status(500).json({ error: 'TTS failed', details: err.message });
+    res.json(offlineTts());
   }
 });
 
@@ -458,8 +444,8 @@ Return strictly JSON matching this schema.`;
     const parsed = JSON.parse(response.text || '{}');
     return res.json(parsed);
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error analyzing receipt:', err);
     // Robust fallback for testing/offline receipts
     return res.json({
@@ -514,10 +500,10 @@ Return strictly valid JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error in memory insight:', err);
-    return res.json({
+    return res.json(personalise('household-memory-insight', req.body, {
       conversationalGreeting: "You usually prefer spicy South Indian breakfasts and you haven't used the spinach you bought 4 days ago.",
       householdAlerts: [
         "Arjun's profile: Strictly exclude raw cilantro from tonight's prep.",
@@ -525,7 +511,7 @@ Return strictly valid JSON.`;
       ],
       tailoredSuggestion: "Spiced Spinach & Egg Bhurji with Toasted Sourdough (Ready in 14 mins, Spice Level 4/5)",
       memorySyncStatus: "Memory Synced • 14 Household Data Nodes Active"
-    });
+    }));
   }
 });
 
@@ -589,10 +575,10 @@ Return valid JSON only.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error in autonomous decision:', err);
-    return res.json({
+    return res.json(personalise('autonomous-decision', req.body, {
       recommendedMeal: {
         title: "Spiced Chicken & Wilted Spinach Rice Skillet",
         cookTimeMinutes: 24,
@@ -619,7 +605,7 @@ Return valid JSON only.`;
           { stepNumber: 4, instruction: "Stir in pre-cooked basmati rice, drizzle a splash of soy or lime juice, and serve immediately.", timerSeconds: 60 }
         ]
       }
-    });
+    }));
   }
 });
 
@@ -656,8 +642,8 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error in substitutes:', err);
     // Return high quality fallback
     return res.json({
@@ -769,8 +755,8 @@ Return JSON with format:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error in recipe evolution:', err);
     // Robust high-fidelity fallbacks
     const title = req.body?.baseRecipe?.title || 'Skillet Mediterranean Bowl';
@@ -970,8 +956,8 @@ Return JSON with:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error in chef persona:', err);
     const p = req.body?.persona || 'Indian';
     return res.json({
@@ -1030,10 +1016,10 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error in pantry challenge:', err);
-    return res.json({
+    return res.json(personalise('pantry-challenge-score', req.body, {
       challengeDishTitle: 'Crispy Pan-Seared Pantry Medley',
       ingredientUtilization: 94,
       creativity: 87,
@@ -1044,7 +1030,7 @@ Return strictly JSON.`;
       badgeUnlocked: 'Zero-Waste Prodigy',
       feedbackQuote: 'Outstanding pantry arbitrage! You turned 5 separate staples into a cohesive, high-protein skillet in under 20 minutes.',
       cookTimeMinutes: 18
-    });
+    }));
   }
 });
 
@@ -1081,8 +1067,8 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error in budget meal plan:', err);
     const curr = req.body?.currency || '₹';
     return res.json({
@@ -1162,10 +1148,10 @@ Return JSON:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error in household dinner:', err);
-    return res.json({
+    return res.json(personalise('household-dinner-for-everyone', req.body, {
       baseRecipeTitle: 'Fragrant Turmeric Rice & Roasted Mediterranean Veg Base',
       tagline: 'A flexible, golden spiced one-pot foundation with customized protein and seasoning modules',
       cookTimeMinutes: 28,
@@ -1208,7 +1194,7 @@ Return JSON:
         { stepNumber: 3, instruction: 'Scoop Dad’s portion from the base pot, finish with lemon juice and fresh herbs.', timerSeconds: 60 },
         { stepNumber: 4, instruction: 'Portion remaining base into Varun’s and Mom’s bowls, top with their respective proteins and customized seasoning.', timerSeconds: 60 }
       ]
-    });
+    }));
   }
 });
 
@@ -1258,8 +1244,8 @@ Return strictly JSON:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error in voice kitchen agent:', err);
     const msg = (req.body?.message || '').toLowerCase();
     if (msg.includes('start') || msg.includes('cook')) {
@@ -1356,8 +1342,8 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error analyzing plate photo:', err);
     return res.json({
       dishName: 'Pan-Seared Golden Protein Bowl with Herb Wilted Greens',
@@ -1418,8 +1404,8 @@ Return strictly JSON.`;
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error generating event catering plan:', err);
     const curr = req.body?.currency || '₹';
     return res.json({
@@ -1533,8 +1519,8 @@ Return JSON with format:
 
     return res.json(JSON.parse(response.text || '{}'));
   } catch (err: any) {
-    // Responses from here are offline sample data, not AI output
-    res.set('X-AI-Fallback', '1');
+    // Gemini and Groq both failed: serve this route's offline answer
+    markFallback(req, res);
     console.error('Error running autonomous culinary agent:', err);
     return res.json({
       goal: req.body?.goal || 'Plan my meals for this week while minimizing food waste and keeping groceries below ₹2,500.',
@@ -1728,6 +1714,7 @@ async function setupServer() {
   }
 
   app.listen(PORT, () => {
+    console.log(llmConfigured() ? `Gemini model: ${ACTIVE_MODEL}` : 'GEMINI_API_KEY is missing; AI routes will serve offline sample data.');
     console.log(`FridgeChef AI Server running on http://localhost:${PORT} (${IS_PRODUCTION ? 'production' : 'development'})`);
   });
 }

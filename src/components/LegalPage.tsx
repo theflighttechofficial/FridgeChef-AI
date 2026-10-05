@@ -4,7 +4,7 @@ import { CONTACT_EMAIL } from '../config/site';
 
 export type LegalDoc = 'terms' | 'privacy';
 
-const UPDATED = '1 October 2026';
+const UPDATED = '5 October 2026';
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <section className="space-y-3">
@@ -27,6 +27,14 @@ const Privacy = () => (
         To identify ingredients and write recipes, photos and text are sent from your browser to our server, which
         forwards them to Google's Gemini API. Our server does not save them. Google processes them under its own{' '}
         <a className="underline decoration-[#FF5A3C] underline-offset-4 hover:text-[#F5F1E8]" href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">
+          privacy policy
+        </a>
+        .
+      </p>
+      <p>
+        If Gemini is unavailable, text requests (never photos or audio) are sent to Groq instead, which processes them
+        under its own{' '}
+        <a className="underline decoration-[#FF5A3C] underline-offset-4 hover:text-[#F5F1E8]" href="https://groq.com/privacy-policy/" target="_blank" rel="noreferrer">
           privacy policy
         </a>
         .
