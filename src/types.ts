@@ -39,6 +39,7 @@ export interface Recipe {
   cookingMethod?: 'Pan-Seared' | 'Air Fryer' | 'Pressure Cooker / Instant Pot' | 'Sous Vide' | 'Claypot Braising' | 'Wok Stir-Fry' | 'Oven Roasted' | 'Smoked' | 'Raw Fermented';
   dietaryTags: string[]; // e.g. ['Vegetarian', 'Gluten-Free', 'Keto']
   cuisine: string; // e.g. 'Mediterranean', 'Asian', 'Mexican', 'French'
+  region?: string; // e.g. 'Indian', 'East Asian', 'European'
   matchedIngredients: string[];
   missingIngredients: string[];
   macros: {
@@ -52,7 +53,14 @@ export interface Recipe {
   chefTip?: string;
   imageUrl?: string;
   servings?: number;
+  emoji?: string;
+  // Where the recipe came from: a cloud AI provider, the on-device model, or built-in samples
+  source?: 'ai' | 'local-model' | 'sample';
+  // Missing ingredients the on-device model found a close substitute for in the pantry
+  substitutions?: { missing: string; use: string }[];
 }
+
+export type AppTab = 'scan' | 'recipes' | 'saved' | 'shopping' | 'molecular' | 'settings';
 
 export interface ShoppingItem {
   id: string;

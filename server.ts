@@ -1,6 +1,6 @@
 import express from 'express';
 import { Type } from '@google/genai';
-import { llm, llmConfigured, llmStatus, GEMINI_MODEL as ACTIVE_MODEL } from './server/llm';
+import { llm, llmConfigured, llmStatus, userProviderScope, userProviderError, GEMINI_MODEL as ACTIVE_MODEL } from './server/llm';
 import { markFallback, offlineFridgeAnalysis, offlineRecipes, offlineTts, personalise } from './server/fallbacks';
 import path from 'path';
 import fs from 'fs/promises';
@@ -16,7 +16,34 @@ const GEMINI_MODEL = 'auto';
 const GEMINI_TTS_MODEL = 'auto';
 
 app.disable('x-powered-by');
+
+// The Android app (Capacitor WebView) calls this server cross-origin. Allow its origins plus any
+// listed in CORS_ORIGINS (comma-separated). The website itself is same-origin and needs nothing.
+const CORS_ORIGINS = new Set([
+  'https://localhost',
+  'capacitor://localhost',
+  'http://localhost',
+  ...(process.env.CORS_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean),
+]);
+app.use('/api', (req, res, next) => {
+  const origin = req.get('origin');
+  if (origin && CORS_ORIGINS.has(origin)) {
+    res.set({
+      'Access-Control-Allow-Origin': origin,
+      Vary: 'Origin',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-fc-provider, x-fc-key, x-fc-model',
+      'Access-Control-Expose-Headers': 'X-AI-Fallback, X-AI-Fallback-Message',
+      'Access-Control-Max-Age': '600',
+    });
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 app.use(express.json({ limit: '20mb' }));
+// A visitor's own AI provider/key (sent as x-fc-* headers) applies to that request only
+app.use('/api', userProviderScope);
 
 // Provider health, queue and cache stats. Open in development; needs ADMIN_TOKEN in production.
 app.get('/api/llm/status', async (req, res) => {
@@ -24,6 +51,19 @@ app.get('/api/llm/status', async (req, res) => {
     return res.status(404).json({ error: 'Not found' });
   }
   res.json(llmStatus());
+});
+
+// Settings screen "Test connection": one tiny call through the visitor's own provider
+app.post('/api/llm/test', async (req, res) => {
+  if (!req.get('x-fc-key')) return res.status(400).json({ ok: false, error: 'No API key sent' });
+  try {
+    const response: any = await llm.models.generateContent({ contents: `Reply with the single word OK. (check ${Date.now()})` });
+    const error = userProviderError();
+    if (error) return res.json({ ok: false, error });
+    res.json({ ok: true, reply: String(response?.text || '').trim().slice(0, 40) });
+  } catch (err: any) {
+    res.json({ ok: false, error: userProviderError() || String(err?.message || err).slice(0, 200) });
+  }
 });
 
 // All AI routes go through the Gemini gateway (server/llm.ts): one model, cached, rate-limit aware.

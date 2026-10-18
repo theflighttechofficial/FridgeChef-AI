@@ -9,8 +9,12 @@ import { ConsentBanner } from './components/ConsentBanner';
 import { setPageMeta } from './utils/seo';
 import { track } from './utils/analytics';
 import { Toaster } from './components/Toaster';
-import { showToast, noteIfFallback } from './utils/toast';
-import { Navbar } from './components/Navbar';
+import { showToast } from './utils/toast';
+import { AppShell } from './components/shell/AppShell';
+import { buildTools } from './components/shell/tools';
+import { analyzeFridgePhoto, generateRecipes, localRecipes, RecipeSource } from './ai/recipeEngine';
+import { recordTaste } from './ml/tasteModel';
+import { cuisineMatches } from './ml/data/schema';
 import { FridgeScanner } from './components/FridgeScanner';
 import { SidebarFilter } from './components/SidebarFilter';
 import { RecipeCard } from './components/RecipeCard';
@@ -27,8 +31,6 @@ import { FamilyPantrySyncWidget } from './components/FamilyPantrySyncWidget';
 
 import { ExpirationSimulatorWidget } from './components/ExpirationSimulatorWidget';
 import { HouseholdChoreLeaderboardWidget } from './components/HouseholdChoreLeaderboardWidget';
-import { IOSDynamicIsland } from './components/IOSDynamicIsland';
-import { AndroidMaterialYouFAB } from './components/AndroidMaterialYouFAB';
 import { PantryHealthNotificationBanner } from './components/PantryHealthNotificationBanner';
 
 import { HouseholdMemoryBanner } from './components/HouseholdMemoryBanner';
@@ -47,6 +49,7 @@ import {
   CookingTimeBudget,
   CookingMoodMode,
   CookingSkillAdaptationLevel,
+  AppTab,
 } from './types';
 
 import {
@@ -57,7 +60,7 @@ import {
 } from './data/sampleData';
 import { usePersistentState } from './hooks/usePersistentState';
 
-import { Utensils, RefreshCw, ChefHat, Bookmark } from 'lucide-react';
+import { RefreshCw, ChefHat, Bookmark, Cpu, Cloud, Sparkles } from 'lucide-react';
 
 // Code-split: modals and non-default tabs load on demand to keep the initial bundle small
 const StepByStepCookingModal = lazy(() => import('./components/StepByStepCookingModal').then((m) => ({ default: m.StepByStepCookingModal })));
@@ -89,6 +92,7 @@ const PlatePhotoAnalysisModal = lazy(() => import('./components/PlatePhotoAnalys
 const TastePreferenceLearningModal = lazy(() => import('./components/TastePreferenceLearningModal').then((m) => ({ default: m.TastePreferenceLearningModal })));
 const EventCateringPlannerModal = lazy(() => import('./components/EventCateringPlannerModal').then((m) => ({ default: m.EventCateringPlannerModal })));
 const PantryFinancialIntelligenceModal = lazy(() => import('./components/PantryFinancialIntelligenceModal').then((m) => ({ default: m.PantryFinancialIntelligenceModal })));
+const SettingsPage = lazy(() => import('./components/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const AutonomousCulinaryAgentModal = lazy(() => import('./components/AutonomousCulinaryAgentModal').then((m) => ({ default: m.AutonomousCulinaryAgentModal })));
 
 const containerVariants: Variants = {
@@ -138,6 +142,7 @@ const TAB_META: Record<string, [string, string]> = {
   saved: ['Saved Recipes', 'Recipes you bookmarked in FridgeChef, kept on this device.'],
   shopping: ['Shopping List', 'Your FridgeChef shopping list, filled from missing recipe ingredients.'],
   molecular: ['Food Science Lab', 'Flavour chemistry, sizzle sounds and spoilage timing for the food in your fridge.'],
+  settings: ['Settings', 'Choose your AI provider, add your own API key and tune the on-device recipe model.'],
 };
 
 const DEFAULT_FILTERS: FilterOptions = {
@@ -161,27 +166,15 @@ const mergeShoppingItems = (existing: ShoppingItem[], incoming: ShoppingItem[]) 
   return fresh.length ? [...existing, ...fresh] : existing;
 };
 
-// Normalize AI step payloads; drop empty steps so the cooking modal never renders blanks
-const normalizeSteps = (steps: any[] | undefined) =>
-  (Array.isArray(steps) ? steps : [])
-    .filter((st) => st && typeof st.instruction === 'string' && st.instruction.trim())
-    .map((st, sIdx) => ({
-      stepNumber: st.stepNumber || sIdx + 1,
-      instruction: st.instruction,
-      timerSeconds: st.timerSeconds || undefined,
-      keyIngredients: st.keyIngredients || [],
-      chefTip: st.chefTip,
-    }));
-
 const ModalFallback = () => (
-  <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center" role="status" aria-label="Loading">
-    <div className="w-10 h-10 rounded-full border-4 border-emerald-500/30 border-t-emerald-400 animate-spin" />
+  <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center" role="status" aria-label="Loading">
+    <div className="w-12 h-12 rounded-full border-4 border-emerald-500/30 border-t-emerald-300 animate-spin" />
   </div>
 );
 
 // Placeholder shaped like a RecipeCard, shown while new recipes are being generated
 const RecipeCardSkeleton = () => (
-  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden animate-pulse">
+  <div className="bg-slate-900 rounded-3xl overflow-hidden animate-pulse">
     <div className="h-48 bg-slate-800/70" />
     <div className="p-5 space-y-3">
       <div className="h-4 w-2/3 rounded bg-slate-800" />
@@ -198,7 +191,7 @@ const RecipeCardSkeleton = () => (
 );
 
 const SectionFallback = () => (
-  <div className="h-40 rounded-2xl bg-slate-900/60 border border-slate-800 animate-pulse" />
+  <div className="h-40 rounded-3xl bg-slate-900/60 animate-pulse" />
 );
 
 export default function App() {
@@ -226,7 +219,7 @@ export default function App() {
     setShowIntro(false);
   }, []);
 
-  const [activeTab, setActiveTab] = useState<'scan' | 'recipes' | 'shopping' | 'saved' | 'molecular'>('scan');
+  const [activeTab, setActiveTab] = useState<AppTab>('scan');
 
   // Per-view title/description + anonymous page view (only sent with consent)
   useEffect(() => {
@@ -315,6 +308,7 @@ export default function App() {
     INITIAL_PRESET_FRIDGES[0]?.ingredients || []
   );
   const [recipes, setRecipes] = useState<Recipe[]>(INITIAL_RECIPES);
+  const [recipeSource, setRecipeSource] = useState<RecipeSource | 'sample'>('sample');
   const [savedRecipes, setSavedRecipes] = usePersistentState<Recipe[]>('fridgechef.savedRecipes', []);
   const [shoppingList, setShoppingList] = usePersistentState<ShoppingItem[]>('fridgechef.shoppingList', INITIAL_SHOPPING_LIST);
 
@@ -337,129 +331,52 @@ export default function App() {
     setCurrentIngredients(preset.ingredients);
   };
 
-  // Handle AI Photo Analysis (Calls Server-Side Gemini API)
+  // Photo -> ingredients (+ recipes). Cloud AI reads the photo; the on-device model fills in
+  // recipes when the AI returned ingredients only.
   const handleAnalyzeImage = async (imageBase64: string, extraNote?: string) => {
     setIsAnalyzing(true);
     try {
-      const response = await fetch('/api/analyze-fridge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64, extraPrompt: extraNote }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to analyze fridge photo');
+      const { detectedIngredients, suggestedRecipes } = await analyzeFridgePhoto(imageBase64, extraNote);
+      if (!detectedIngredients.length) {
+        showToast("No food spotted in that photo. Try a closer, brighter shot or add items by hand.", 'info');
+        return;
       }
-      noteIfFallback(response);
-
-      const data = await response.json();
-
-      if (data.detectedIngredients && data.detectedIngredients.length > 0) {
-        const formattedIngredients: Ingredient[] = data.detectedIngredients.map(
-          (item: any, idx: number) => ({
-            id: `ai-${Date.now()}-${idx}`,
-            name: item.name,
-            category: item.category || 'Produce',
-            freshness: item.freshness || 'Fresh',
-            quantity: item.quantity || '1 item',
-            confidence: item.confidence || 0.9,
-          })
-        );
-        setCurrentIngredients(formattedIngredients);
+      setCurrentIngredients(detectedIngredients);
+      const withImages = suggestedRecipes.map((r, idx) => ({ ...r, imageUrl: INITIAL_RECIPES[idx % INITIAL_RECIPES.length]?.imageUrl }));
+      if (withImages.length) {
+        setRecipes(withImages);
+        setRecipeSource('ai');
+      } else {
+        setRecipes(await localRecipes(detectedIngredients, filters));
+        setRecipeSource('local-model');
       }
-
-      if (data.suggestedRecipes && data.suggestedRecipes.length > 0) {
-        const formattedRecipes: Recipe[] = data.suggestedRecipes.map(
-          (rec: any, idx: number) => ({
-            id: `ai-recipe-${Date.now()}-${idx}`,
-            title: rec.title,
-            description: rec.description,
-            prepTimeMinutes: rec.prepTimeMinutes || 15,
-            cookTimeMinutes: rec.cookTimeMinutes || 15,
-            calories: rec.calories || 400,
-            difficulty: rec.difficulty || 'Easy',
-            dietaryTags: rec.dietaryTags || [],
-            cuisine: rec.cuisine || 'Global',
-            matchedIngredients: rec.matchedIngredients || [],
-            missingIngredients: rec.missingIngredients || [],
-            macros: rec.macros || { protein: '25g', carbs: '30g', fat: '15g' },
-            servings: rec.servings || 2,
-            chefTip: rec.chefTip || 'Enjoy cooking!',
-            imageUrl: INITIAL_RECIPES[idx % INITIAL_RECIPES.length]?.imageUrl,
-            steps: normalizeSteps(rec.steps),
-          })
-        );
-
-        const validRecipes = formattedRecipes.filter((r) => r.title);
-        if (validRecipes.length) {
-          setRecipes(validRecipes);
-          setActiveTab('recipes');
-        }
-      }
-    } catch (err) {
+      setActiveTab('recipes');
+    } catch (err: any) {
       console.error('Error analyzing image:', err);
-      showToast("Couldn't read that photo. Check your connection or try a clearer picture.");
+      showToast(err?.message || "Couldn't read that photo. Check your connection or try a clearer picture.");
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  // Generate Recipes from Current Ingredient List + Filters
-  const handleGenerateRecipesFromIngredients = async () => {
+  // Recipes for the current pantry + filters: cloud AI first, on-device model as fallback
+  const handleGenerateRecipesFromIngredients = async (forceLocal = false) => {
+    if (!currentIngredients.length) {
+      showToast('Add a few ingredients first.', 'info');
+      return;
+    }
     setIsGeneratingRecipes(true);
     try {
-      const ingredientNames = currentIngredients.map((i) => i.name);
-      const response = await fetch('/api/generate-recipes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ingredients: ingredientNames,
-          dietary: filters.dietary,
-          maxPrepTime: filters.maxPrepTime,
-          difficulty: filters.difficulty === 'All' ? undefined : filters.difficulty,
-          cuisine: filters.cuisine === 'All' ? undefined : filters.cuisine,
-          regionalTaxonomy: [
-            'North Indian (Mughlai, Butter/Kadai Gravies, Palak Paneer, Dal Makhani)',
-            'South Indian (Chettinad Pepper Fry, Malabar Coconut, Keralite Stew, Hyderabadi Dum)',
-            'American (Southern BBQ, New England Coastal, Tex-Mex Smash & Diner Bowls)',
-            'Pan-Asian (Japanese Washoku/Katsu, Thai Street Red/Green Curry, Chinese Sichuan, Korean Bunsik)'
-          ],
-          taxonomyRequirement: 'Explicitly categorize recipes into distinct regional taxonomy buckets (North Indian, South Indian, American, Pan-Asian: Japanese/Thai/Chinese/Korean) to guarantee balanced cuisine discovery with both vegetarian and non-vegetarian ingredient pairings.',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate customized recipes');
-      }
-      noteIfFallback(response);
-
-      const data = await response.json();
-
-      if (data.recipes && data.recipes.length > 0) {
-        const formattedRecipes: Recipe[] = data.recipes.map((rec: any, idx: number) => ({
-          id: rec.id || `gen-${Date.now()}-${idx}`,
-          title: rec.title,
-          description: rec.description,
-          prepTimeMinutes: rec.prepTimeMinutes || 12,
-          cookTimeMinutes: rec.cookTimeMinutes || 15,
-          calories: rec.calories || 420,
-          difficulty: rec.difficulty || 'Easy',
-          dietaryTags: rec.dietaryTags || filters.dietary,
-          cuisine: rec.cuisine || 'Chef Special',
-          matchedIngredients: rec.matchedIngredients || ingredientNames.slice(0, 4),
-          missingIngredients: rec.missingIngredients || [],
-          macros: rec.macros || { protein: '28g', carbs: '25g', fat: '18g' },
-          servings: rec.servings || 2,
-          chefTip: rec.chefTip || 'Cook with fresh organic ingredients for best flavor.',
-          imageUrl: INITIAL_RECIPES[idx % INITIAL_RECIPES.length]?.imageUrl,
-          steps: normalizeSteps(rec.steps),
-        }));
-
-        const validRecipes = formattedRecipes.filter((r) => r.title);
-        if (validRecipes.length) {
-          setRecipes(validRecipes);
-          setActiveTab('recipes');
-        }
+      const result = forceLocal
+        ? { recipes: await localRecipes(currentIngredients, filters), source: 'local-model' as const, notice: undefined }
+        : await generateRecipes(currentIngredients, filters);
+      if (result.notice) showToast(result.notice, 'info');
+      if (result.recipes.length) {
+        setRecipes(result.source === 'ai' ? result.recipes.map((r, idx) => ({ ...r, imageUrl: INITIAL_RECIPES[idx % INITIAL_RECIPES.length]?.imageUrl })) : result.recipes);
+        setRecipeSource(result.source);
+        setActiveTab('recipes');
+      } else {
+        showToast('No recipes fit those filters. Try loosening them.', 'info');
       }
     } catch (err) {
       console.error('Error generating recipes:', err);
@@ -517,9 +434,15 @@ export default function App() {
 
   // Save / Bookmark Recipe
   const handleToggleSaveRecipe = (recipe: Recipe) => {
-    setSavedRecipes((prev) =>
-      prev.some((r) => r.id === recipe.id) ? prev.filter((r) => r.id !== recipe.id) : [...prev, recipe]
-    );
+    const wasSaved = savedRecipes.some((r) => r.id === recipe.id);
+    recordTaste(recipe, wasSaved ? 0 : 1);
+    setSavedRecipes((prev) => (wasSaved ? prev.filter((r) => r.id !== recipe.id) : [...prev, recipe]));
+  };
+
+  // Starting to cook a recipe is a strong "I like this" signal for the on-device taste model
+  const handleStartCooking = (recipe: Recipe) => {
+    recordTaste(recipe, 1);
+    setCookingRecipe(recipe);
   };
 
   const savedRecipeIds = useMemo(() => new Set(savedRecipes.map((r) => r.id)), [savedRecipes]);
@@ -546,7 +469,7 @@ export default function App() {
           return false;
         }
 
-        if (filters.cuisine !== 'All' && !recipe.cuisine.toLowerCase().includes(filters.cuisine.toLowerCase())) {
+        if (!cuisineMatches(recipe, filters.cuisine)) {
           return false;
         }
 
@@ -602,6 +525,30 @@ export default function App() {
     setShoppingList((prev) => prev.filter((i) => !i.checked));
   };
 
+  const tools = buildTools({
+    agent: () => setIsAutonomousAgentOpen(true),
+    voice: () => setIsKitchenVoiceOpen(true),
+    graph: () => setIsKnowledgeGraphOpen(true),
+    taste: () => setIsTasteModalOpen(true),
+    memory: () => setIsMemoryModalOpen(true),
+    neuro: () => setIsNeuroOpen(true),
+    personas: () => setIsChefPersonaOpen(true),
+    challenge: () => setIsPantryChallengeOpen(true),
+    ironChef: () => setIsIronChefOpen(true),
+    substitutes: () => setIsSubstitutionsModalOpen(true),
+    plating: () => setIsARPlatingOpen(true),
+    plate: () => setIsPlateAnalysisOpen(true),
+    catering: () => setIsCateringModalOpen(true),
+    dinnerForEveryone: () => setIsDinnerForEveryoneOpen(true),
+    nutrition: () => setIsNutritionModalOpen(true),
+    safety: () => setIsFoodSafetyModalOpen(true),
+    sensors: () => setIsSensorModalOpen(true),
+    carbon: () => setIsCarbonModalOpen(true),
+    budget: () => setIsBudgetModeOpen(true),
+    financials: () => setIsFinancialModalOpen(true),
+    receipt: () => setIsReceiptModalOpen(true),
+  });
+
   if (route !== 'app') {
     return (
       <>
@@ -624,48 +571,17 @@ export default function App() {
     <AnimatePresence>{showIntro && <IntroShowreel onContinue={dismissIntro} />}</AnimatePresence>
     <Toaster />
     <ConsentBanner />
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between pt-12 md:pt-0">
-      {/* Floating iOS Dynamic Island */}
-      <IOSDynamicIsland
-        activeTab={activeTab}
-        currentIngredientsCount={currentIngredients.length}
-        sensorAnomaly={sensorsState.isAnomalyActive}
-        onOpenSensorModal={() => setIsSensorModalOpen(true)}
-      />
-
-      {/* Top Navbar */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        shoppingListCount={shoppingList.length}
-        savedCount={savedRecipes.length}
-        onQuickScanClick={() => setActiveTab('scan')}
-        onOpenIronChefModal={() => setIsIronChefOpen(true)}
-        onOpenARPlatingModal={() => setIsARPlatingOpen(true)}
-        onOpenNeuroModal={() => setIsNeuroOpen(true)}
-        onOpenMemoryModal={() => setIsMemoryModalOpen(true)}
-        onOpenReceiptModal={() => setIsReceiptModalOpen(true)}
-        onOpenSubstitutionsModal={() => setIsSubstitutionsModalOpen(true)}
-        onOpenChefPersonaModal={() => setIsChefPersonaOpen(true)}
-        onOpenPantryChallengeModal={() => setIsPantryChallengeOpen(true)}
-        onOpenBudgetModeModal={() => setIsBudgetModeOpen(true)}
-        onOpenNutritionModal={() => setIsNutritionModalOpen(true)}
-        onOpenCarbonModal={() => setIsCarbonModalOpen(true)}
-        onOpenSensorModal={() => setIsSensorModalOpen(true)}
-        onOpenFoodSafetyModal={() => setIsFoodSafetyModalOpen(true)}
-        onOpenDinnerForEveryoneModal={() => setIsDinnerForEveryoneOpen(true)}
-        onOpenKitchenVoiceModal={() => setIsKitchenVoiceOpen(true)}
-        onOpenKnowledgeGraphModal={() => setIsKnowledgeGraphOpen(true)}
-        onOpenPlateAnalysisModal={() => setIsPlateAnalysisOpen(true)}
-        onOpenTasteModal={() => setIsTasteModalOpen(true)}
-        onOpenCateringModal={() => setIsCateringModalOpen(true)}
-        onOpenFinancialModal={() => setIsFinancialModalOpen(true)}
-        onOpenAutonomousAgentModal={() => setIsAutonomousAgentOpen(true)}
-      />
-
+    <AppShell
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      shoppingListCount={shoppingList.filter((i) => !i.checked).length}
+      savedCount={savedRecipes.length}
+      tools={tools}
+    >
       {/* Main Body Content Container - Full Width Page Extension & Responsive Screen Optimization */}
-      <main className="flex-1 w-full px-3 sm:px-6 lg:px-12 py-6 pb-24 md:pb-10 space-y-6">
+      <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pt-2 pb-10 space-y-6">
         {/* Pantry Health Expiration Notification Alert Banner */}
+        {activeTab !== 'settings' && (<>
         <PantryHealthNotificationBanner
           ingredients={currentIngredients}
           onStartCookingFromAlert={() => setActiveTab('recipes')}
@@ -676,6 +592,7 @@ export default function App() {
           memoryProfile={memoryProfile}
           onOpenMemoryModal={() => setIsMemoryModalOpen(true)}
         />
+        </>)}
 
         <AnimatePresence mode="wait">
           {/* Tab 1: Fridge Scanner */}
@@ -695,7 +612,7 @@ export default function App() {
                 onIngredientsChange={setCurrentIngredients}
                 onAnalyzeImage={handleAnalyzeImage}
                 onSelectPreset={handleSelectPreset}
-                onGenerateRecipes={handleGenerateRecipesFromIngredients}
+                onGenerateRecipes={() => handleGenerateRecipesFromIngredients()}
                 isAnalyzing={isAnalyzing || isGeneratingRecipes}
               />
 
@@ -766,29 +683,43 @@ export default function App() {
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             className="space-y-6"
           >
-            {/* Header Title */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3">
-                  <Utensils className="w-7 h-7 text-emerald-400" />
-                  <span>
-                    {activeTab === 'saved' ? 'Your Saved Recipes' : 'Discovered Culinary Recipes'}
-                  </span>
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  Matched against {currentIngredients.length} ingredients from your fridge stash.
-                </p>
+            {/* Header: what this list is, where it came from, regenerate */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div className="space-y-2">
+                <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+                  {activeTab === 'saved' ? 'Saved recipes' : 'Cook tonight'}
+                </h2>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                  <span>Matched against {currentIngredients.length} ingredients in your fridge</span>
+                  {activeTab === 'recipes' && (
+                    <span className="inline-flex items-center gap-1.5 h-7 px-3 rounded-lg bg-secondary-container text-on-secondary-container text-xs font-semibold">
+                      {recipeSource === 'local-model' ? <Cpu className="w-3.5 h-3.5" /> : recipeSource === 'ai' ? <Cloud className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
+                      {recipeSource === 'local-model' ? 'On-device model' : recipeSource === 'ai' ? 'Cloud AI' : 'Featured'}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {activeTab === 'recipes' && (
-                <button
-                  onClick={handleGenerateRecipesFromIngredients}
-                  disabled={isGeneratingRecipes}
-                  className="px-4 py-2.5 bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 self-start sm:self-auto disabled:opacity-50 btn-sheen"
-                >
-                  <RefreshCw className={`w-4 h-4 ${isGeneratingRecipes ? 'animate-spin' : ''}`} />
-                  <span>Regenerate AI Recipes</span>
-                </button>
+                <div className="flex flex-wrap gap-2 self-start sm:self-auto">
+                  <button
+                    onClick={() => handleGenerateRecipesFromIngredients(true)}
+                    disabled={isGeneratingRecipes}
+                    className="h-12 px-5 rounded-full border border-slate-700 text-emerald-300 font-semibold text-sm flex items-center gap-2 state-layer disabled:opacity-50"
+                    title="Instant, offline suggestions from the model built into the app"
+                  >
+                    <Cpu className="w-5 h-5" />
+                    <span>On-device</span>
+                  </button>
+                  <button
+                    onClick={() => handleGenerateRecipesFromIngredients()}
+                    disabled={isGeneratingRecipes}
+                    className="h-12 px-6 rounded-full bg-emerald-300 text-emerald-950 font-semibold text-sm flex items-center gap-2 disabled:opacity-50 btn-sheen"
+                  >
+                    <RefreshCw className={`w-5 h-5 ${isGeneratingRecipes ? 'animate-spin' : ''}`} />
+                    <span>New ideas</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -821,7 +752,7 @@ export default function App() {
                     ))}
                   </div>
                 ) : activeTab === 'saved' && savedRecipes.length === 0 ? (
-                  <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+                  <div className="p-12 text-center bg-slate-900 rounded-[1.75rem] space-y-4">
                     <Bookmark className="w-10 h-10 text-slate-600 mx-auto" />
                     <h3 className="text-lg font-bold text-white">No saved recipes yet</h3>
                     <p className="text-sm text-slate-400 max-w-sm mx-auto">
@@ -829,23 +760,23 @@ export default function App() {
                     </p>
                     <button
                       onClick={() => setActiveTab('recipes')}
-                      className="px-4 py-2 bg-emerald-500 text-slate-950 hover:bg-emerald-400 font-bold text-xs rounded-xl"
+                      className="h-10 px-5 bg-emerald-300 text-emerald-950 font-semibold text-sm rounded-full"
                     >
                       Browse recipes
                     </button>
                   </div>
                 ) : filteredRecipes.length === 0 ? (
-                  <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+                  <div className="p-12 text-center bg-slate-900 rounded-[1.75rem] space-y-4">
                     <ChefHat className="w-12 h-12 text-slate-600 mx-auto" />
-                    <h3 className="text-lg font-bold text-white">No recipes match your filters!</h3>
+                    <h3 className="text-lg font-semibold text-white">No recipes match your filters</h3>
                     <p className="text-xs text-slate-400 max-w-sm mx-auto">
                       Try unchecking dietary restrictions or expanding max prep time in the filter sidebar.
                     </p>
                     <button
                       onClick={resetFilters}
-                      className="px-4 py-2 bg-slate-800 text-slate-200 hover:bg-slate-700 font-bold text-xs rounded-xl transition-all"
+                      className="h-10 px-5 bg-secondary-container text-on-secondary-container font-semibold text-sm rounded-full"
                     >
-                      Clear Filters
+                      Clear filters
                     </button>
                   </div>
                 ) : (
@@ -866,7 +797,7 @@ export default function App() {
                         >
                           <RecipeCard
                             recipe={recipe}
-                            onSelectRecipe={setCookingRecipe}
+                            onSelectRecipe={handleStartCooking}
                             onAddMissingToShoppingList={handleAddMissingToShoppingList}
                             isSaved={savedRecipeIds.has(recipe.id)}
                             onToggleSave={handleToggleSaveRecipe}
@@ -900,7 +831,7 @@ export default function App() {
             </Reveal>
 
             {/* Global Status Bars below recipe discovery */}
-            <Reveal className="pt-6 border-t border-slate-800 space-y-6">
+            <Reveal className="pt-6 space-y-6">
               <BioEnvironmentBar />
               <KitchenSoundscapePlayer />
               <EnergyApplianceRouter />
@@ -950,26 +881,22 @@ export default function App() {
             </Reveal>
           </motion.div>
         )}
+        {/* Settings: AI engine, own API key, on-device model, colours */}
+        {activeTab === 'settings' && (
+          <motion.div
+            key="tab-settings"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
+          >
+            <Suspense fallback={<SectionFallback />}>
+              <SettingsPage onTryLocalModel={() => handleGenerateRecipesFromIngredients(true)} />
+            </Suspense>
+          </motion.div>
+        )}
         </AnimatePresence>
       </main>
-
-      {/* Android Material You Floating Action Button */}
-      <AndroidMaterialYouFAB
-        onQuickSnapClick={() => setActiveTab('scan')}
-        onOpenIronChefModal={() => setIsIronChefOpen(true)}
-        onOpenEmergencyPantry={() => setActiveTab('scan')}
-        onOpenReceiptModal={() => setIsReceiptModalOpen(true)}
-        onOpenMemoryModal={() => setIsMemoryModalOpen(true)}
-        onOpenChefPersonaModal={() => setIsChefPersonaOpen(true)}
-        onOpenPantryChallengeModal={() => setIsPantryChallengeOpen(true)}
-        onOpenBudgetModeModal={() => setIsBudgetModeOpen(true)}
-        onOpenKitchenVoiceModal={() => setIsKitchenVoiceOpen(true)}
-        onOpenNutritionModal={() => setIsNutritionModalOpen(true)}
-        onOpenFoodSafetyModal={() => setIsFoodSafetyModalOpen(true)}
-        onOpenAutonomousAgentModal={() => setIsAutonomousAgentOpen(true)}
-        onOpenKnowledgeGraphModal={() => setIsKnowledgeGraphOpen(true)}
-        onOpenPlateAnalysisModal={() => setIsPlateAnalysisOpen(true)}
-      />
 
       <Suspense fallback={<ModalFallback />}>
       {/* 🧠 Recipe Knowledge Graph Modal */}
@@ -1218,25 +1145,25 @@ export default function App() {
 
       </Suspense>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 text-slate-500 py-6 text-xs mt-12">
-        <div className="w-full px-3 sm:px-6 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-slate-400 flex items-center gap-2">
+      {/* Footer: legal links for the website (Settings carries them in the app) */}
+      <footer className="hidden md:block text-on-surface-variant py-8 text-xs">
+        <div className="w-full max-w-[1600px] mx-auto px-6 lg:px-10 flex items-center justify-between gap-3">
+          <p className="flex items-center gap-2">
             <LogoMark className="w-6 h-6 shrink-0" />
             FridgeChef. Suggestions are AI-generated, so check allergens and food safety yourself.
           </p>
           <nav className="flex items-center gap-5">
-            <a href="#/contact" className="hover:text-slate-200">Contact</a>
-            <a href="#/terms" className="hover:text-slate-200">Terms</a>
-            <a href="#/privacy" className="hover:text-slate-200">Privacy</a>
-            <button onClick={() => window.dispatchEvent(new Event('fridgechef:open-consent'))} className="hover:text-slate-200">
+            <a href="#/contact" className="hover:text-on-surface">Contact</a>
+            <a href="#/terms" className="hover:text-on-surface">Terms</a>
+            <a href="#/privacy" className="hover:text-on-surface">Privacy</a>
+            <button onClick={() => window.dispatchEvent(new Event('fridgechef:open-consent'))} className="hover:text-on-surface">
               Cookie settings
             </button>
             <span>&copy; 2026 FridgeChef</span>
           </nav>
         </div>
       </footer>
-    </div>
+    </AppShell>
     </MotionConfig>
   );
 }

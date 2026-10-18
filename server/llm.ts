@@ -4,6 +4,11 @@
  *   2. If Gemini fails, text-only requests retry on Groq (GROQ_MODEL). Groq never receives images or audio.
  *   3. If both fail, the route's catch block serves its own offline answer (see server.ts).
  *
+ * A visitor can bring their own provider and key (Settings screen in the app). The app sends them
+ * as x-fc-* headers; `userProviderScope` holds them for that one request, and the gateway tries
+ * that provider first. Keys are never stored, cached or logged. Custom endpoints are refused here
+ * (the app calls those directly) so the server never fetches a user-supplied URL.
+ *
  * Routes call `llm.models.generateContent(request)` with the normal Gemini request shape.
  * The gateway adds what the raw SDK lacks for a rate-limited key:
  *   - caches identical requests, so repeat questions cost no quota
@@ -13,6 +18,9 @@
  */
 import { GoogleGenAI } from '@google/genai';
 import { createHash } from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import type { Request, Response, NextFunction } from 'express';
+import { HEADER_KEY, HEADER_MODEL, HEADER_PROVIDER, ProviderDef, providerById } from '../src/ai/providers';
 
 const env = (key: string, fallback = '') => process.env[key]?.trim() || fallback;
 const envInt = (key: string, fallback: number) => Number.parseInt(env(key), 10) || fallback;
@@ -58,7 +66,7 @@ let cooldownUntil = 0;
 // ---------- Cache ----------
 
 const cache = new Map<string, { at: number; response: any }>();
-const cacheKey = (request: any) => createHash('sha256').update(JSON.stringify({ c: request.contents, k: request.config })).digest('hex');
+const cacheKey = (request: any) => createHash('sha256').update(JSON.stringify({ c: request.contents, k: request.config, p: request._provider })).digest('hex');
 
 const cacheGet = (key: string) => {
   const hit = cache.get(key);
@@ -141,15 +149,146 @@ const callGroq = async (prompt: string, wantsJson: boolean) => {
   }
 };
 
+// ---------- Visitor's own provider ----------
+
+interface UserProvider {
+  def: ProviderDef;
+  key: string;
+  model: string;
+  error?: string;
+}
+
+const userScope = new AsyncLocalStorage<UserProvider>();
+
+/** Express middleware: run the rest of the request with the visitor's provider, if they sent one. */
+export const userProviderScope = (req: Request, _res: Response, next: NextFunction) => {
+  const def = providerById(req.get(HEADER_PROVIDER) || undefined);
+  const key = (req.get(HEADER_KEY) || '').trim();
+  if (!def || def.deviceOnly || !key || key.length > 512) return next();
+  const model = (req.get(HEADER_MODEL) || '').trim().slice(0, 128) || def.defaultModel;
+  userScope.run({ def, key, model }, next);
+};
+
+/** Short reason the visitor's own provider failed during this request, if it did. */
+export const userProviderError = () => {
+  const user = userScope.getStore();
+  return user?.error ? `${user.def.label}: ${user.error}` : null;
+};
+
+type Part = { text?: string; inlineData?: { data: string; mimeType: string } };
+
+/** Flatten any Gemini `contents` shape into a single user turn of text and image parts. */
+const flattenParts = (contents: any): Part[] => {
+  const out: Part[] = [];
+  const visit = (x: any) => {
+    if (typeof x === 'string') out.push({ text: x });
+    else if (Array.isArray(x)) x.forEach(visit);
+    else if (x?.parts) x.parts.forEach(visit);
+    else if (x?.inlineData) out.push({ inlineData: x.inlineData });
+    else if (typeof x?.text === 'string') out.push({ text: x.text });
+  };
+  visit(contents);
+  return out;
+};
+
+const JSON_SYSTEM = 'Reply with one valid JSON object only. No prose, no code fences.';
+
+const fetchJson = async (url: string, init: RequestInit) => {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { ...init, signal: ctrl.signal });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      let detail = '';
+      try {
+        const parsed = JSON.parse(body);
+        detail = parsed?.error?.message || parsed?.message || '';
+      } catch {}
+      throw new Error(`${res.status}${detail ? ` ${detail.slice(0, 160)}` : ''}`);
+    }
+    return (await res.json()) as any;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+const callUserProvider = async (user: UserProvider, request: any, wantsJson: boolean) => {
+  const { def, key, model } = user;
+  if (Array.isArray(request.config?.responseModalities) && request.config.responseModalities.includes('AUDIO') && def.kind !== 'gemini') {
+    throw new Error('voice output needs Gemini');
+  }
+
+  if (def.kind === 'gemini') {
+    const response: any = await Promise.race([
+      new GoogleGenAI({ apiKey: key }).models.generateContent({ ...request, model }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), TIMEOUT_MS)),
+    ]);
+    if (!wantsJson) return response;
+    const json = extractJson(response.text ?? '');
+    if (!json) throw new Error('returned invalid JSON');
+    return { text: json, candidates: response.candidates };
+  }
+
+  const parts = flattenParts(request.contents);
+  if (parts.some((p) => p.inlineData) && !def.vision) throw new Error(`${model} cannot read images`);
+  const schemaHint = wantsJson && request.config?.responseSchema ? `\n\nJSON schema to follow: ${JSON.stringify(request.config.responseSchema)}` : '';
+  const system = [request.config?.systemInstruction, wantsJson ? JSON_SYSTEM : ''].filter((x) => typeof x === 'string' && x).join('\n');
+
+  let text: string;
+  if (def.kind === 'anthropic') {
+    const content = parts.map((p) =>
+      p.inlineData
+        ? { type: 'image', source: { type: 'base64', media_type: p.inlineData.mimeType, data: p.inlineData.data } }
+        : { type: 'text', text: p.text }
+    );
+    if (schemaHint) content.push({ type: 'text', text: schemaHint });
+    const data = await fetchJson(`${def.baseUrl}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model, max_tokens: 8192, ...(system ? { system } : {}), messages: [{ role: 'user', content }] }),
+    });
+    text = (data?.content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
+  } else {
+    const hasImage = parts.some((p) => p.inlineData);
+    const content = hasImage
+      ? parts.map((p) =>
+          p.inlineData
+            ? { type: 'image_url', image_url: { url: `data:${p.inlineData.mimeType};base64,${p.inlineData.data}` } }
+            : { type: 'text', text: p.text }
+        )
+      : parts.map((p) => p.text).join('\n\n');
+    const data = await fetchJson(`${def.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        model,
+        messages: [
+          ...(system ? [{ role: 'system', content: system }] : []),
+          { role: 'user', content: typeof content === 'string' ? content + schemaHint : schemaHint ? [...content, { type: 'text', text: schemaHint }] : content },
+        ],
+        ...(wantsJson ? { response_format: { type: 'json_object' } } : {}),
+      }),
+    });
+    text = String(data?.choices?.[0]?.message?.content ?? '');
+  }
+
+  const finalText = wantsJson ? extractJson(text) : text;
+  if (finalText === null) throw new Error('returned invalid JSON');
+  return { text: finalText, candidates: [{ content: { parts: [{ text: finalText }] } }] };
+};
+
 // ---------- Public API ----------
 
-const stats = { requests: 0, cacheHits: 0, rateLimited: 0, failures: 0, gemini: 0, groq: 0 };
+const stats = { requests: 0, cacheHits: 0, rateLimited: 0, failures: 0, gemini: 0, groq: 0, userProvider: 0 };
 
 const generateContent = async (request: any) => {
-  if (!hasKey() && !groqKey()) throw new Error('No LLM provider configured');
+  const user = userScope.getStore();
+  if (!user && !hasKey() && !groqKey()) throw new Error('No LLM provider configured');
   stats.requests++;
 
-  const key = cacheKey(request);
+  // Answers from a visitor's provider are cached separately from the server's own
+  const key = cacheKey(user ? { ...request, _provider: `${user.def.id}/${user.model}` } : request);
   const cached = cacheGet(key);
   if (cached) {
     stats.cacheHits++;
@@ -157,6 +296,18 @@ const generateContent = async (request: any) => {
   }
 
   const wantsJson = request.config?.responseMimeType === 'application/json';
+  if (user) {
+    try {
+      const response = await callUserProvider(user, request, wantsJson);
+      stats.userProvider++;
+      cacheSet(key, response);
+      return response;
+    } catch (err: any) {
+      // Never echo the key back; provider messages can quote it
+      user.error = String(err?.message || err).split(user.key).join('***').slice(0, 200);
+      if (!hasKey() && !groqKey()) throw err;
+    }
+  }
   let geminiError: unknown = new Error('GEMINI_API_KEY is not configured');
   if (hasKey()) {
     try {
@@ -224,7 +375,7 @@ const callGemini = async (request: any, wantsJson: boolean) => {
 
 export const llm = { models: { generateContent } };
 
-export const llmConfigured = () => hasKey() || !!groqKey();
+export const llmConfigured = () => !!userScope.getStore() || hasKey() || !!groqKey();
 
 export const llmStatus = () => ({
   model: GEMINI_MODEL,

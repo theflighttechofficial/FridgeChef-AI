@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Filter, Search, RotateCcw, Clock, Award, Globe, Flame, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import { FilterOptions } from '../types';
+import { REGIONS } from '../ml/data/schema';
 
 interface SidebarFilterProps {
   filters: FilterOptions;
@@ -20,18 +21,8 @@ const DIETARY_OPTIONS = [
   'Paleo',
 ];
 
-const CUISINE_OPTIONS = [
-  'All',
-  'Indian (North & South)',
-  'American / BBQ',
-  'Thai Street Food',
-  'Japanese / Izakaya',
-  'Mediterranean',
-  'Asian Fusion',
-  'Korean Clean Eats',
-  'Cantonese / Asian',
-  'Mexican',
-];
+// Every region of the on-device corpus, each followed by its cuisines
+const CUISINE_GROUPS = Object.entries(REGIONS);
 
 export const SidebarFilter: React.FC<SidebarFilterProps> = ({
   filters,
@@ -192,10 +183,16 @@ export const SidebarFilter: React.FC<SidebarFilterProps> = ({
           onChange={(e) => onFilterChange({ ...filters, cuisine: e.target.value })}
           className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
         >
-          {CUISINE_OPTIONS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
+          <option value="All">All cuisines</option>
+          {CUISINE_GROUPS.map(([region, cuisines]) => (
+            <optgroup key={region} label={region}>
+              <option value={region}>All {region}</option>
+              {cuisines.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </div>

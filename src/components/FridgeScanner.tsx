@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
-import { Camera, Upload, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCw, Layers, Zap } from 'lucide-react';
+import { Camera, Upload, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCw, Layers, Zap, Sparkles } from 'lucide-react';
 import { Ingredient, PresetFridge } from '../types';
 import { compressImageFile, drawToJpeg } from '../utils/imageUtils';
 import { showToast } from '../utils/toast';
@@ -98,6 +98,13 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
     }
   }, [isWebcamActive]);
 
+  // The app-wide "Snap" FAB opens the photo picker (camera or gallery on Android)
+  useEffect(() => {
+    const open = () => fileInputRef.current?.click();
+    window.addEventListener('fridgechef:snap', open);
+    return () => window.removeEventListener('fridgechef:snap', open);
+  }, []);
+
   // Release camera on unmount
   useEffect(() => () => streamRef.current?.getTracks().forEach((track) => track.stop()), []);
 
@@ -145,25 +152,44 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Top Banner / Hero Intro - Always at the top */}
-      <div className="bg-gradient-to-r from-slate-900 via-emerald-950/60 to-slate-900 border border-emerald-500/30 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
-        <div className="absolute -right-12 -top-12 w-72 h-72 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold tracking-wide uppercase">
-            <Zap className="w-3.5 h-3.5 text-emerald-400" />
-            <span>AI Vision Powered Culinary Intelligence</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-            Snap your open fridge. <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-              Let AI cook the perfect meal.
-            </span>
-          </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-            Upload a picture of your refrigerator or choose a sample setup. Our AI instantly detects visible items, tracks freshness, and generates custom recipes matching your dietary lifestyle.
-          </p>
+      {/* Hero: Material 3 expressive header with the two main actions */}
+      <section className="relative overflow-hidden rounded-[2rem] bg-primary-container text-on-primary-container p-6 sm:p-10">
+        <div aria-hidden="true" className="absolute -right-16 -top-20 w-80 h-80 bg-emerald-400/25 animate-morph" />
+        <div aria-hidden="true" className="absolute right-24 -bottom-24 w-56 h-56 bg-teal-400/20 animate-morph [animation-delay:-6s]" />
+        <div aria-hidden="true" className="absolute right-6 sm:right-14 top-1/2 -translate-y-1/2 text-[5.5rem] sm:text-[8rem] leading-none select-none hidden min-[480px]:block rotate-[-8deg] drop-shadow-xl">
+          🥗
         </div>
-      </div>
+        <div className="relative z-10 max-w-2xl space-y-4">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/40 text-emerald-100 text-xs font-semibold">
+            <Zap className="w-3.5 h-3.5" />
+            AI vision + on-device recipe model
+          </span>
+          <h1 className="text-[2rem] leading-[1.1] sm:text-6xl font-semibold tracking-tight text-emerald-50 min-[480px]:max-w-[70%] sm:max-w-none">
+            What's in your fridge tonight?
+          </h1>
+          <p className="text-emerald-100/85 text-sm sm:text-lg leading-relaxed max-w-xl">
+            Snap a photo or pick a sample fridge. FridgeChef spots the ingredients, flags what to use first and suggests dinner.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isAnalyzing}
+              className="h-12 px-6 rounded-full bg-emerald-200 text-emerald-950 font-semibold text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/30 hover:bg-emerald-100 disabled:opacity-60"
+            >
+              <Camera className="w-5 h-5" />
+              Snap fridge
+            </button>
+            <button
+              onClick={onGenerateRecipes}
+              disabled={isAnalyzing || currentIngredients.length === 0}
+              className="h-12 px-6 rounded-full border border-emerald-200/40 text-emerald-50 font-semibold text-sm flex items-center gap-2 hover:bg-emerald-50/10 disabled:opacity-60"
+            >
+              <Sparkles className="w-5 h-5" />
+              Cook with {currentIngredients.length} items
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* Main Scanner Section: 2 Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
