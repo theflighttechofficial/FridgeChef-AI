@@ -8,6 +8,7 @@
  *     can't be answered offline, so they say so instead of inventing results.
  */
 import type { Request, Response } from 'express';
+import { userProviderError } from './llm';
 
 const MESSAGES: Record<string, string> = {
   'analyze-fridge': "We couldn't analyse your photo right now. Add ingredients by hand below, or try the photo again in a minute.",
@@ -33,8 +34,10 @@ const DEFAULT_MESSAGE = 'The AI service is unavailable right now, so you are see
 /** Mark a response as offline data and attach the route's message. */
 export const markFallback = (req: Request, res: Response) => {
   const route = req.path.replace(/^\/api\//, '');
+  const ownKeyError = userProviderError();
+  const message = MESSAGES[route] || DEFAULT_MESSAGE;
   res.set('X-AI-Fallback', '1');
-  res.set('X-AI-Fallback-Message', encodeURIComponent(MESSAGES[route] || DEFAULT_MESSAGE));
+  res.set('X-AI-Fallback-Message', encodeURIComponent(ownKeyError ? `Your AI key didn't work (${ownKeyError}). ${message}` : message));
   res.set('Access-Control-Expose-Headers', 'X-AI-Fallback, X-AI-Fallback-Message');
 };
 

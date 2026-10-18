@@ -1,103 +1,248 @@
 @import "tailwindcss";
 
+/*
+ * Material 3 (Material You) design tokens.
+ *
+ * The app's components use Tailwind's slate (neutrals), emerald (primary) and teal (secondary)
+ * scales. Those scales are remapped here to Material 3 tonal palettes held in CSS variables, so
+ * src/theme/dynamicColor.ts can regenerate every tone from one seed colour at runtime (the
+ * "Material You" colour picker in Settings) and the whole app re-themes at once.
+ * Defaults below are the basil-green seed (hue 155).
+ */
+:root {
+  --seed-hue: 155;
+
+  /* Neutral tones, lightly tinted with the seed hue (M3 dark surfaces) */
+  --n-50: oklch(97.5% 0.006 var(--seed-hue));
+  --n-100: oklch(94% 0.008 var(--seed-hue));
+  --n-200: oklch(90% 0.01 var(--seed-hue));
+  --n-300: oklch(83% 0.012 var(--seed-hue));
+  --n-400: oklch(74% 0.014 var(--seed-hue));
+  --n-500: oklch(60% 0.016 var(--seed-hue));
+  --n-600: oklch(47% 0.016 var(--seed-hue));
+  --n-700: oklch(37% 0.016 var(--seed-hue));
+  --n-800: oklch(28.5% 0.014 var(--seed-hue));
+  --n-900: oklch(21.5% 0.012 var(--seed-hue));
+  --n-950: oklch(15.5% 0.01 var(--seed-hue));
+
+  /* Primary tones */
+  --p-50: oklch(97.9% 0.021 var(--seed-hue));
+  --p-100: oklch(95% 0.052 var(--seed-hue));
+  --p-200: oklch(90.5% 0.093 var(--seed-hue));
+  --p-300: oklch(86% 0.13 var(--seed-hue));
+  --p-400: oklch(80% 0.15 var(--seed-hue));
+  --p-500: oklch(73% 0.15 var(--seed-hue));
+  --p-600: oklch(62% 0.135 var(--seed-hue));
+  --p-700: oklch(52% 0.115 var(--seed-hue));
+  --p-800: oklch(43% 0.095 var(--seed-hue));
+  --p-900: oklch(37.8% 0.077 var(--seed-hue));
+  --p-950: oklch(26.2% 0.051 var(--seed-hue));
+
+  /* Secondary tones: seed hue rotated */
+  --s-hue: calc(var(--seed-hue) + 35);
+  --s-50: oklch(98.4% 0.014 var(--s-hue));
+  --s-100: oklch(95.3% 0.051 var(--s-hue));
+  --s-200: oklch(91% 0.096 var(--s-hue));
+  --s-300: oklch(85.5% 0.125 var(--s-hue));
+  --s-400: oklch(78.5% 0.133 var(--s-hue));
+  --s-500: oklch(70.4% 0.123 var(--s-hue));
+  --s-600: oklch(60% 0.104 var(--s-hue));
+  --s-700: oklch(51.1% 0.086 var(--s-hue));
+  --s-800: oklch(43.7% 0.071 var(--s-hue));
+  --s-900: oklch(38.6% 0.059 var(--s-hue));
+  --s-950: oklch(27.7% 0.042 var(--s-hue));
+
+  /* Named M3 roles used by the shell */
+  --md-surface: var(--n-950);
+  --md-surface-container-low: oklch(18.5% 0.011 var(--seed-hue));
+  --md-surface-container: var(--n-900);
+  --md-surface-container-high: oklch(24.5% 0.013 var(--seed-hue));
+  --md-surface-container-highest: var(--n-800);
+  --md-on-surface: var(--n-100);
+  --md-on-surface-variant: var(--n-400);
+  --md-outline-variant: var(--n-700);
+  --md-primary: var(--p-300);
+  --md-on-primary: var(--p-950);
+  --md-primary-container: var(--p-800);
+  --md-on-primary-container: var(--p-100);
+  --md-secondary-container: oklch(32% 0.04 var(--seed-hue));
+  --md-on-secondary-container: var(--p-100);
+
+  color-scheme: dark;
+}
+
 @theme {
+  --font-sans: "Google Sans Flex", "Roboto Flex", "Google Sans", Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+
+  /* M3 shape scale: generous, rounded corners */
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+
+  --color-slate-50: var(--n-50);
+  --color-slate-100: var(--n-100);
+  --color-slate-200: var(--n-200);
+  --color-slate-300: var(--n-300);
+  --color-slate-400: var(--n-400);
+  --color-slate-500: var(--n-500);
+  --color-slate-600: var(--n-600);
+  --color-slate-700: var(--n-700);
+  --color-slate-800: var(--n-800);
+  --color-slate-900: var(--n-900);
+  --color-slate-950: var(--n-950);
+
+  --color-emerald-50: var(--p-50);
+  --color-emerald-100: var(--p-100);
+  --color-emerald-200: var(--p-200);
+  --color-emerald-300: var(--p-300);
+  --color-emerald-400: var(--p-400);
+  --color-emerald-500: var(--p-500);
+  --color-emerald-600: var(--p-600);
+  --color-emerald-700: var(--p-700);
+  --color-emerald-800: var(--p-800);
+  --color-emerald-900: var(--p-900);
+  --color-emerald-950: var(--p-950);
+
+  --color-teal-50: var(--s-50);
+  --color-teal-100: var(--s-100);
+  --color-teal-200: var(--s-200);
+  --color-teal-300: var(--s-300);
+  --color-teal-400: var(--s-400);
+  --color-teal-500: var(--s-500);
+  --color-teal-600: var(--s-600);
+  --color-teal-700: var(--s-700);
+  --color-teal-800: var(--s-800);
+  --color-teal-900: var(--s-900);
+  --color-teal-950: var(--s-950);
+
+  --color-surface: var(--md-surface);
+  --color-surface-low: var(--md-surface-container-low);
+  --color-surface-container: var(--md-surface-container);
+  --color-surface-high: var(--md-surface-container-high);
+  --color-surface-highest: var(--md-surface-container-highest);
+  --color-on-surface: var(--md-on-surface);
+  --color-on-surface-variant: var(--md-on-surface-variant);
+  --color-outline-variant: var(--md-outline-variant);
+  --color-primary: var(--md-primary);
+  --color-on-primary: var(--md-on-primary);
+  --color-primary-container: var(--md-primary-container);
+  --color-on-primary-container: var(--md-on-primary-container);
+  --color-secondary-container: var(--md-secondary-container);
+  --color-on-secondary-container: var(--md-on-secondary-container);
+
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 
 @layer base {
+  html,
   body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--md-surface);
+    color: var(--md-on-surface);
   }
-  
+
+  body {
+    font-family: var(--font-sans);
+    font-optical-sizing: auto;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--md-primary);
+    outline-offset: 2px;
   }
 }
+
+/* ---------- Material 3 helpers ---------- */
+
+/* Edge-to-edge on Android: keep content clear of the status and gesture bars */
+.pt-safe { padding-top: env(safe-area-inset-top); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+
+/* State layer: the translucent wash M3 puts on interactive surfaces */
+.state-layer {
+  position: relative;
+  isolation: isolate;
+}
+.state-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-emphasized);
+  pointer-events: none;
+  z-index: -1;
+}
+.state-layer:hover::before { opacity: 0.08; }
+.state-layer:active::before { opacity: 0.12; }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* Custom scrollbar for recipe grid and step list */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
-}
-
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(51, 65, 85, 0.8);
+  background: var(--n-700);
   border-radius: 9999px;
 }
+::-webkit-scrollbar-thumb:hover { background: var(--n-600); }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 85, 105, 1);
-}
-
-/* Custom scrollbar for top navigation bar */
-.nav-scrollbar::-webkit-scrollbar {
-  height: 4px;
-}
-
-.nav-scrollbar::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.9);
-  border-radius: 9999px;
-}
-
-.nav-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #10b981, #14b8a6);
-  border-radius: 9999px;
-}
-
-.nav-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, #34d399, #2dd4bf);
-}
+.nav-scrollbar::-webkit-scrollbar { height: 4px; }
+.nav-scrollbar::-webkit-scrollbar-thumb { background: var(--p-500); }
 
 /* Scanner beam animation */
 @keyframes scanline {
-  0% {
-    top: 0%;
-  }
-  50% {
-    top: 100%;
-  }
-  100% {
-    top: 0%;
-  }
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
 }
-
 .animate-scanline {
   animation: scanline 2.5s ease-in-out infinite;
 }
 
-/* ---------- Motion system ---------- */
+/* ---------- Motion system (M3 emphasized easing) ---------- */
 
-/* Tactile press feedback on every button (framer-motion buttons override via inline transform) */
 button:not(:disabled) {
-  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
-  transition-duration: 180ms;
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, border-radius;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-emphasized);
 }
 button:not(:disabled):active {
   transform: scale(0.97);
 }
 
-/* Modal overlays: backdrop fades in, panel springs up */
+/* Modal overlays: backdrop fades in, panel springs up like an M3 sheet */
 @keyframes overlay-in {
-  from { opacity: 0; backdrop-filter: blur(0); }
+  from { opacity: 0; }
   to { opacity: 1; }
 }
 @keyframes panel-in {
-  from { opacity: 0; transform: translateY(18px) scale(0.965); }
+  from { opacity: 0; transform: translateY(32px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
 .fixed.inset-0.z-50 {
   animation: overlay-in 220ms ease-out both;
 }
 .fixed.inset-0.z-50 > :first-child:not(header) {
-  animation: panel-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: panel-in 420ms var(--ease-emphasized) both;
 }
 
-/* Soft sheen that sweeps across primary gradient buttons on hover */
+/* Soft sheen that sweeps across primary buttons on hover */
 .btn-sheen {
   position: relative;
   overflow: hidden;
@@ -106,16 +251,13 @@ button:not(:disabled):active {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
   transform: translateX(-120%);
-  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 700ms var(--ease-emphasized);
   pointer-events: none;
 }
-.btn-sheen:hover::after {
-  transform: translateX(120%);
-}
+.btn-sheen:hover::after { transform: translateX(120%); }
 
-/* Slow drifting gradient for hero accents */
 @keyframes gradient-drift {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -124,6 +266,13 @@ button:not(:disabled):active {
   background-size: 200% 200%;
   animation: gradient-drift 8s ease-in-out infinite;
 }
+
+/* Expressive "blob" behind hero art */
+@keyframes morph {
+  0%, 100% { border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%; }
+  50% { border-radius: 58% 42% 38% 62% / 56% 61% 39% 44%; }
+}
+.animate-morph { animation: morph 12s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -134,6 +283,4 @@ button:not(:disabled):active {
   }
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }

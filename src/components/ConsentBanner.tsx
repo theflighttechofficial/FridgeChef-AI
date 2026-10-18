@@ -23,26 +23,26 @@ export const ConsentBanner: React.FC = () => {
     <div
       role="dialog"
       aria-label="Cookie and analytics preferences"
-      className="fixed z-[120] inset-x-3 bottom-3 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:max-w-sm p-5 rounded-[4px] bg-[#141816] border border-[#F5F1E8]/15 text-[#F5F1E8]"
+      className="fixed z-[120] inset-x-3 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] md:inset-x-auto md:right-4 md:bottom-4 md:max-w-sm p-5 rounded-[1.75rem] bg-surface-high text-on-surface shadow-2xl shadow-black/50"
     >
-      <p className="text-sm font-semibold">Analytics</p>
-      <p className="mt-2 text-[13px] leading-5 text-[#B9B4A8]">
+      <p className="text-base font-semibold">Analytics</p>
+      <p className="mt-2 text-[13px] leading-5 text-on-surface-variant">
         We would like to count which pages and tabs people open, using our own server. No ads, no third-party trackers,
         no IP addresses stored. Your saved recipes and shopping list use browser storage either way.{' '}
-        <a href="#/privacy" className="underline underline-offset-2 hover:text-[#F5F1E8]">
+        <a href="#/privacy" className="underline underline-offset-2 text-primary">
           Privacy policy
         </a>
       </p>
       <div className="mt-4 flex gap-2">
         <button
           onClick={() => choose('granted')}
-          className="flex-1 px-4 py-2.5 rounded-[3px] bg-[#F5F1E8] text-[#0A0C0B] text-sm font-semibold hover:bg-white"
+          className="flex-1 h-10 px-4 rounded-full bg-emerald-300 text-emerald-950 text-sm font-semibold"
         >
           Accept
         </button>
         <button
           onClick={() => choose('denied')}
-          className="flex-1 px-4 py-2.5 rounded-[3px] border border-[#F5F1E8]/25 text-sm font-semibold hover:border-[#F5F1E8]/60"
+          className="flex-1 h-10 px-4 rounded-full border border-outline-variant text-emerald-300 text-sm font-semibold state-layer"
         >
           Decline
         </button>

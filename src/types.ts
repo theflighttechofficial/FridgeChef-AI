@@ -52,7 +52,14 @@ export interface Recipe {
   chefTip?: string;
   imageUrl?: string;
   servings?: number;
+  emoji?: string;
+  // Where the recipe came from: a cloud AI provider, the on-device model, or built-in samples
+  source?: 'ai' | 'local-model' | 'sample';
+  // Missing ingredients the on-device model found a close substitute for in the pantry
+  substitutions?: { missing: string; use: string }[];
 }
+
+export type AppTab = 'scan' | 'recipes' | 'saved' | 'shopping' | 'molecular' | 'settings';
 
 export interface ShoppingItem {
   id: string;
