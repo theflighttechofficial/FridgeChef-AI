@@ -244,9 +244,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTryLocalModel }) =
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[
             ['Recipes', String(model.recipes)],
+            ['Cuisines', String(model.cuisineModel.cuisines.length)],
             ['Ingredients', String(model.vocab.length)],
             ['Top-3 accuracy', pct(metrics.model.top3)],
-            ['Top-1 accuracy', pct(metrics.model.top1)],
           ].map(([label, value]) => (
             <div key={label} className="rounded-2xl bg-surface-low p-3">
               <p className="text-2xl font-semibold text-on-surface tabular-nums">{value}</p>
@@ -255,9 +255,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTryLocalModel }) =
           ))}
         </div>
         <p className="text-sm text-on-surface-variant leading-relaxed">
-          Learned ingredient embeddings ({model.dim} dimensions) spot substitutes like kale for spinach. On{' '}
-          {metrics.testSessions.toLocaleString()} held-out simulated pantries, the trained ranker puts the right recipe in its top 3{' '}
-          {pct(metrics.model.top3)} of the time (plain ingredient matching: {pct(metrics.coverageBaseline.top3)}).
+          Covers every Indian region from Kashmir to Kerala plus {model.cuisineModel.metrics.regions - 1} world regions. Learned ingredient
+          embeddings ({model.dim} dimensions) spot substitutes like kale for spinach, and a cuisine classifier reads your fridge's flavour
+          profile. On {metrics.testSessions.toLocaleString()} held-out simulated pantries, each with 8 near-miss decoys, the ranker puts the
+          right recipe in its top 3 {pct(metrics.model.top3)} of the time (plain ingredient matching: {pct(metrics.coverageBaseline.top3)}).
+          Any ingredient mix the recipes do not cover gets a recipe composed on the spot.
         </p>
         <button onClick={onTryLocalModel} className="h-10 px-5 rounded-full bg-secondary-container text-on-secondary-container text-sm font-semibold flex items-center gap-2">
           <Cpu className="w-4 h-4" />

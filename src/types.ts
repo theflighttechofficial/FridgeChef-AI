@@ -39,6 +39,7 @@ export interface Recipe {
   cookingMethod?: 'Pan-Seared' | 'Air Fryer' | 'Pressure Cooker / Instant Pot' | 'Sous Vide' | 'Claypot Braising' | 'Wok Stir-Fry' | 'Oven Roasted' | 'Smoked' | 'Raw Fermented';
   dietaryTags: string[]; // e.g. ['Vegetarian', 'Gluten-Free', 'Keto']
   cuisine: string; // e.g. 'Mediterranean', 'Asian', 'Mexican', 'French'
+  region?: string; // e.g. 'Indian', 'East Asian', 'European'
   matchedIngredients: string[];
   missingIngredients: string[];
   macros: {

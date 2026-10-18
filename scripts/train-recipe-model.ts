@@ -8,9 +8,12 @@
  *      corpus (contexts = other ingredients + the ingredient's culinary group + cuisines), weight it
  *      with positive PMI, and factorise it with a truncated eigen-decomposition. Ingredients used in
  *      the same kinds of dishes end up close together, which gives the ranker substitute awareness.
- *   2. Ranking weights. Simulate pantries (a recipe's ingredients with some dropped, some swapped for
+ *   2. Ranking weights (stage 3's classifier supplies the region-fit feature). Simulate pantries (a recipe's ingredients with some dropped, some swapped for
  *      same-group substitutes, plus unrelated noise) and fit a linear listwise (softmax) ranker over
  *      the features in src/ml/features.ts so the source recipe ranks first.
+ *   3. Cuisine classifier. Multinomial naive Bayes over ingredients (counts stored, Laplace-smoothed
+ *      at run time) predicts the cuisine of any ingredient set. The in-app composer uses it to give
+ *      improvised recipes the right flavour base. Scored with leave-one-out accuracy.
  * Held-out pantries measure top-1 / top-3 hit rate and MRR against a plain coverage baseline.
  */
 import { writeFileSync } from 'node:fs';
@@ -18,6 +21,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { INGREDIENTS } from '../src/ml/data/ingredients';
 import { corpus } from '../src/ml/data/recipes';
+import { REGION_OF } from '../src/ml/data/schema';
+import { tokens } from '../src/ml/normalize';
 import { BY_NAME } from '../src/ml/normalize';
 import { FEATURE_NAMES, recipeFeatures, roleOf } from '../src/ml/features';
 
@@ -29,6 +34,8 @@ const SEED = 20261018;
 const TRAIN_SESSIONS_PER_RECIPE = 40;
 const TEST_SESSIONS_PER_RECIPE = 10;
 const NEGATIVES = 24;
+const HARD_NEGATIVES = 8;
+const SAME_REGION_NOISE = 0.6;
 const EPOCHS = 30;
 const LR = 0.05;
 const L2 = 1e-4;
@@ -62,6 +69,17 @@ for (const r of recipes) {
 }
 const ids = new Set(recipes.map((r) => r.id));
 if (ids.size !== recipes.length) throw new Error('Duplicate recipe titles in corpus');
+for (const r of recipes) if (!REGION_OF[r.cuisine]) throw new Error(`Cuisine "${r.cuisine}" of "${r.title}" is missing from REGIONS`);
+// One phrase must map to one ingredient, or pantry matching becomes order-dependent
+const phraseOwner = new Map<string, string>();
+for (const d of INGREDIENTS) {
+  for (const phrase of [d.name, ...(d.aliases || [])]) {
+    const key = tokens(phrase).join(' ');
+    const owner = phraseOwner.get(key);
+    if (owner && owner !== d.name) throw new Error(`"${phrase}" is listed under both "${owner}" and "${d.name}"`);
+    phraseOwner.set(key, d.name);
+  }
+}
 
 // ---------- Stage 1: embeddings ----------
 const groups = [...new Set(INGREDIENTS.map((d) => d.group))];
@@ -142,9 +160,72 @@ const sim = (a: string, b: string) => {
   return embeddings[ia].reduce((s, x, k) => s + x * embeddings[ib][k], 0);
 };
 
+// ---------- Stage 3: cuisine classifier ----------
+const cuisineList = [...new Set(recipes.map((r) => r.cuisine))].sort();
+const docCount = cuisineList.map(() => 0);
+const counts = cuisineList.map(() => new Map<number, number>());
+recipes.forEach((r) => {
+  const c = cuisineList.indexOf(r.cuisine);
+  docCount[c]++;
+  for (const ing of r.ingredients) counts[c].set(index.get(ing)!, (counts[c].get(index.get(ing)!) || 0) + 1);
+});
+const ALPHA = 0.5;
+const classify = (ings: string[], exclude?: (typeof recipes)[number]) => {
+  const self = exclude ? cuisineList.indexOf(exclude.cuisine) : -1;
+  return cuisineList
+    .map((_, c) => {
+      const docs = docCount[c] - (c === self ? 1 : 0);
+      if (docs <= 0) return -Infinity;
+      let total = 0;
+      counts[c].forEach((v) => (total += v));
+      if (c === self) total -= exclude!.ingredients.length;
+      let score = Math.log(docs);
+      for (const ing of ings) {
+        const i = index.get(ing)!;
+        const n = (counts[c].get(i) || 0) - (c === self && exclude!.ingredients.includes(ing) ? 1 : 0);
+        score += Math.log((n + ALPHA) / (total + ALPHA * vocab.length));
+      }
+      return score;
+    })
+    .map((score, c) => ({ cuisine: cuisineList[c], score }))
+    .sort((a, b) => b.score - a.score);
+};
+let cTop1 = 0;
+let cTop3 = 0;
+let rTop1 = 0;
+for (const r of recipes) {
+  const ranked = classify(r.ingredients, r);
+  if (ranked[0].cuisine === r.cuisine) cTop1++;
+  if (ranked.slice(0, 3).some((x) => x.cuisine === r.cuisine)) cTop3++;
+  if (REGION_OF[ranked[0].cuisine] === REGION_OF[r.cuisine]) rTop1++;
+}
+const cuisineMetrics = {
+  cuisines: cuisineList.length,
+  regions: new Set(cuisineList.map((c) => REGION_OF[c])).size,
+  leaveOneOut: {
+    cuisineTop1: +(cTop1 / recipes.length).toFixed(3),
+    cuisineTop3: +(cTop3 / recipes.length).toFixed(3),
+    regionTop1: +(rTop1 / recipes.length).toFixed(3),
+  },
+};
+console.log('cuisine classifier', cuisineMetrics);
+
+/** Probability of each region given the ingredients, with `exclude`'s own counts removed. */
+const regionProbs = (ings: string[], exclude?: (typeof recipes)[number]) => {
+  const ranked = classify(ings, exclude);
+  const max = ranked[0].score;
+  const z = ranked.reduce((acc, r) => acc + Math.exp(r.score - max), 0);
+  const out: Record<string, number> = {};
+  for (const r of ranked) out[REGION_OF[r.cuisine]] = (out[REGION_OF[r.cuisine]] || 0) + Math.exp(r.score - max) / z;
+  return out;
+};
+
 // ---------- Stage 2: ranker ----------
 const byGroup = new Map<string, string[]>();
 for (const d of INGREDIENTS) byGroup.set(d.group, [...(byGroup.get(d.group) || []), d.name]);
+
+const byRegion = new Map<string, typeof recipes>();
+for (const r of recipes) byRegion.set(r.region, [...(byRegion.get(r.region) || []), r]);
 
 const simulatePantry = (target: (typeof recipes)[number]) => {
   const pantry = new Set<string>();
@@ -157,9 +238,10 @@ const simulatePantry = (target: (typeof recipes)[number]) => {
     const mates = byGroup.get(BY_NAME.get(ing)!.group)!.filter((m) => m !== ing);
     pantry.add(role === 'core' && mates.length && rand() < 0.2 ? pick(mates) : ing);
   }
-  // Unrelated items already in the fridge
+  // Other items already in the fridge; real kitchens lean towards one region's cooking
   const noise = 2 + Math.floor(rand() * 8);
-  for (let i = 0; i < noise; i++) pantry.add(pick(pick(recipes).ingredients));
+  const sameRegion = byRegion.get(target.region)!;
+  for (let i = 0; i < noise; i++) pantry.add(pick(pick(rand() < SAME_REGION_NOISE ? sameRegion : recipes).ingredients));
   return pantry;
 };
 
@@ -171,9 +253,15 @@ interface Session {
 const makeSession = (targetIdx: number): Session => {
   const target = recipes[targetIdx];
   const pantry = simulatePantry(target);
-  const others = shuffle(recipes.map((_, i) => i).filter((i) => i !== targetIdx)).slice(0, NEGATIVES);
+  // Hard negatives: the recipes that overlap this pantry most, so the ranker learns to tell
+  // plausible candidates apart (where cuisine fit matters), plus random ones
+  const overlap = recipes.map((r, i) => [i, r.ingredients.filter((x) => pantry.has(x)).length / r.ingredients.length] as const);
+  const hard = overlap.filter(([i]) => i !== targetIdx).sort((a, b) => b[1] - a[1]).slice(0, HARD_NEGATIVES).map(([i]) => i);
+  const others = [...hard, ...shuffle(recipes.map((_, i) => i).filter((i) => i !== targetIdx && !hard.includes(i))).slice(0, NEGATIVES - HARD_NEGATIVES)];
   const cands = [targetIdx, ...others];
-  const feats = cands.map((i) => recipeFeatures(pantry, recipes[i].ingredients, sim));
+  // Leave the target out of the classifier so the region signal is honest
+  const fit = regionProbs([...pantry], target);
+  const feats = cands.map((i) => recipeFeatures(pantry, recipes[i].ingredients, sim, fit[recipes[i].region] || 0));
   return { feats, baseline: feats.map((f) => f[0] - 0.01 * f[3]) };
 };
 
@@ -253,6 +341,14 @@ const model = {
   featureNames: FEATURE_NAMES,
   weights: Array.from(w, round),
   metrics,
+  cuisineModel: {
+    alpha: ALPHA,
+    cuisines: cuisineList,
+    docCount,
+    // Sparse ingredient counts per cuisine: [vocabIndex, count] pairs
+    counts: counts.map((m) => [...m.entries()].sort((a, b) => a[0] - b[0])),
+    metrics: cuisineMetrics,
+  },
 };
 
 const out = path.join(path.dirname(fileURLToPath(import.meta.url)), '../src/ml/model.json');

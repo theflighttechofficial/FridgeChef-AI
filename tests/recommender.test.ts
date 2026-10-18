@@ -8,6 +8,9 @@ const store = new Map<string, string>();
 const { canonicalize } = await import('../src/ml/normalize');
 const { recommend, similarity } = await import('../src/ml/recommender');
 const { recordTaste, tasteScore, resetTaste } = await import('../src/ml/tasteModel');
+const { predictCuisines } = await import('../src/ml/composer');
+const { corpus } = await import('../src/ml/data/recipes');
+const { REGIONS } = await import('../src/ml/data/schema');
 
 const pantry = (...names: string[]) => names.map((name, i) => ({ id: String(i), name, category: 'Other' as const }));
 
@@ -30,7 +33,7 @@ test('learned embeddings place substitutes close together', () => {
 test('an Indian pantry gets Indian recipes first', () => {
   const recs = recommend(pantry('Paneer', 'Roma Tomatoes', 'Red Onions', 'Ginger-Garlic Paste', 'Ghee', 'Kasuri Methi', 'Greek Yogurt', 'Basmati Rice', 'Toor Dal'), { limit: 3 });
   assert.equal(recs.length, 3);
-  assert.equal(recs[0].recipe.cuisine, 'Indian (North & South)');
+  assert.equal(recs[0].recipe.region, 'Indian');
   assert.ok(recs[0].recipe.matchedIngredients.length >= 3);
   assert.ok(recs.every((r) => r.recipe.source === 'local-model' && r.recipe.steps.length > 0));
 });
@@ -59,4 +62,50 @@ test('taste model learns from feedback', () => {
   resetTaste();
   const after = recommend(pantry('Rice', 'Eggs'), { limit: 6 }).filter((r) => r.recipe.cuisine === 'Thai Street Food').length;
   assert.ok(before >= after);
+});
+
+test('corpus covers every listed cuisine and region', () => {
+  const recipes = corpus();
+  assert.ok(recipes.length >= 400);
+  const cuisines = new Set(recipes.map((r) => r.cuisine));
+  for (const [region, list] of Object.entries(REGIONS)) {
+    for (const c of list) assert.ok(cuisines.has(c), `no recipe for ${c} (${region})`);
+  }
+});
+
+test('regional pantries get regional recipes', () => {
+  const top = (...names: string[]) => recommend(pantry(...names), { limit: 3 }).map((r) => r.recipe.cuisine);
+  assert.ok(top('Hilsa', 'Mustard Oil', 'Mustard Seeds', 'Green Chillies', 'Potato', 'Rice').includes('Bengali'));
+  assert.ok(top('Rice', 'Urad Dal', 'Fenugreek seeds', 'Coconut', 'Curry Leaves').some((c) => ['Tamil', 'Mangalorean', 'Kerala'].includes(c)));
+  assert.ok(top('Chicken thighs', 'Red wine', 'Bacon', 'Mushrooms', 'Carrots', 'Onion').includes('French'));
+  assert.ok(top('Corn tortillas', 'Black beans', 'Avocado', 'Lime', 'Cilantro').includes('Mexican'));
+});
+
+test('region filter keeps every pick in that region', () => {
+  const recs = recommend(pantry('Chicken', 'Onion', 'Tomato', 'Rice'), { filters: { cuisine: 'Southeast Asian' }, limit: 6 });
+  assert.ok(recs.length > 0);
+  assert.ok(recs.every((r) => r.recipe.region === 'Southeast Asian'));
+});
+
+test('any ingredient mix gets a composed recipe that uses it', () => {
+  const recs = recommend(pantry('Turnip', 'Mussels', 'Bitter gourd', 'Pomegranate'), { limit: 4 });
+  const composed = recs.filter((r) => r.recipe.id.startsWith('composed-'));
+  assert.ok(composed.length > 0);
+  const first = composed[0].recipe;
+  assert.ok(first.matchedIngredients.includes('Mussels'));
+  assert.ok(first.steps.length >= 3 && first.steps.every((s) => s.instruction.trim()));
+});
+
+test('composed recipes respect dietary filters', () => {
+  const recs = recommend(pantry('Chicken breast', 'Zucchini', 'Mushrooms', 'Pasta'), { filters: { dietary: ['Vegan'] }, limit: 6 });
+  for (const r of recs) {
+    assert.ok(r.recipe.dietaryTags.includes('Vegan'), r.recipe.title);
+    assert.ok(!r.recipe.matchedIngredients.includes('Chicken breast'), r.recipe.title);
+  }
+});
+
+test('cuisine classifier recognises flavour profiles', () => {
+  assert.equal(predictCuisines(['soy sauce', 'ginger', 'spring onion', 'sesame oil', 'rice vinegar'])[0].cuisine.match(/Chinese|Cantonese|Sichuan|Japanese|Korean|Taiwanese/) !== null, true);
+  const indian = predictCuisines(['garam masala', 'turmeric', 'cumin', 'ginger garlic paste', 'ghee'])[0].cuisine;
+  assert.ok(Object.values(REGIONS.Indian).includes(indian) || REGIONS['South Asian'].includes(indian), indian);
 });

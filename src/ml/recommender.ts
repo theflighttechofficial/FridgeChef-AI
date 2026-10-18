@@ -10,12 +10,15 @@ import { corpus, CorpusRecipe } from './data/recipes';
 import { canonicalPantry } from './normalize';
 import { recipeFeatures, roleOf, Similarity } from './features';
 import { tasteScore } from './tasteModel';
+import { composeRecipes, predictRegions } from './composer';
 
 const SUBSTITUTE_THRESHOLD = 0.85;
 const TASTE_WEIGHT = 1.2;
 const EXPIRING_WEIGHT = 1.5;
 const OVER_TIME_PENALTY = 1.5;
 const SAME_CUISINE_PENALTY = 0.35;
+// Below this share of a recipe's main ingredients, composed recipes lead the list
+const WEAK_MATCH = 0.5;
 
 const RECIPES = corpus();
 const index = new Map<string, number>(model.vocab.map((n: string, i: number) => [n, i]));
@@ -41,6 +44,8 @@ export const modelInfo = {
   recipes: RECIPES.length,
   ingredients: model.vocab.length as number,
   dim: model.dim as number,
+  cuisines: model.cuisineModel.cuisines.length as number,
+  cuisineMetrics: model.cuisineModel.metrics,
   metrics: model.metrics as {
     model: { top1: number; top3: number; mrr: number };
     coverageBaseline: { top1: number; top3: number; mrr: number };
@@ -89,6 +94,7 @@ const toRecipe = (r: CorpusRecipe, pantry: Map<string, string>): Recipe => {
     difficulty: r.difficulty,
     dietaryTags: r.tags,
     cuisine: r.cuisine,
+    region: r.region,
     matchedIngredients: [...new Set(matched)],
     missingIngredients: missing,
     substitutions,
@@ -109,13 +115,16 @@ export const recommend = (ingredients: Ingredient[], { filters = {}, limit = 6 }
   const weights: number[] = model.weights;
   const dietary = filters.dietary || [];
 
+  const regionFit = predictRegions([...pantrySet]);
+  const coverage = new Map<string, number>();
   const scored = RECIPES.filter((r) => satisfiesDiet(r.tags, dietary))
     .filter((r) => !filters.difficulty || filters.difficulty === 'All' || r.difficulty === filters.difficulty)
-    .filter((r) => !filters.cuisine || filters.cuisine === 'All' || r.cuisine === filters.cuisine)
+    .filter((r) => !filters.cuisine || filters.cuisine === 'All' || r.cuisine === filters.cuisine || r.region === filters.cuisine)
     .map((r) => {
-      const feats = recipeFeatures(pantrySet, r.ingredients, similarity);
+      const feats = recipeFeatures(pantrySet, r.ingredients, similarity, regionFit[r.region] || 0);
       let score = feats.reduce((s, f, k) => s + f * weights[k], 0);
       const recipe = toRecipe(r, pantry);
+      coverage.set(recipe.id, feats[0]);
       score += TASTE_WEIGHT * tasteScore(recipe);
       if (expiring.size) score += (EXPIRING_WEIGHT * r.ingredients.filter((i) => expiring.has(i)).length) / expiring.size;
       const maxTime = filters.maxPrepTime;
@@ -139,7 +148,16 @@ export const recommend = (ingredients: Ingredient[], { filters = {}, limit = 6 }
     });
     picked.push(pool.splice(bestIdx, 1)[0]);
   }
-  return picked;
+
+  // Pantries the corpus covers poorly still get recipes built from exactly what is there
+  const best = Math.max(0, ...picked.map((p) => coverage.get(p.recipe.id) || 0));
+  const weak = best < WEAK_MATCH;
+  const composed = composeRecipes(pantry, { dietary, cuisine: filters.cuisine, limit: weak ? 2 : 1 }).map((recipe) => ({
+    recipe,
+    score: weak ? Infinity : -Infinity,
+  }));
+  if (!composed.length) return picked;
+  return weak ? [...composed, ...picked].slice(0, limit) : [...picked.slice(0, limit - 1), ...composed.slice(0, 1)];
 };
 
 /** Closest substitutes in the pantry (or overall) for one ingredient, by learned similarity. */

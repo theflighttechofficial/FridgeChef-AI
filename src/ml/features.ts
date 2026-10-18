@@ -12,6 +12,7 @@ export const FEATURE_NAMES = [
   'pantryUse', // share of the pantry's main ingredients this recipe uses up
   'heroPresent', // the recipe's lead ingredient is in the pantry
   'heroSubstitute', // best embedding similarity between the lead ingredient and the pantry
+  'regionFit', // how likely the pantry is to belong to the recipe's region (trained cuisine classifier)
 ] as const;
 
 // Groups treated as flavouring rather than the body of the dish
@@ -31,7 +32,7 @@ export const roleOf = (name: string): Role => {
 /** Cosine similarity lookup between canonical ingredients, backed by the trained embeddings. */
 export type Similarity = (a: string, b: string) => number;
 
-export const recipeFeatures = (pantry: Set<string>, ingredients: string[], sim: Similarity): number[] => {
+export const recipeFeatures = (pantry: Set<string>, ingredients: string[], sim: Similarity, regionFit = 0): number[] => {
   const core = ingredients.filter((i) => roleOf(i) === 'core');
   const flavour = ingredients.filter((i) => roleOf(i) === 'flavour');
   const pantryCore = [...pantry].filter((i) => roleOf(i) === 'core');
@@ -43,11 +44,13 @@ export const recipeFeatures = (pantry: Set<string>, ingredients: string[], sim: 
   const hero = ingredients[0];
   return [
     core.length ? coreHits.length / core.length : 1,
-    flavour.length ? flavour.filter((i) => pantry.has(i)).length / flavour.length : 1,
+    // Neutral when a recipe has no flavourings, so short ingredient lists are not over-rewarded
+    flavour.length ? flavour.filter((i) => pantry.has(i)).length / flavour.length : 0.5,
     missing.length ? missing.reduce((s, m) => s + Math.max(0, bestSub(m)), 0) / missing.length : 1,
     Math.min(1, missing.length / 5),
     pantryCore.length ? coreHits.length / pantryCore.length : 0,
     pantry.has(hero) ? 1 : 0,
     pantry.has(hero) ? 1 : Math.max(0, bestSub(hero)),
+    regionFit,
   ];
 };

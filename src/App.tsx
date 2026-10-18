@@ -14,6 +14,7 @@ import { AppShell } from './components/shell/AppShell';
 import { buildTools } from './components/shell/tools';
 import { analyzeFridgePhoto, generateRecipes, localRecipes, RecipeSource } from './ai/recipeEngine';
 import { recordTaste } from './ml/tasteModel';
+import { cuisineMatches } from './ml/data/schema';
 import { FridgeScanner } from './components/FridgeScanner';
 import { SidebarFilter } from './components/SidebarFilter';
 import { RecipeCard } from './components/RecipeCard';
@@ -468,7 +469,7 @@ export default function App() {
           return false;
         }
 
-        if (filters.cuisine !== 'All' && !recipe.cuisine.toLowerCase().includes(filters.cuisine.toLowerCase())) {
+        if (!cuisineMatches(recipe, filters.cuisine)) {
           return false;
         }
 

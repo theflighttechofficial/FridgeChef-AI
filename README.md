@@ -92,19 +92,30 @@ Pick a model, then press **Test connection**.
 
 `src/ml/` holds a recipe recommender that runs fully offline:
 
-- **Data**: 108 recipes across 10 cuisines (`src/ml/data/recipes.ts`) and a 137-ingredient vocabulary
-  with aliases and culinary groups (`src/ml/data/ingredients.ts`). Free-text pantry names such as
-  "Lean Ground Beef (90/10)" are mapped onto it by `src/ml/normalize.ts`.
-- **Training** (`npm run train:model`, deterministic, about 4 seconds): PPMI-weighted ingredient
-  co-occurrence factorised into 24-dimensional embeddings, retrofitted to culinary groups so
-  substitutes sit close (spinach ~ kale 0.99), then a listwise softmax ranker over 7 features fit
-  on 4,320 simulated pantries (40 per recipe). Output: `src/ml/model.json`.
-- **Held-out results** (1,080 pantries, 25 candidates each): top-1 76.5%, top-3 90.7%, MRR 0.85,
-  against 70.2% / 87.4% / 0.80 for plain ingredient matching.
-- **Personal taste**: `src/ml/tasteModel.ts` is an online logistic regression that learns from
-  saves, unsaves and cooks on this device. It can be reset in Settings.
-- **When it runs**: Settings → Recipe engine → *Device only*, the "On-device" button on Recipes, or
-  automatically when cloud AI is offline, out of quota, or the key fails.
+- **Recipes**: 424 recipes across 82 cuisines in 10 regions (`src/ml/data/`):
+  - **Indian, 25 regional cuisines**: Punjabi, North Indian, Mughlai, Awadhi, Kashmiri, Rajasthani, Gujarati,
+    Maharashtrian, Goan, Mangalorean, Sindhi, Parsi, Bengali, Odia, Bihari, Northeast Indian, Hyderabadi, Andhra,
+    Tamil, Chettinad, Kerala, Karnataka, Indo-Chinese, street food and sweets (`indian.ts`).
+  - **World**: South Asian (Pakistani, Sri Lankan, Nepali, Tibetan, Afghan), East Asian, Southeast Asian,
+    Middle Eastern, African, European, the Americas and Oceania (`world.ts`, `recipes.ts`).
+- **Ingredients**: 217 canonical ingredients with Hindi, regional and international aliases (`ingredients.ts`).
+  Free-text pantry names such as "Lean Ground Beef (90/10)" or "Green Chillies" are mapped onto them by
+  `src/ml/normalize.ts`.
+- **Training** (`npm run train:model`, deterministic, about 20 seconds):
+  1. Ingredient embeddings: PPMI co-occurrence factorised to 24 dimensions, retrofitted to culinary groups, so
+     substitutes sit close (spinach ~ mustard greens ~ kale, paneer ~ feta).
+  2. Cuisine classifier: multinomial naive Bayes over ingredients. Leave-one-out accuracy is 72% for region and
+     48% top-3 across all 82 fine-grained cuisines.
+  3. Ranker: listwise softmax over 8 features, including the classifier's region fit. It is trained on 16,960
+     simulated pantries, each with 8 near-miss decoys and 16 random ones.
+- **Held-out results** (4,240 pantries, 25 candidates each): top-1 57%, top-3 78%, MRR 0.70, against 38% / 63% /
+  0.55 for plain ingredient matching.
+- **Any ingredients**: `src/ml/composer.ts` builds a recipe from exactly what is in the fridge when the corpus covers
+  it poorly. The classifier picks the cuisine, or you pick one in the filters. The pantry decides the technique:
+  curry, stir-fry, noodles, rice, eggs or vegetables. Dietary filters drop items that do not fit.
+- **Personal taste**: `src/ml/tasteModel.ts` is an online logistic regression that learns from saves and cooks on
+  the device. You can reset it in Settings.
+- **Cuisine filter**: grouped by region. Pick a whole region ("All Indian") or a single cuisine ("Chettinad").
 - Tests: `npm test`.
 
 ## 🌟 Overview
