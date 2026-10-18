@@ -7,6 +7,7 @@ import { initDynamicColor } from './theme/dynamicColor';
 
 installApiClient();
 initDynamicColor();
+if ((window as any).Capacitor) import('./native/android').then((m) => m.initAndroid());
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

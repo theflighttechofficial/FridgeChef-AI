@@ -351,6 +351,18 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, sho
     setTimeout(() => window.dispatchEvent(new Event('fridgechef:snap')), activeTab === 'scan' ? 0 : 350);
   };
 
+  // Android back button: close the tools sheet, then go back to the Fridge tab, then leave the app
+  useEffect(() => {
+    const onBack = (e: Event) => {
+      if (toolsOpen) setToolsOpen(false);
+      else if (activeTab !== 'scan') setActiveTab('scan');
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener('fridgechef:back', onBack);
+    return () => window.removeEventListener('fridgechef:back', onBack);
+  }, [toolsOpen, activeTab, setActiveTab]);
+
   const destinations: Destination[] = [
     { tab: 'scan', label: 'Fridge', icon: Camera },
     { tab: 'recipes', label: 'Recipes', icon: ChefHat },

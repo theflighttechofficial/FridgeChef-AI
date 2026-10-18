@@ -31,6 +31,7 @@ const CUISINE_OPTIONS = [
   'Korean Clean Eats',
   'Cantonese / Asian',
   'Mexican',
+  'Italian',
 ];
 
 export const SidebarFilter: React.FC<SidebarFilterProps> = ({

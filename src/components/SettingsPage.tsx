@@ -81,8 +81,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTryLocalModel }) =
       <Card icon={Sparkles} title="Recipe engine" subtitle="Where recipe ideas come from.">
         <div className="grid grid-cols-2 p-1 rounded-full border border-outline-variant" role="radiogroup" aria-label="Recipe engine">
           {[
-            { id: 'auto' as const, label: 'Cloud AI + on-device', icon: Cloud },
-            { id: 'local' as const, label: 'On-device only', icon: Cpu },
+            { id: 'auto' as const, label: 'Cloud + device', icon: Cloud },
+            { id: 'local' as const, label: 'Device only', icon: Cpu },
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -255,9 +255,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTryLocalModel }) =
           ))}
         </div>
         <p className="text-sm text-on-surface-variant leading-relaxed">
-          Learned ingredient embeddings ({model.dim} dimensions) spot substitutes like kale for spinach, and a ranker trained on{' '}
-          {metrics.testSessions.toLocaleString()} held-out simulated pantries picks the right recipe in its top 3 {pct(metrics.model.top3)} of the time
-          (plain ingredient matching: {pct(metrics.coverageBaseline.top3)}).
+          Learned ingredient embeddings ({model.dim} dimensions) spot substitutes like kale for spinach. On{' '}
+          {metrics.testSessions.toLocaleString()} held-out simulated pantries, the trained ranker puts the right recipe in its top 3{' '}
+          {pct(metrics.model.top3)} of the time (plain ingredient matching: {pct(metrics.coverageBaseline.top3)}).
         </p>
         <button onClick={onTryLocalModel} className="h-10 px-5 rounded-full bg-secondary-container text-on-secondary-container text-sm font-semibold flex items-center gap-2">
           <Cpu className="w-4 h-4" />

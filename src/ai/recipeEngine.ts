@@ -102,7 +102,9 @@ export const generateRecipes = async (ingredients: Ingredient[], filters: Filter
         const recipes = usable((data?.recipes || []).map((r: any, i: number) => formatAiRecipe(r, i, 'gen', names)));
         if (recipes.length) return { recipes, source: 'ai' };
       } else if (res.headers.get('X-AI-Fallback')) {
-        notice = fallbackMessage(res);
+        // Keep only the part about the person's own key; the rest describes the server's fallback
+        const message = fallbackMessage(res);
+        notice = message?.startsWith('Your AI key') ? message.slice(0, message.indexOf(').') + 2) : undefined;
       }
     } catch {
       // Server unreachable: try the person's key directly, then the on-device model
@@ -119,7 +121,7 @@ export const generateRecipes = async (ingredients: Ingredient[], filters: Filter
     }
   }
 
-  return local(`${notice ? notice + ' ' : ''}Showing picks from the on-device model.`.trim());
+  return local(`${notice || 'Cloud AI is unavailable.'} Showing picks from the on-device model.`);
 };
 
 export interface FridgeAnalysis {

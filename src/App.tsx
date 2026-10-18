@@ -580,6 +580,7 @@ export default function App() {
       {/* Main Body Content Container - Full Width Page Extension & Responsive Screen Optimization */}
       <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pt-2 pb-10 space-y-6">
         {/* Pantry Health Expiration Notification Alert Banner */}
+        {activeTab !== 'settings' && (<>
         <PantryHealthNotificationBanner
           ingredients={currentIngredients}
           onStartCookingFromAlert={() => setActiveTab('recipes')}
@@ -590,6 +591,7 @@ export default function App() {
           memoryProfile={memoryProfile}
           onOpenMemoryModal={() => setIsMemoryModalOpen(true)}
         />
+        </>)}
 
         <AnimatePresence mode="wait">
           {/* Tab 1: Fridge Scanner */}

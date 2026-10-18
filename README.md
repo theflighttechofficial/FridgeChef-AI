@@ -44,7 +44,7 @@
   - [25. 🤖 Autonomous Culinary Operating System Agent](#25--autonomous-culinary-operating-system-agent)
 - [Complete Feature & Component Inventory](#-complete-feature--component-inventory)
   - [1. AI Vision & Fridge Scanner](#1-ai-vision--fridge-scanner)
-  - [2. Native iOS & Android Experience](#2-native-ios--android-experience)
+  - [2. Native Android & Material 3 Experience](#2-native-android--material-3-experience)
   - [3. Recipe Engine & Zero-Waste Arbitrage](#3-recipe-engine--zero-waste-arbitrage)
   - [4. Hands-Free Voice Cooking & Step-by-Step Guidance](#4-hands-free-voice-cooking--step-by-step-guidance)
   - [5. Pantry Health & Expiration Management](#5-pantry-health--expiration-management)
@@ -59,6 +59,53 @@
 - [License](#-license)
 
 ---
+
+## 📱 Android app, website and Material 3 design
+
+FridgeChef ships as **one codebase, two targets**:
+
+- **Website**: `npm run dev` (development) or `npm run build && npm start` (production).
+- **Android app**: a [Capacitor](https://capacitorjs.com) project in `android/` wraps the same build.
+  - `npm run android:sync` builds the web app and copies it into the Android project.
+  - `npm run android:open` opens it in Android Studio; `npm run android:run` installs on a connected device.
+  - CI: `.github/workflows/android.yml` builds a debug APK on every push and attaches it to `v*` releases.
+    Set the repository variable `FRIDGECHEF_API_BASE_URL` to bake in your server URL.
+
+The interface follows **Material 3 (Material You)**: top app bar, bottom navigation bar on phones,
+navigation rail on tablets and desktop, an extended "Snap fridge" FAB, a searchable tools sheet,
+large rounded shapes and Google Sans Flex. Every colour comes from tonal palettes derived from one
+seed hue (`src/index.css`, `src/theme/dynamicColor.ts`), so Settings → Colours re-tints the whole app.
+
+## 🔑 Bring your own AI key
+
+Settings → **Your AI provider** accepts a key for Google Gemini, OpenAI, Anthropic Claude, Groq,
+OpenRouter, Mistral, DeepSeek, xAI Grok, or any OpenAI-compatible endpoint (Ollama, LM Studio).
+Pick a model, then press **Test connection**.
+
+- The key is stored only on the device (localStorage).
+- On the website, `/api` requests carry it in `x-fc-provider` / `x-fc-key` / `x-fc-model` headers.
+  The server (`server/llm.ts`) uses it for that request only and never stores, caches or logs it.
+- Custom endpoints are called directly from the device; the server never fetches user-supplied URLs.
+- In the Android app without a server, recipe ideas and photo reading call the provider directly.
+
+## 🧠 On-device recipe model
+
+`src/ml/` holds a recipe recommender that runs fully offline:
+
+- **Data**: 108 recipes across 10 cuisines (`src/ml/data/recipes.ts`) and a 137-ingredient vocabulary
+  with aliases and culinary groups (`src/ml/data/ingredients.ts`). Free-text pantry names such as
+  "Lean Ground Beef (90/10)" are mapped onto it by `src/ml/normalize.ts`.
+- **Training** (`npm run train:model`, deterministic, about 4 seconds): PPMI-weighted ingredient
+  co-occurrence factorised into 24-dimensional embeddings, retrofitted to culinary groups so
+  substitutes sit close (spinach ~ kale 0.99), then a listwise softmax ranker over 7 features fit
+  on 4,320 simulated pantries (40 per recipe). Output: `src/ml/model.json`.
+- **Held-out results** (1,080 pantries, 25 candidates each): top-1 76.5%, top-3 90.7%, MRR 0.85,
+  against 70.2% / 87.4% / 0.80 for plain ingredient matching.
+- **Personal taste**: `src/ml/tasteModel.ts` is an online logistic regression that learns from
+  saves, unsaves and cooks on this device. It can be reset in Settings.
+- **When it runs**: Settings → Recipe engine → *Device only*, the "On-device" button on Recipes, or
+  automatically when cloud AI is offline, out of quota, or the key fails.
+- Tests: `npm test`.
 
 ## 🌟 Overview
 
@@ -313,9 +360,9 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 - **Interactive Stash Editor**: Add items manually, modify quantities, update freshness levels, or delete consumed goods.
 - **Curated Preset Fridges**: Test preset inventories (*Fresh Harvest & Dairy Stash, High-Protein & Green Power, Asian Umami & Fermented Pantry*).
 
-### 2. Native iOS & Android Experience
-- **Floating iOS Dynamic Island ([IOSDynamicIsland.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/IOSDynamicIsland.tsx))**: Top-mounted pill that updates with live fridge states (*"37.2°F / 88% Humidity"*, *"140ms On-Device Vision"*, *"X Items Monitored"*). Powered by spring physics with haptic vibration confirmation.
-- **Android Material You Speed-Dial FAB ([AndroidMaterialYouFAB.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/AndroidMaterialYouFAB.tsx))**: Material 3 floating action button with rotating animations and speed-dial actions (*Camera Scan, Iron Chef Challenge, Pantry Emergency*).
+### 2. Native Android & Material 3 Experience
+- **Material 3 shell ([AppShell.tsx](src/components/shell/AppShell.tsx))**: top app bar, bottom navigation bar with pill indicator, navigation rail on wide screens, extended "Snap fridge" FAB that shrinks on scroll, and a draggable tools sheet.
+- **Android back button** closes the tools sheet, then returns to the Fridge tab, then leaves the app.
 - **Tactile Haptic Feedback**: `navigator.vibrate()` integrated into button clicks, tab navigation, recipe favoriting, and voice command triggers.
 
 ### 3. Recipe Engine & Zero-Waste Arbitrage
@@ -384,7 +431,6 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 │   └── components/
 │       ├── ARPlatingGuideModal.tsx             # Michelin AR plating blueprints & golden ratio
 │       ├── AcousticSensoryLab.tsx              # Audio crunch & deep fry frequency analyzer
-│       ├── AndroidMaterialYouFAB.tsx           # Android Material 3 speed-dial floating action button
 │       ├── AutonomousCulinaryAgentModal.tsx    # 12-stage autonomous culinary operating system
 │       ├── AutonomousMealDecisionWidget.tsx    # 1-click autonomous dinner decision card
       ├── BioEnvironmentBar.tsx               # Smart fridge climate & telemetry status bar
@@ -409,7 +455,6 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 │       ├── HouseholdChoreLeaderboardWidget.tsx # Gamified household chore points leaderboard
 │       ├── HouseholdMemoryBanner.tsx           # Household memory proactive advice banner
 │       ├── HouseholdMemoryEngineModal.tsx      # Persistent household memory profile manager
-│       ├── IOSDynamicIsland.tsx                # Floating iOS Dynamic Island with spring physics
 │       ├── IngredientSubstitutionLab.tsx       # Molecular ingredient substitution matrix
 │       ├── IntroShowreel.tsx                   # Interactive cinematic feature showcase
 │       ├── IronChefGameModal.tsx               # Gamified mystery ingredient culinary challenge
@@ -419,7 +464,8 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 │       ├── MealPrepBatchModal.tsx              # Batch meal prep scaler & Tupperware calculator
 │       ├── MolecularLabTab.tsx                 # Culinary physics & Maillard chemistry lab
 │       ├── NaturalConversationalKitchenModal.tsx # 2-way conversational voice agent modal
-│       ├── Navbar.tsx                          # Glassmorphic header navigation
+│       ├── SettingsPage.tsx                    # AI engine, own API key, on-device model, colours
+│       ├── shell/AppShell.tsx                  # Material 3 app bar, navigation bar/rail, FAB, tools sheet
 │       ├── NeuroGastronomyModal.tsx            # Neurotransmitter mood recipe tuner
 │       ├── PantryChallengeModal.tsx            # "Cook With What You Have" 5D AI jury arena
 │       ├── PantryEmergencyMode.tsx             # Rapid 15-minute expiring item rescue mode
@@ -442,7 +488,6 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 │       ├── SubRecipeModal.tsx                  # Modular sub-recipe preparation breakdown
 │       ├── TastePreferenceLearningModal.tsx    # Taste vector & preference learning modal
 │       ├── Toaster.tsx                         # Toast notification container
-│       ├── ToolsMenu.tsx                       # Quick tools dropdown menu
 │       ├── TupperwareTrackerWidget.tsx         # Leftover container & defrosting tracker
 │       ├── VoiceInteractionHapticPulse.tsx     # Siri-style glowing waveform visualizer
 │       ├── VoiceNavigationController.tsx       # Hands-free voice controller interface
