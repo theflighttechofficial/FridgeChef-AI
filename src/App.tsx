@@ -204,17 +204,24 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  // Intro showreel plays once per browser session
+  // Intro showreel plays only on first launch (stored on the device)
   const [showIntro, setShowIntro] = useState(() => {
     try {
-      return sessionStorage.getItem('fridgechef.introSeen') !== '1';
+      return localStorage.getItem('fridgechef.introSeen') !== '1';
     } catch {
       return true;
     }
   });
+  // Count the intro as seen once it has been shown, even if the app is closed mid-way
+  useEffect(() => {
+    if (!showIntro) return;
+    try {
+      localStorage.setItem('fridgechef.introSeen', '1');
+    } catch {}
+  }, [showIntro]);
   const dismissIntro = useCallback(() => {
     try {
-      sessionStorage.setItem('fridgechef.introSeen', '1');
+      localStorage.setItem('fridgechef.introSeen', '1');
     } catch {}
     setShowIntro(false);
   }, []);
