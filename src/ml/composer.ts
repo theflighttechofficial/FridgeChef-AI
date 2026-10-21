@@ -224,28 +224,33 @@ export interface ComposeOptions {
   dietary?: string[];
   cuisine?: string; // a cuisine or region from the filters, or 'All'
   limit?: number;
+  variant?: number; // rotates cuisine, main ingredient and technique for "New ideas"
 }
+
+const rotate = <T>(arr: T[], by: number) => (arr.length ? [...arr.slice(by % arr.length), ...arr.slice(0, by % arr.length)] : arr);
 
 /**
  * Compose up to `limit` recipes from the pantry. `pantry` maps canonical names to the person's
  * own wording (from canonicalPantry).
  */
-export const composeRecipes = (pantry: Map<string, string>, { dietary = [], cuisine, limit = 2 }: ComposeOptions = {}): Recipe[] => {
+export const composeRecipes = (pantry: Map<string, string>, { dietary = [], cuisine, limit = 2, variant = 0 }: ComposeOptions = {}): Recipe[] => {
   const usable = [...pantry.keys()].filter((p) => !BY_NAME.get(p)?.staple && dietAllows(p, dietary));
   if (!usable.length) return [];
 
   // Respect a chosen cuisine or region; otherwise let the classifier pick
   const ranked = predictCuisines(usable).map((c) => c.cuisine);
   const wanted = cuisine && cuisine !== 'All' ? ranked.filter((c) => c === cuisine || REGION_OF[c] === cuisine) : ranked;
-  const chosen = wanted[0] || ranked[0];
+  // One candidate per flavour family among the likeliest cuisines, rotated per round
+  const pool = (wanted.length ? wanted : ranked).filter((c, i, all) => all.findIndex((x) => familyOf(x) === familyOf(c)) === i).slice(0, 3);
+  const chosen = pool[variant % pool.length] || ranked[0];
   const family = familyOf(chosen);
   const style = STYLES[family];
 
-  const proteins = usable.filter((p) => PROTEIN_GROUPS.has(groupOf(p)));
-  const vegs = usable.filter((p) => VEG_GROUPS.has(groupOf(p)) && !style.base.includes(p)).slice(0, 3);
+  const proteins = rotate(usable.filter((p) => PROTEIN_GROUPS.has(groupOf(p))), variant);
+  const vegs = rotate(usable.filter((p) => VEG_GROUPS.has(groupOf(p)) && !style.base.includes(p)), variant).slice(0, 3);
   const name = (p: string) => pantry.get(p)!;
 
-  return pickTechniques(usable)
+  return rotate(pickTechniques(usable), variant)
     .slice(0, limit)
     .map((technique, k) => {
       const main = technique === 'main' ? proteins[0] : technique === 'eggs' ? 'egg' : proteins[0];
@@ -264,7 +269,7 @@ export const composeRecipes = (pantry: Map<string, string>, { dietary = [], cuis
       const proteinCount = body.filter((b) => PROTEIN_GROUPS.has(groupOf(b)) || b === 'egg').length;
 
       return {
-        id: `composed-${technique}-${[...pantry.keys()].sort().join('-').slice(0, 60)}-${k}`,
+        id: `composed-${chosen}-${technique}-${main || ''}-${[...pantry.keys()].sort().join('-').slice(0, 50)}-${k}`.replace(/[^a-zA-Z0-9-]+/g, '-'),
         title: `${chosen}-Style ${heading ? `${title(heading)} ` : ''}${style.dish[technique]}`,
         description: `Composed on this device from your ${list(body.slice(0, 4).map(name))}, with a ${chosen} flavour base.`,
         prepTimeMinutes: prep,

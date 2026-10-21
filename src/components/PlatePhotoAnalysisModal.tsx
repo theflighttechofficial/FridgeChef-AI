@@ -30,6 +30,8 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
   onClose,
 }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(SAMPLE_PLATE_PRESETS[0].img);
+  // Sample photos come from the web; show a placeholder when offline
+  const [failedImage, setFailedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<PlateAnalysisResult | null>({
     dishName: 'Pan-Seared Golden Protein Bowl with Herb Wilted Greens',
@@ -155,12 +157,17 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
             {/* Left: Image Display & Scored Badge */}
             <div className="space-y-3">
               <div className="relative aspect-video sm:aspect-square w-full rounded-2xl overflow-hidden border border-slate-800 bg-slate-950">
-                {selectedImage ? (
+                {selectedImage && failedImage !== selectedImage ? (
                   <img
                     src={selectedImage}
                     alt="Plated dish"
+                    onError={() => setFailedImage(selectedImage)}
                     className="w-full h-full object-cover"
                   />
+                ) : selectedImage ? (
+                  <div className="w-full h-full grid place-items-center bg-gradient-to-br from-emerald-900 to-slate-900 text-6xl" role="img" aria-label="Plated dish">
+                    🍽️
+                  </div>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
                     <Camera className="w-10 h-10 mb-2 opacity-50" />

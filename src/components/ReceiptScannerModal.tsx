@@ -218,14 +218,14 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
-          <span className="text-xs text-slate-400">Auto-assigns shelf micro-climates & expiry triggers.</span>
+        <div className="px-6 py-4 bg-slate-950 border-t border-slate-800 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <span className="text-xs text-slate-400 text-center sm:text-left">Auto-assigns shelf micro-climates & expiry triggers.</span>
           <button
             onClick={handleImport}
             disabled={!analysisResult || isAnalyzing}
-            className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/25 hover:from-emerald-400 hover:to-teal-400 transition-all flex items-center gap-2"
+            className="h-12 px-6 bg-emerald-300 text-emerald-950 font-semibold text-sm rounded-full transition-all flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50"
           >
-            <span>Receipt → Pantry → Cook</span>
+            <span>Add to my fridge</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

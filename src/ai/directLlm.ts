@@ -114,8 +114,10 @@ export const directGenerateRecipes = async (body: {
   maxPrepTime?: number;
   difficulty?: string;
   cuisine?: string;
+  avoidTitles?: string[];
 }) => {
-  const prompt = `You are a professional chef. Suggest 4 varied, realistic recipes that mainly use these available ingredients: ${body.ingredients.join(', ')}.
+  const prompt = `You are a professional chef. Suggest 6 varied, realistic recipes that mainly use these available ingredients: ${body.ingredients.join(', ')}.
+Make them genuinely different from each other: different cuisines, cooking methods (curry, stir-fry, roast, salad, soup, grill, bake) and main ingredients.${body.avoidTitles?.length ? `\nDo not suggest these again: ${body.avoidTitles.join('; ')}.` : ''}
 Dietary needs: ${body.dietary?.length ? body.dietary.join(', ') : 'none'}. Max total time: ${body.maxPrepTime ? `${body.maxPrepTime} minutes` : 'any'}. Difficulty: ${body.difficulty || 'any'}. Cuisine: ${body.cuisine || 'any, mix cuisines'}.
 Return JSON { "recipes": [...] }. ${RECIPE_SHAPE}`;
   return parseJsonReply<{ recipes: any[] }>(await directComplete({ prompt, json: true }));

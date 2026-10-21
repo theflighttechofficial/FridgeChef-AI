@@ -128,7 +128,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Garam Masala', 'Heavy Cream', 'Cashew Paste'],
     macros: { protein: '28g', carbs: '18g', fat: '38g' },
     servings: 3,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Crush dried kasuri methi between your palms right before stirring into the simmering butter sauce to release fragrant essential oils.',
     steps: [
       { stepNumber: 1, instruction: 'Cube paneer into 1-inch pieces. Sear lightly in ghee for 2 minutes until pale golden on edges.', timerSeconds: 120 },
@@ -152,7 +151,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Black Peppercorns', 'Fennel Seeds', 'Coconut Oil'],
     macros: { protein: '42g', carbs: '12g', fat: '26g' },
     servings: 3,
-    imageUrl: fridgeProteinVeggieImg,
     chefTip: 'Dry roast whole black pepper and fennel seeds before coarse grinding for authentic Chettinad punch.',
     steps: [
       { stepNumber: 1, instruction: 'Marinate chicken in turmeric, ginger-garlic paste, and lemon juice for 10 minutes.', timerSeconds: 600 },
@@ -176,7 +174,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Cumin Seeds (Jeera)', 'Dried Whole Red Chiles', 'Asafoetida (Hing)'],
     macros: { protein: '18g', carbs: '64g', fat: '10g' },
     servings: 3,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Pour the hot tadka (tempering) directly over cooked dal at the very last moment before serving so aromatics linger.',
     steps: [
       { stepNumber: 1, instruction: 'Pressure cook toor dal with water, turmeric, and chopped tomatoes for 4 whistles until soft and creamy.', timerSeconds: 600 },
@@ -202,7 +199,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Smoked Paprika', 'Apple Cider Vinegar'],
     macros: { protein: '44g', carbs: '48g', fat: '12g' },
     servings: 2,
-    imageUrl: fridgeProteinVeggieImg,
     chefTip: 'Roast sweet potatoes skin-on at 425°F for caramelized crisp edges and sweet pillowy centers.',
     steps: [
       { stepNumber: 1, instruction: 'Cube sweet potatoes into 3/4-inch wedges. Toss in olive oil, garlic powder, salt, and pepper.', timerSeconds: 180 },
@@ -226,7 +222,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Iceberg Lettuce', 'Smash Sauce (Mayonnaise & Mustard)', 'Tomato Slices'],
     macros: { protein: '42g', carbs: '8g', fat: '38g' },
     servings: 2,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Smash beef balls firmly onto a roaring hot cast-iron skillet to develop super crisp lacy edges.',
     steps: [
       { stepNumber: 1, instruction: 'Divide beef into 4 small balls. Season liberally with coarse salt and black pepper.', timerSeconds: 120 },
@@ -252,7 +247,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Bamboo Shoots', 'Red Bell Pepper'],
     macros: { protein: '20g', carbs: '42g', fat: '22g' },
     servings: 2,
-    imageUrl: fridgeProteinVeggieImg,
     chefTip: 'Fry curry paste in 2 tbsp thick coconut cream first until fragrant and oil separates before pouring remaining coconut milk.',
     steps: [
       { stepNumber: 1, instruction: 'Press and cube firm tofu into 1-inch squares. Fry in wok until lightly golden on sides.', timerSeconds: 300 },
@@ -276,7 +270,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Japanese Curry Roux (S&B)', 'Panko Breadcrumbs', 'Carrots'],
     macros: { protein: '46g', carbs: '62g', fat: '20g' },
     servings: 2,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Double dredge chicken cutlet in flour, whisked egg, and Japanese panko for maximum shatter-crisp crunch.',
     steps: [
       { stepNumber: 1, instruction: 'Pound chicken breast thin. Dredge in flour, beaten egg, and panko breadcrumbs.', timerSeconds: 300 },
@@ -302,7 +295,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Feta Cheese', 'Cucumber', 'Dried Oregano'],
     macros: { protein: '42g', carbs: '14g', fat: '28g' },
     servings: 2,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Blister the cherry tomatoes on high heat in olive oil until they burst to create a naturally sweet, rich dressing base.',
     steps: [
       { stepNumber: 1, instruction: 'Slice chicken breast into 1-inch strips. Season with lemon zest, minced garlic, salt, pepper, and oregano.', timerSeconds: 120 },
@@ -327,7 +319,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Japanese Eggplant', 'White Sesame Seeds', 'Scallions'],
     macros: { protein: '22g', carbs: '28g', fat: '14g' },
     servings: 2,
-    imageUrl: fridgeProteinVeggieImg,
     chefTip: 'Air fry at 400°F (200°C) for 12 minutes, shaking basket halfway through for max crispiness.',
     steps: [
       { stepNumber: 1, instruction: 'Press tofu dry and cube into 1-inch pieces. Cut eggplant into bite-sized chunks.' },
@@ -351,7 +342,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Tiger Shrimp', 'Ginger', 'Shaoxing Wine'],
     macros: { protein: '34g', carbs: '8g', fat: '12g' },
     servings: 2,
-    imageUrl: fridgeProteinVeggieImg,
     chefTip: 'Keep wok smoking hot to lock in wok-hei smoky aroma and maintain vegetable crispness.',
     steps: [
       { stepNumber: 1, instruction: 'Heat wok on maximum flame until lightly smoking. Add 1 tbsp oil.' },
@@ -375,7 +365,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Nori Seaweed Strips', 'Sesame Seeds'],
     macros: { protein: '16g', carbs: '22g', fat: '24g' },
     servings: 1,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Raw fermented kimchi delivers live active cultures that support gut microbiome health.',
     steps: [
       { stepNumber: 1, instruction: 'Arrange aged kimchi, sliced avocado, and thawed edamame in a wide bowl.' },
@@ -399,7 +388,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Lamb Shoulder', 'Saffron Threads', 'Shahi Jeera / Whole Spices'],
     macros: { protein: '48g', carbs: '66g', fat: '26g' },
     servings: 4,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Seal the claypot lid with dough rim to trap all steam (dum method) so the rice absorbs rich lamb broths.',
     steps: [
       { stepNumber: 1, instruction: 'Marinate lamb in yogurt, ginger-garlic paste, chili powder, and biryani spices for 30 minutes.', timerSeconds: 1800 },
@@ -423,7 +411,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Fresh Asparagus', 'Quinoa', 'Fresh Dill'],
     macros: { protein: '44g', carbs: '12g', fat: '32g' },
     servings: 2,
-    imageUrl: fridgeProteinVeggieImg,
     chefTip: 'Press the salmon fillet firmly skin-side down in a smoking hot pan for 4 minutes to achieve glass-like crackling skin.',
     steps: [
       { stepNumber: 1, instruction: 'Pat salmon skin bone-dry. Season skin and flesh liberally with salt and black pepper.', timerSeconds: 120 },
@@ -447,7 +434,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Roasted Peanuts', 'Sichuan Peppercorns', 'Chili Oil', 'Scallions'],
     macros: { protein: '42g', carbs: '16g', fat: '28g' },
     servings: 2,
-    imageUrl: fridgeProteinVeggieImg,
     chefTip: 'Bloom Sichuan peppercorns and dried chiles in oil first until dark maroon before adding chicken.',
     steps: [
       { stepNumber: 1, instruction: 'Dice chicken thighs and velvety marinate in soy sauce, cornstarch, and Shaoxing wine for 10 minutes.', timerSeconds: 600 },
@@ -471,7 +457,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Tagliatelle Pasta', 'Parmesan Reggiano', 'Celery & Carrot Soffritto'],
     macros: { protein: '38g', carbs: '54g', fat: '22g' },
     servings: 3,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Finish boiling pasta 2 minutes early and emulsify directly inside the Bolognese ragù with a splash of starchy pasta water.',
     steps: [
       { stepNumber: 1, instruction: 'Sauté minced onion, celery, and carrot (soffritto) in butter and olive oil until sweet and translucent.', timerSeconds: 300 },
@@ -497,7 +482,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Garlic Naan Bread', 'Garam Masala'],
     macros: { protein: '32g', carbs: '28g', fat: '26g' },
     servings: 2,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Blanch spinach leaves for just 60 seconds in boiling salted water and plunge into ice bath to preserve vibrant emerald green color.',
     steps: [
       { stepNumber: 1, instruction: 'Blanch baby spinach in boiling water for 60 seconds, shock in cold water, and blend into smooth puree.', timerSeconds: 120 },
@@ -521,7 +505,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Black Beans', 'Sweet Corn', 'Chipotle Peppers in Adobo', 'Cilantro-Lime Rice'],
     macros: { protein: '22g', carbs: '62g', fat: '14g' },
     servings: 2,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Char sweet corn kernels in a dry skillet until dark spots appear for smoky street-corn flavor.',
     steps: [
       { stepNumber: 1, instruction: 'Simmer black beans with chipotle pepper, garlic, and cumin for 6 minutes.', timerSeconds: 360 },
@@ -545,7 +528,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Eggplant', 'Mozzarella Cheese', 'Parmesan Cheese', 'Panko Breadcrumbs', 'Fresh Basil'],
     macros: { protein: '26g', carbs: '38g', fat: '24g' },
     servings: 3,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Salt eggplant rounds 15 minutes before dredging to purge excess moisture and prevent sogginess.',
     steps: [
       { stepNumber: 1, instruction: 'Slice eggplant into 1/2-inch rounds. Salt and rest on paper towels for 15 minutes to purge water.', timerSeconds: 900 },
@@ -569,7 +551,6 @@ export const INITIAL_RECIPES: Recipe[] = [
     missingIngredients: ['Chickpeas', 'Tahini Sesame Paste', 'Pita Bread', 'Ground Cumin & Coriander'],
     macros: { protein: '24g', carbs: '52g', fat: '16g' },
     servings: 2,
-    imageUrl: culinaryGourmetBowlImg,
     chefTip: 'Use soaked dry chickpeas rather than canned chickpeas for falafels to get authentic fluffy centers with super crispy exteriors.',
     steps: [
       { stepNumber: 1, instruction: 'Pulse soaked chickpeas, garlic, onion, herbs, and spices in food processor into coarse mixture.', timerSeconds: 180 },

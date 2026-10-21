@@ -242,6 +242,29 @@ button:not(:disabled):active {
   animation: panel-in 420ms var(--ease-emphasized) both;
 }
 
+/* Phones: feature dialogs open full screen like native Android screens, clear of the
+   status and gesture bars, instead of floating cards with cramped margins. */
+@media (max-width: 767px) {
+  .fixed.inset-0.z-50.items-center.justify-center {
+    padding: 0 !important;
+    align-items: stretch;
+  }
+  .fixed.inset-0.z-50.items-center.justify-center > :first-child {
+    max-width: none;
+    width: 100%;
+    height: 100dvh;
+    max-height: none !important;
+    border: 0;
+    border-radius: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .fixed.inset-0.z-50.flex-col {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* Soft sheen that sweeps across primary buttons on hover */
 .btn-sheen {
   position: relative;
