@@ -255,7 +255,8 @@ app.post('/api/generate-recipes', async (req, res) => {
       cuisine,
       mealType,
       regionalTaxonomy,
-      taxonomyRequirement
+      taxonomyRequirement,
+      avoidTitles,
     } = req.body;
     const ai = getGeminiClient();
 
@@ -283,6 +284,9 @@ Categorize generated recipes into formal regional taxonomy buckets:
 4. Pan-Asian (Japanese Washoku/Katsu, Thai Street Red/Green Curry, Chinese Sichuan, Korean Bunsik)
 
 Ensure balanced cross-cultural cuisine discovery spanning both vegetarian and non-vegetarian ingredient pairings.
+
+VARIETY: Return 6 recipes that differ from each other in cuisine, cooking method (curry, stir-fry, roast, salad, soup, grill, bake) and main ingredient.
+${Array.isArray(avoidTitles) && avoidTitles.length ? `Do NOT repeat any of these already-suggested recipes: ${avoidTitles.slice(0, 18).map((t: unknown) => String(t).slice(0, 80)).join('; ')}.` : ''}
 
 Return a structured JSON object with key "recipes" containing an array of recipe objects.
 Each recipe must strictly contain:

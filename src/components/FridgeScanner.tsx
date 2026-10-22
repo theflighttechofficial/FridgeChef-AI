@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
-import { Camera, Upload, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCw, Layers, Zap, Sparkles } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Camera, Upload, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCw, Layers, Zap, Sparkles, Images, X } from 'lucide-react';
 import { Ingredient, PresetFridge } from '../types';
 import { compressImageFile, drawToJpeg } from '../utils/imageUtils';
 import { showToast } from '../utils/toast';
@@ -35,6 +37,10 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
   const [extraNote, setExtraNote] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  // "Snap fridge" first asks where the photo comes from: camera or gallery
+  const [sourcePickerOpen, setSourcePickerOpen] = useState(false);
+  const openSourcePicker = () => setSourcePickerOpen(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -100,7 +106,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
 
   // The app-wide "Snap" FAB opens the photo picker (camera or gallery on Android)
   useEffect(() => {
-    const open = () => fileInputRef.current?.click();
+    const open = () => setSourcePickerOpen(true);
     window.addEventListener('fridgechef:snap', open);
     return () => window.removeEventListener('fridgechef:snap', open);
   }, []);
@@ -172,7 +178,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
           </p>
           <div className="flex flex-wrap gap-3 pt-1">
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={openSourcePicker}
               disabled={isAnalyzing}
               className="h-12 px-6 rounded-full bg-emerald-200 text-emerald-950 font-semibold text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/30 hover:bg-emerald-100 disabled:opacity-60"
             >
@@ -257,7 +263,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
                     {!isAnalyzing && (
                       <div className="absolute top-3 right-3 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800">
                         <button
-                          onClick={() => fileInputRef.current?.click()}
+                          onClick={openSourcePicker}
                           className="text-xs font-medium text-slate-300 hover:text-emerald-400 transition-colors flex items-center gap-1.5"
                         >
                           <Upload className="w-3.5 h-3.5" />
@@ -297,13 +303,6 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
                     </div>
                   </div>
                 )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
               </div>
             )}
 
@@ -509,6 +508,68 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
           <ConsumptionWasteTrendChart />
         </Suspense>
       </div>
+
+      {/* Photo inputs: gallery picker, and camera capture (opens the camera directly on phones) */}
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileUpload} />
+
+      {/* Source picker: camera or gallery. Portalled to <body> because the tab's animated
+          (transformed) wrapper would otherwise trap position: fixed. */}
+      {createPortal(
+      <AnimatePresence>
+        {sourcePickerOpen && (
+          <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center" role="dialog" aria-modal="true" aria-label="Add a fridge photo">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/55" onClick={() => setSourcePickerOpen(false)} />
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+              className="relative w-full md:max-w-sm rounded-t-[1.75rem] md:rounded-[1.75rem] bg-surface-low p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-on-surface">Add a fridge photo</h2>
+                <button onClick={() => setSourcePickerOpen(false)} className="w-10 h-10 grid place-items-center rounded-full state-layer text-on-surface-variant" aria-label="Close">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              {[
+                {
+                  label: 'Take photo',
+                  hint: 'Open the camera',
+                  icon: Camera,
+                  run: () => {
+                    // Phones honour capture="environment"; desktops ignore it, so use the webcam there
+                    const native = !!(window as any).Capacitor?.isNativePlatform?.();
+                    if (native || window.matchMedia('(pointer: coarse)').matches) cameraInputRef.current?.click();
+                    else startCamera();
+                  },
+                },
+                { label: 'Choose from gallery', hint: 'Pick an existing photo', icon: Images, run: () => fileInputRef.current?.click() },
+              ].map(({ label, hint, icon: Icon, run }) => (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setSourcePickerOpen(false);
+                    run();
+                  }}
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-surface-container state-layer text-left"
+                >
+                  <span className="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container grid place-items-center">
+                    <Icon className="w-6 h-6" />
+                  </span>
+                  <span>
+                    <span className="block text-base font-semibold text-on-surface">{label}</span>
+                    <span className="block text-sm text-on-surface-variant">{hint}</span>
+                  </span>
+                </button>
+              ))}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>,
+      document.body
+      )}
     </div>
   );
 };

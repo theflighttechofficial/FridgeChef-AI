@@ -6,6 +6,7 @@ import { directComplete } from '../ai/directLlm';
 import { SEEDS, setSeed, useSeed } from '../theme/dynamicColor';
 import { getTasteState, resetTaste, subscribeTaste, topTastes } from '../ml/tasteModel';
 import model from '../ml/model.json';
+import { deleteAccount, initials, signOut, updateProfile, useAccount } from '../auth/account';
 
 const Card: React.FC<{ icon: React.ComponentType<{ className?: string }>; title: string; subtitle?: string; children: React.ReactNode }> = ({ icon: Icon, title, subtitle, children }) => (
   <section className="rounded-[1.75rem] bg-surface-container p-5 sm:p-6 space-y-5">
@@ -32,6 +33,83 @@ const Field: React.FC<{ label: string; hint?: string; children: React.ReactNode 
 
 const inputClass =
   'w-full h-14 px-4 rounded-2xl bg-surface-highest/60 border border-outline-variant text-on-surface placeholder:text-on-surface-variant/70 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-base';
+
+const AccountCard: React.FC = () => {
+  const { account } = useAccount();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(account?.name || '');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  if (!account) return null;
+  const joined = new Date(account.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  return (
+    <section className="rounded-[1.75rem] bg-primary-container text-on-primary-container p-5 sm:p-6 space-y-4">
+      <div className="flex items-center gap-4">
+        <span className="w-16 h-16 shrink-0 rounded-full bg-primary text-on-primary grid place-items-center text-2xl font-semibold">{initials(account.name)}</span>
+        <div className="min-w-0 flex-1">
+          {editing ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (name.trim()) updateProfile({ name: name.trim() });
+                setEditing(false);
+              }}
+              className="flex gap-2"
+            >
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+                aria-label="Your name"
+                className="min-w-0 flex-1 h-11 px-3 rounded-xl bg-surface/40 outline-none focus:ring-2 focus:ring-primary text-base"
+              />
+              <button className="h-11 px-4 rounded-full bg-primary text-on-primary text-sm font-semibold">Save</button>
+            </form>
+          ) : (
+            <>
+              <p className="text-xl font-semibold truncate">{account.name}</p>
+              <p className="text-sm opacity-80 truncate">{account.email || 'No email added'} · on this device since {joined}</p>
+            </>
+          )}
+        </div>
+      </div>
+      {!!(account.dietary.length || account.regions.length) && (
+        <div className="flex flex-wrap gap-2">
+          {[...account.dietary, ...account.regions].map((t) => (
+            <span key={t} className="h-7 px-3 rounded-lg bg-surface/30 text-xs font-medium inline-flex items-center">
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-2">
+        {!editing && (
+          <button onClick={() => setEditing(true)} className="h-10 px-4 rounded-full bg-surface/30 text-sm font-semibold state-layer">
+            Edit name
+          </button>
+        )}
+        <button onClick={signOut} className="h-10 px-4 rounded-full bg-surface/30 text-sm font-semibold state-layer">
+          Sign out
+        </button>
+        <button onClick={() => setConfirmDelete(true)} className="h-10 px-4 rounded-full text-sm font-semibold state-layer text-rose-200">
+          Delete account
+        </button>
+      </div>
+      {confirmDelete && (
+        <div className="rounded-2xl bg-surface/40 p-4 space-y-3" role="alert">
+          <p className="text-sm">Delete your account from this device? Saved recipes, your shopping list and settings stay.</p>
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setConfirmDelete(false)} className="h-10 px-4 rounded-full text-sm font-semibold state-layer">
+              Cancel
+            </button>
+            <button onClick={deleteAccount} className="h-10 px-4 rounded-full bg-rose-300 text-rose-950 text-sm font-semibold">
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
 
 type TestState = { status: 'idle' } | { status: 'running' } | { status: 'ok'; reply: string; via: string } | { status: 'error'; error: string };
 
@@ -77,6 +155,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTryLocalModel }) =
 
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-8">
+      <AccountCard />
       {/* Recipe engine */}
       <Card icon={Sparkles} title="Recipe engine" subtitle="Where recipe ideas come from.">
         <div className="grid grid-cols-2 p-1 rounded-full border border-outline-variant" role="radiogroup" aria-label="Recipe engine">

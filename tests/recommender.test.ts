@@ -109,3 +109,13 @@ test('cuisine classifier recognises flavour profiles', () => {
   const indian = predictCuisines(['garam masala', 'turmeric', 'cumin', 'ginger garlic paste', 'ghee'])[0].cuisine;
   assert.ok(Object.values(REGIONS.Indian).includes(indian) || REGIONS['South Asian'].includes(indian), indian);
 });
+
+test('"New ideas" brings different recipes for the same pantry', async () => {
+  const { localRecipes } = await import('../src/ai/recipeEngine');
+  const p = pantry('Paneer', 'Tomatoes', 'Onion', 'Ginger', 'Garlic', 'Rice', 'Lentils', 'Spinach', 'Eggs', 'Chicken thighs');
+  const filters = { dietary: [], maxPrepTime: 60, difficulty: 'All', cuisine: 'All', searchQuery: '', sortBy: 'match' as const };
+  const first = (await localRecipes(p, filters)).map((r) => r.id);
+  const second = (await localRecipes(p, filters)).map((r) => r.id);
+  const repeated = second.filter((id) => first.includes(id));
+  assert.ok(repeated.length <= 1, `repeated: ${repeated.join(', ')}`);
+});

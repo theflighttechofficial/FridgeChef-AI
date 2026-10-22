@@ -37,6 +37,19 @@
   </head>
   <body class="h-full font-sans bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-slate-950">
     <div id="root" class="min-h-full flex flex-col"></div>
+    <!-- Launch screen for the Android app (and installed web app); src/main.tsx fades it out -->
+    <div id="boot-splash" style="position:fixed;inset:0;z-index:200;background:#0f1412;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .35s ease">
+      <img src="/icon-512.png" alt="" width="112" height="112" style="border-radius:28px" />
+      <div style="font:700 30px/1.1 'Google Sans Flex',Roboto,system-ui,sans-serif;color:#f5f1e8;letter-spacing:-.01em;margin-top:10px">FridgeChef-AI</div>
+      <div style="font:400 13px/1.3 'Google Sans Flex',Roboto,system-ui,sans-serif;color:#a0aaa5">With Love from TheFlightTech Labs</div>
+    </div>
+    <script>
+      if (window.Capacitor || matchMedia('(display-mode: standalone)').matches) {
+        var s = document.getElementById('boot-splash');
+        s.style.display = 'flex';
+        window.__bootSplashAt = Date.now();
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

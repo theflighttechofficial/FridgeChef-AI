@@ -9,6 +9,7 @@ import { LogoMark } from '../Logo';
 import { VoiceNavigationController } from '../VoiceNavigationController';
 import { AppTab } from '../../types';
 import { ToolItem } from './tools';
+import { initials, useAccount } from '../../auth/account';
 
 interface Destination {
   tab: AppTab;
@@ -39,6 +40,7 @@ const TopAppBar: React.FC<{
   setActiveTab: (t: AppTab) => void;
   onOpenTools: () => void;
 }> = ({ activeTab, setActiveTab, onOpenTools }) => {
+  const { account } = useAccount();
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4);
@@ -78,11 +80,21 @@ const TopAppBar: React.FC<{
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`w-12 h-12 grid place-items-center rounded-full state-layer md:hidden ${activeTab === 'settings' ? 'text-primary' : ''}`}
-            aria-label="Settings"
-            title="Settings"
+            className="w-12 h-12 grid place-items-center rounded-full state-layer md:hidden"
+            aria-label="Account and settings"
+            title="Account and settings"
           >
-            <Settings className="w-6 h-6" />
+            {account ? (
+              <span
+                className={`w-8 h-8 rounded-full bg-primary-container text-on-primary-container grid place-items-center text-sm font-semibold ${
+                  activeTab === 'settings' ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface' : ''
+                }`}
+              >
+                {initials(account.name)}
+              </span>
+            ) : (
+              <Settings className="w-6 h-6" />
+            )}
           </button>
         </div>
       </div>
@@ -354,6 +366,7 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, sho
   // Android back button: close the tools sheet, then go back to the Fridge tab, then leave the app
   useEffect(() => {
     const onBack = (e: Event) => {
+      if (e.defaultPrevented) return; // a dialog already handled it
       if (toolsOpen) setToolsOpen(false);
       else if (activeTab !== 'scan') setActiveTab('scan');
       else return;

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, Variants, MotionConfig } from 'framer-motion';
 import { Reveal } from './components/Reveal';
 import { LogoMark } from './components/Logo';
@@ -14,6 +14,8 @@ import { AppShell } from './components/shell/AppShell';
 import { buildTools } from './components/shell/tools';
 import { analyzeFridgePhoto, generateRecipes, localRecipes, RecipeSource } from './ai/recipeEngine';
 import { recordTaste } from './ml/tasteModel';
+import { AuthGate } from './components/onboarding/AuthFlow';
+import { getAccount, useAccount } from './auth/account';
 import { cuisineMatches } from './ml/data/schema';
 import { FridgeScanner } from './components/FridgeScanner';
 import { SidebarFilter } from './components/SidebarFilter';
@@ -204,17 +206,24 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  // Intro showreel plays once per browser session
+  // Intro showreel plays only on first launch (stored on the device)
   const [showIntro, setShowIntro] = useState(() => {
     try {
-      return sessionStorage.getItem('fridgechef.introSeen') !== '1';
+      return localStorage.getItem('fridgechef.introSeen') !== '1';
     } catch {
       return true;
     }
   });
+  // Count the intro as seen once it has been shown, even if the app is closed mid-way
+  useEffect(() => {
+    if (!showIntro) return;
+    try {
+      localStorage.setItem('fridgechef.introSeen', '1');
+    } catch {}
+  }, [showIntro]);
   const dismissIntro = useCallback(() => {
     try {
-      sessionStorage.setItem('fridgechef.introSeen', '1');
+      localStorage.setItem('fridgechef.introSeen', '1');
     } catch {}
     setShowIntro(false);
   }, []);
@@ -268,7 +277,7 @@ export default function App() {
   const [isAutonomousAgentOpen, setIsAutonomousAgentOpen] = useState(false);
 
   // Context-Aware Cooking Settings
-  const [selectedTimeBudget, setSelectedTimeBudget] = useState<CookingTimeBudget>('30 min');
+  const [selectedTimeBudget, setSelectedTimeBudget] = useState<CookingTimeBudget>('60+ min');
   const [selectedMoodMode, setSelectedMoodMode] = useState<CookingMoodMode>('Standard');
   const [cookingSkillLevel, setCookingSkillLevel] = useState<CookingSkillAdaptationLevel>('Intermediate');
 
@@ -315,6 +324,57 @@ export default function App() {
   // Cooking Modal State
   const [cookingRecipe, setCookingRecipe] = useState<Recipe | null>(null);
 
+  // Every full-screen dialog, so the Android back button (and Escape) can close the top one
+  const openDialogs: [unknown, () => void][] = [
+    [cookingRecipe, () => setCookingRecipe(null)],
+    [evolvingRecipe, () => setEvolvingRecipe(null)],
+    [explainabilityRecipe, () => setExplainabilityRecipe(null)],
+    [validationRecipe, () => setValidationRecipe(null)],
+    [isIronChefOpen, () => setIsIronChefOpen(false)],
+    [isARPlatingOpen, () => setIsARPlatingOpen(false)],
+    [isNeuroOpen, () => setIsNeuroOpen(false)],
+    [isMemoryModalOpen, () => setIsMemoryModalOpen(false)],
+    [isReceiptModalOpen, () => setIsReceiptModalOpen(false)],
+    [isSubstitutionsModalOpen, () => setIsSubstitutionsModalOpen(false)],
+    [isChefPersonaOpen, () => setIsChefPersonaOpen(false)],
+    [isPantryChallengeOpen, () => setIsPantryChallengeOpen(false)],
+    [isBudgetModeOpen, () => setIsBudgetModeOpen(false)],
+    [isNutritionModalOpen, () => setIsNutritionModalOpen(false)],
+    [isCarbonModalOpen, () => setIsCarbonModalOpen(false)],
+    [isSensorModalOpen, () => setIsSensorModalOpen(false)],
+    [isFoodSafetyModalOpen, () => setIsFoodSafetyModalOpen(false)],
+    [isDinnerForEveryoneOpen, () => setIsDinnerForEveryoneOpen(false)],
+    [isKitchenVoiceOpen, () => setIsKitchenVoiceOpen(false)],
+    [isKnowledgeGraphOpen, () => setIsKnowledgeGraphOpen(false)],
+    [isPlateAnalysisOpen, () => setIsPlateAnalysisOpen(false)],
+    [isTasteModalOpen, () => setIsTasteModalOpen(false)],
+    [isCateringModalOpen, () => setIsCateringModalOpen(false)],
+    [isFinancialModalOpen, () => setIsFinancialModalOpen(false)],
+    [isAutonomousAgentOpen, () => setIsAutonomousAgentOpen(false)],
+  ];
+  const closeTopDialog = useRef<() => boolean>(() => false);
+  closeTopDialog.current = () => {
+    const open = openDialogs.filter(([v]) => !!v);
+    if (!open.length) return false;
+    open.forEach(([, close]) => close());
+    return true;
+  };
+  useEffect(() => {
+    // Capture phase so this runs before the shell's own back handling (tabs, tools sheet)
+    const onBack = (e: Event) => {
+      if (closeTopDialog.current()) e.preventDefault();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeTopDialog.current();
+    };
+    window.addEventListener('fridgechef:back', onBack, { capture: true });
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('fridgechef:back', onBack, { capture: true });
+      window.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
   // Added Missing Items Tracker
   const [addedShoppingRecipeIds, setAddedShoppingRecipeIds] = useState<string[]>([]);
 
@@ -323,7 +383,13 @@ export default function App() {
   const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
 
   // Filter Options State
-  const [filters, setFilters] = useState<FilterOptions>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<FilterOptions>(() => ({ ...DEFAULT_FILTERS, dietary: getAccount()?.dietary || [] }));
+  // Dietary needs chosen while creating the account become the default filter
+  const { account } = useAccount();
+  const accountCreatedAt = account?.createdAt;
+  useEffect(() => {
+    if (accountCreatedAt) setFilters((prev) => ({ ...prev, dietary: getAccount()?.dietary || prev.dietary }));
+  }, [accountCreatedAt]);
   const resetFilters = useCallback(() => setFilters(DEFAULT_FILTERS), []);
 
   // Handle Preset Fridge Selection
@@ -342,7 +408,7 @@ export default function App() {
         return;
       }
       setCurrentIngredients(detectedIngredients);
-      const withImages = suggestedRecipes.map((r, idx) => ({ ...r, imageUrl: INITIAL_RECIPES[idx % INITIAL_RECIPES.length]?.imageUrl }));
+      const withImages = suggestedRecipes;
       if (withImages.length) {
         setRecipes(withImages);
         setRecipeSource('ai');
@@ -372,7 +438,7 @@ export default function App() {
         : await generateRecipes(currentIngredients, filters);
       if (result.notice) showToast(result.notice, 'info');
       if (result.recipes.length) {
-        setRecipes(result.source === 'ai' ? result.recipes.map((r, idx) => ({ ...r, imageUrl: INITIAL_RECIPES[idx % INITIAL_RECIPES.length]?.imageUrl })) : result.recipes);
+        setRecipes(result.recipes);
         setRecipeSource(result.source);
         setActiveTab('recipes');
       } else {
@@ -495,8 +561,21 @@ export default function App() {
           return a.calories - b.calories;
         }
         return 0;
+      })
+      // Mood re-orders without hiding anything: hearty first, showpieces first, or big batches first
+      .sort((a, b) => {
+        if (selectedMoodMode === 'Starving') return b.calories - a.calories;
+        if (selectedMoodMode === 'Gourmet') return (b.difficulty === 'Easy' ? 0 : 1) - (a.difficulty === 'Easy' ? 0 : 1);
+        if (selectedMoodMode === 'Hosting') return (b.servings || 2) - (a.servings || 2);
+        return 0;
       });
-  }, [recipes, savedRecipes, activeTab, filters]);
+  }, [recipes, savedRecipes, activeTab, filters, selectedMoodMode]);
+
+  // The time chips and the filter's max-time slider are the same setting
+  const selectTimeBudget = (budget: CookingTimeBudget) => {
+    setSelectedTimeBudget(budget);
+    setFilters((prev) => ({ ...prev, maxPrepTime: budget === '5 min' ? 10 : budget === '15 min' ? 15 : budget === '30 min' ? 30 : 60 }));
+  };
 
   // Shopping List Handlers
   const handleToggleCheckShoppingItem = (id: string) => {
@@ -571,6 +650,7 @@ export default function App() {
     <AnimatePresence>{showIntro && <IntroShowreel onContinue={dismissIntro} />}</AnimatePresence>
     <Toaster />
     <ConsentBanner />
+    <AuthGate paused={showIntro}>
     <AppShell
       activeTab={activeTab}
       setActiveTab={setActiveTab}
@@ -581,7 +661,7 @@ export default function App() {
       {/* Main Body Content Container - Full Width Page Extension & Responsive Screen Optimization */}
       <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pt-2 pb-10 space-y-6">
         {/* Pantry Health Expiration Notification Alert Banner */}
-        {activeTab !== 'settings' && (<>
+        {activeTab === 'scan' && (<>
         <PantryHealthNotificationBanner
           ingredients={currentIngredients}
           onStartCookingFromAlert={() => setActiveTab('recipes')}
@@ -724,18 +804,20 @@ export default function App() {
             </div>
 
             {/* Context-Aware Cooking Settings Bar */}
+            {!(activeTab === 'saved' && savedRecipes.length === 0) && (<>
             <ContextAwareCookingBar
               selectedTime={selectedTimeBudget}
-              onSelectTime={setSelectedTimeBudget}
+              onSelectTime={selectTimeBudget}
               selectedMood={selectedMoodMode}
               onSelectMood={setSelectedMoodMode}
               skillLevel={cookingSkillLevel}
               onSelectSkillLevel={setCookingSkillLevel}
             />
+            </>)}
 
             {/* Layout: Sidebar Filter (4 cols) + Grid (8 cols) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8">
-              <div className="lg:col-span-4 xl:col-span-3">
+              <div className={`lg:col-span-4 xl:col-span-3 ${activeTab === 'saved' && savedRecipes.length === 0 ? 'hidden' : ''}`}>
                 <SidebarFilter
                   filters={filters}
                   onFilterChange={setFilters}
@@ -1164,6 +1246,7 @@ export default function App() {
         </div>
       </footer>
     </AppShell>
+    </AuthGate>
     </MotionConfig>
   );
 }

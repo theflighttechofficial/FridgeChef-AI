@@ -110,13 +110,13 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
+      <div className="flex items-start justify-between pb-4 border-b border-slate-800 gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-2xl bg-teal-500/20 text-teal-300 border border-teal-500/30">
             <FlaskConical className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-base sm:text-lg font-extrabold text-white">
                 Ingredient Substitution Intelligence
               </h3>
@@ -131,7 +131,7 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
         </div>
 
         {onClose && (
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white rounded-xl">
+          <button onClick={onClose} aria-label="Close" className="w-10 h-10 shrink-0 grid place-items-center text-slate-400 hover:text-white rounded-full state-layer">
             <X className="w-5 h-5" />
           </button>
         )}

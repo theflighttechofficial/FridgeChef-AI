@@ -11,6 +11,29 @@ const FlavorDnaRadarChart = lazy(() =>
 );
 import { Recipe, FlavorDna } from '../types';
 
+// Cover art when a recipe has no photo: an emoji for the dish and a colour from its cuisine,
+// so a list of recipes doesn't look like the same picture repeated
+const DISH_EMOJI: [RegExp, string][] = [
+  [/biryani|pulao|fried rice|risotto|paella|jollof|rice|congee|khichdi|pongal/i, '🍚'],
+  [/ramen|noodle|pho|laksa|udon|soba|pad thai|chow mein|thukpa|hakka|pancit/i, '🍜'],
+  [/pasta|spaghetti|penne|lasagna|carbonara|gnocchi|mac and cheese|bolognese/i, '🍝'],
+  [/pizza|flatbread/i, '🍕'], [/burger/i, '🍔'], [/taco|fajita|quesadilla|burrito|enchilada/i, '🌮'],
+  [/wrap|roll|shawarma|kathi|banh mi|sandwich/i, '🌯'], [/salad|tabbouleh|fattoush|slaw/i, '🥗'],
+  [/soup|stew|chowder|broth|jjigae|rasam|sambar|dal|harira|borscht/i, '🍲'], [/curry|masala|korma|vindaloo|tikka|makhani/i, '🍛'],
+  [/salmon|fish|cod|tuna|ilish|ceviche/i, '🐟'], [/shrimp|prawn|crab|mussel|clam/i, '🦐'],
+  [/steak|beef|lamb|mutton|kebab|kofta|bulgogi/i, '🥩'], [/chicken|wings|karaage/i, '🍗'], [/pork|bacon|sausage/i, '🥓'],
+  [/egg|omelette|shakshuka|frittata|bhurji/i, '🍳'], [/tofu|edamame/i, '🥢'], [/paneer|cheese/i, '🧀'],
+  [/dosa|idli|pancake|crepe|paratha|roti/i, '🥞'], [/cake|halwa|kheer|pudding|ladoo|dessert|brownie|pie/i, '🍮'],
+  [/smoothie|lassi|chai|tea|coffee/i, '🥤'], [/eggplant|baingan|aubergine/i, '🍆'], [/potato|aloo/i, '🥔'],
+];
+const recipeArt = (recipe: Recipe) => {
+  const text = `${recipe.title} ${recipe.description}`;
+  const emoji = recipe.emoji || DISH_EMOJI.find(([re]) => re.test(text))?.[1] || '🍽️';
+  let hash = 0;
+  for (const ch of recipe.cuisine || recipe.title) hash = (hash * 31 + ch.charCodeAt(0)) % 360;
+  return { emoji, hue: hash };
+};
+
 interface RecipeCardProps {
   recipe: Recipe;
   onSelectRecipe: (recipe: Recipe) => void;
@@ -45,6 +68,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   const [showMealPrep, setShowMealPrep] = useState(false);
   const [selectedSubIngredient, setSelectedSubIngredient] = useState<string | null>(null);
 
+  const art = recipeArt(recipe);
   const totalTime = recipe.prepTimeMinutes + recipe.cookTimeMinutes;
   const matchCount = recipe.matchedIngredients.length;
   const totalRequired = matchCount + recipe.missingIngredients.length;
@@ -124,15 +148,14 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               referrerPolicy="no-referrer"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-emerald-800 via-emerald-900 to-slate-900 relative overflow-hidden">
-              <span aria-hidden="true" className="absolute -right-8 -top-10 w-44 h-44 bg-emerald-400/20 animate-morph" />
-              {recipe.emoji ? (
-                <span aria-hidden="true" className="absolute right-6 top-6 text-7xl rotate-[-8deg] drop-shadow-xl transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110">
-                  {recipe.emoji}
-                </span>
-              ) : (
-                <ChefHat className="absolute right-8 top-8 w-14 h-14 text-emerald-300/40" />
-              )}
+            <div
+              className="w-full h-full relative overflow-hidden"
+              style={{ background: `linear-gradient(135deg, oklch(42% 0.09 ${art.hue}), oklch(24% 0.04 ${art.hue}))` }}
+            >
+              <span aria-hidden="true" className="absolute -right-8 -top-10 w-44 h-44 animate-morph" style={{ background: `oklch(70% 0.14 ${art.hue} / 0.25)` }} />
+              <span aria-hidden="true" className="absolute right-6 top-12 text-7xl rotate-[-8deg] drop-shadow-xl transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110">
+                {art.emoji}
+              </span>
             </div>
           )}
 
@@ -429,10 +452,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             <button
               onClick={() => onOpenValidation(recipe)}
               className="py-2 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-300 font-bold text-[11px] rounded-xl transition-colors flex items-center justify-center gap-1"
-              title="Scientific Recipe Validation (Confidence: 94%)"
+              title="Check the recipe's food-science reasoning"
             >
               <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span>94% Conf.</span>
+              <span>Validate</span>
             </button>
           ) : (
             <button

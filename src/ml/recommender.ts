@@ -17,6 +17,9 @@ const TASTE_WEIGHT = 1.2;
 const EXPIRING_WEIGHT = 1.5;
 const OVER_TIME_PENALTY = 1.5;
 const SAME_CUISINE_PENALTY = 0.35;
+const SAME_HERO_PENALTY = 0.5;
+const PREFERRED_REGION_BONUS = 0.6;
+const EXPLORE_TEMPERATURE = 0.8;
 // Below this share of a recipe's main ingredients, composed recipes lead the list
 const WEAK_MATCH = 0.5;
 
@@ -60,6 +63,14 @@ const satisfiesDiet = (tags: string[], dietary: string[]) =>
 export interface RecommendOptions {
   filters?: Partial<FilterOptions>;
   limit?: number;
+  // Recipe ids already shown for this pantry; "New ideas" skips them while others remain
+  exclude?: Set<string>;
+  // 0 = always the best-scoring picks; 1 = sample widely among good matches for variety
+  explore?: number;
+  // Which round of "New ideas" this is; rotates the composed recipes' cuisine and technique
+  round?: number;
+  // Regions the person said they love during setup; a gentle boost, not a filter
+  preferredRegions?: string[];
 }
 
 export interface Recommendation {
@@ -108,7 +119,7 @@ const toRecipe = (r: CorpusRecipe, pantry: Map<string, string>): Recipe => {
 };
 
 /** Rank the bundled recipes for this pantry. */
-export const recommend = (ingredients: Ingredient[], { filters = {}, limit = 6 }: RecommendOptions = {}): Recommendation[] => {
+export const recommend = (ingredients: Ingredient[], { filters = {}, limit = 6, exclude, explore = 0, round = 0, preferredRegions = [] }: RecommendOptions = {}): Recommendation[] => {
   const pantry = canonicalPantry(ingredients.map((i) => i.name));
   const pantrySet = new Set(pantry.keys());
   const expiring = canonicalPantry(ingredients.filter((i) => i.freshness === 'Use Soon').map((i) => i.name));
@@ -126,6 +137,7 @@ export const recommend = (ingredients: Ingredient[], { filters = {}, limit = 6 }
       const recipe = toRecipe(r, pantry);
       coverage.set(recipe.id, feats[0]);
       score += TASTE_WEIGHT * tasteScore(recipe);
+      if (preferredRegions.includes(r.region)) score += PREFERRED_REGION_BONUS;
       if (expiring.size) score += (EXPIRING_WEIGHT * r.ingredients.filter((i) => expiring.has(i)).length) / expiring.size;
       const maxTime = filters.maxPrepTime;
       if (maxTime && maxTime < 60 && r.prepTimeMinutes + r.cookTimeMinutes > maxTime) score -= OVER_TIME_PENALTY;
@@ -133,26 +145,39 @@ export const recommend = (ingredients: Ingredient[], { filters = {}, limit = 6 }
     })
     .sort((a, b) => b.score - a.score);
 
-  // Greedy re-rank so the list isn't six variations of one cuisine
+  // Skip recipes already shown, unless that would leave too few to fill the list
+  const fresh = exclude?.size ? scored.filter((c) => !exclude.has(c.recipe.id)) : scored;
+  const candidates = fresh.length >= limit ? fresh : scored;
+
+  // Re-rank so the list isn't six variations of one cuisine or one main ingredient. With
+  // explore > 0 each slot is sampled (softmax over adjusted scores) instead of taken greedily,
+  // so repeated "New ideas" taps surface different good matches.
+  const heroOf = (r: Recipe) => r.matchedIngredients[0] || r.title;
   const picked: Recommendation[] = [];
-  const pool = scored.slice(0, limit * 4);
+  const pool = candidates.slice(0, Math.max(limit * (explore > 0 ? 8 : 4), limit));
   while (picked.length < limit && pool.length) {
-    let bestIdx = 0;
-    let bestScore = -Infinity;
-    pool.forEach((c, i) => {
-      const adjusted = c.score - SAME_CUISINE_PENALTY * picked.filter((p) => p.recipe.cuisine === c.recipe.cuisine).length;
-      if (adjusted > bestScore) {
-        bestScore = adjusted;
-        bestIdx = i;
-      }
-    });
-    picked.push(pool.splice(bestIdx, 1)[0]);
+    const adjusted = pool.map(
+      (c) =>
+        c.score -
+        SAME_CUISINE_PENALTY * picked.filter((p) => p.recipe.cuisine === c.recipe.cuisine).length -
+        SAME_HERO_PENALTY * picked.filter((p) => heroOf(p.recipe) === heroOf(c.recipe)).length
+    );
+    let idx = adjusted.indexOf(Math.max(...adjusted));
+    if (explore > 0) {
+      const t = EXPLORE_TEMPERATURE * explore;
+      const max = adjusted[idx];
+      const weights = adjusted.map((a) => Math.exp((a - max) / t));
+      let r = Math.random() * weights.reduce((x, y) => x + y, 0);
+      idx = weights.findIndex((w) => (r -= w) <= 0);
+      if (idx < 0) idx = weights.length - 1;
+    }
+    picked.push(pool.splice(idx, 1)[0]);
   }
 
   // Pantries the corpus covers poorly still get recipes built from exactly what is there
   const best = Math.max(0, ...picked.map((p) => coverage.get(p.recipe.id) || 0));
   const weak = best < WEAK_MATCH;
-  const composed = composeRecipes(pantry, { dietary, cuisine: filters.cuisine, limit: weak ? 2 : 1 }).map((recipe) => ({
+  const composed = composeRecipes(pantry, { dietary, cuisine: filters.cuisine, limit: weak ? 2 : 1, variant: round }).map((recipe) => ({
     recipe,
     score: weak ? Infinity : -Infinity,
   }));

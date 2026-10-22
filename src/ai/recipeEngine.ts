@@ -9,6 +9,7 @@
 import { FilterOptions, Ingredient, Recipe } from '../types';
 import { activeProvider, getAiSettings, hasServer } from './settings';
 import { directAnalyzeFridge, directGenerateRecipes } from './directLlm';
+import { getAccount } from '../auth/account';
 
 export type RecipeSource = 'ai' | 'local-model';
 
@@ -69,9 +70,28 @@ const fallbackMessage = (res: Response) => {
   }
 };
 
-export const localRecipes = async (ingredients: Ingredient[], filters?: Partial<FilterOptions>, limit = 6) => {
+// What has already been suggested for the current pantry + filters, so each "New ideas" tap
+// brings different recipes instead of the same top picks
+const history = { key: '', round: 0, ids: new Set<string>(), titles: [] as string[] };
+const historyFor = (ingredients: Ingredient[], filters?: Partial<FilterOptions>) => {
+  const key = JSON.stringify([ingredients.map((i) => i.name.toLowerCase()).sort(), filters?.dietary, filters?.cuisine, filters?.difficulty, filters?.maxPrepTime]);
+  if (key !== history.key) Object.assign(history, { key, round: 0, ids: new Set<string>(), titles: [] });
+  return history;
+};
+const remember = (recipes: Recipe[]) => {
+  recipes.forEach((r) => history.ids.add(r.id));
+  history.titles = [...history.titles, ...recipes.map((r) => r.title)].slice(-18);
+  history.round++;
+};
+
+export const localRecipes = async (ingredients: Ingredient[], filters?: Partial<FilterOptions>, limit = 8) => {
   const { recommend } = await import('../ml/recommender');
-  return recommend(ingredients, { filters, limit }).map((r) => r.recipe);
+  const h = historyFor(ingredients, filters);
+  // First suggestion for a pantry is the best fit; later rounds explore other good matches
+  const preferredRegions = getAccount()?.regions || [];
+  const recipes = recommend(ingredients, { filters, limit, exclude: h.ids, explore: h.round ? 1 : 0, round: h.round, preferredRegions }).map((r) => r.recipe);
+  remember(recipes);
+  return recipes;
 };
 
 export const generateRecipes = async (ingredients: Ingredient[], filters: FilterOptions): Promise<RecipeResult> => {
@@ -86,6 +106,8 @@ export const generateRecipes = async (ingredients: Ingredient[], filters: Filter
     maxPrepTime: filters.maxPrepTime,
     difficulty: filters.difficulty === 'All' ? undefined : filters.difficulty,
     cuisine: filters.cuisine === 'All' ? undefined : filters.cuisine,
+    // Recipes already suggested for this pantry, so the AI comes back with new ones
+    avoidTitles: historyFor(ingredients, filters).titles,
   };
   const provider = activeProvider(settings);
   let notice: string | undefined;
@@ -100,7 +122,10 @@ export const generateRecipes = async (ingredients: Ingredient[], filters: Filter
       if (res.ok && !res.headers.get('X-AI-Fallback')) {
         const data = await res.json();
         const recipes = usable((data?.recipes || []).map((r: any, i: number) => formatAiRecipe(r, i, 'gen', names)));
-        if (recipes.length) return { recipes, source: 'ai' };
+        if (recipes.length) {
+          remember(recipes);
+          return { recipes, source: 'ai' };
+        }
       } else if (res.headers.get('X-AI-Fallback')) {
         // Keep only the part about the person's own key; the rest describes the server's fallback
         const message = fallbackMessage(res);
@@ -115,7 +140,10 @@ export const generateRecipes = async (ingredients: Ingredient[], filters: Filter
     try {
       const data = await directGenerateRecipes(body);
       const recipes = usable((data?.recipes || []).map((r: any, i: number) => formatAiRecipe(r, i, 'direct', names)));
-      if (recipes.length) return { recipes, source: 'ai' };
+      if (recipes.length) {
+        remember(recipes);
+        return { recipes, source: 'ai' };
+      }
     } catch (err: any) {
       notice = `${provider.def.label} didn't answer (${String(err?.message || err).slice(0, 120)}).`;
     }
