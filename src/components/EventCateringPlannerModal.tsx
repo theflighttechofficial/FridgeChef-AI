@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PartyPopper, Users, DollarSign, Clock, ShoppingBag, CheckCircle2, X, Play, Calendar, ChefHat, Zap } from 'lucide-react';
+import { EmptyResult } from './ui/EmptyResult';
 import { EventCateringPlanResult, Ingredient } from '../types';
 import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
@@ -25,75 +26,7 @@ export const EventCateringPlannerModal: React.FC<EventCateringPlannerModalProps>
   const [prepTimeHours, setPrepTimeHours] = useState(2);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [cateringPlan, setCateringPlan] = useState<EventCateringPlanResult>({
-    menuCourses: [
-      {
-        courseName: 'Appetizer',
-        title: 'Charred Spiced Paneer & Vegetable Skewers',
-        description: 'Smoky tandoori marinated bites finished with chaat masala',
-        scaledPortions: '16 skewers (2 per guest)',
-        keyIngredients: ['Paneer', 'Bell Peppers', 'Onions', 'Yogurt', 'Chaat Masala'],
-      },
-      {
-        courseName: 'Main Dish (Non-Veg)',
-        title: 'Slow-Simmered Murgh Makhani (Butter Chicken)',
-        description: 'Velvety fenugreek and tomato gravy with charred chicken thighs',
-        scaledPortions: '5 generous portions (1.2 kg total)',
-        keyIngredients: ['Chicken Thighs', 'Tomatoes', 'Butter', 'Cream', 'Kasuri Methi'],
-      },
-      {
-        courseName: 'Main Dish (Veg)',
-        title: 'Smoky Dal Bukhara & Charred Palak Paneer',
-        description: 'Slow-cooked black lentils simmered with ginger & cream',
-        scaledPortions: '3 generous portions (800g total)',
-        keyIngredients: ['Black Urad Dal', 'Spinach', 'Paneer', 'Garlic', 'Ghee'],
-      },
-      {
-        courseName: 'Accompaniment',
-        title: 'Fragrant Jeera Basmati Rice & Fluffy Garlic Naan',
-        description: 'Toasted cumin basmati rice and warm herb flatbreads',
-        scaledPortions: '8 portions (800g raw rice yield)',
-        keyIngredients: ['Basmati Rice', 'Cumin Seeds', 'Flour', 'Garlic Butter'],
-      },
-    ],
-    totalEstimatedCost: '₹2,140',
-    procurementShoppingList: [
-      { item: 'Chicken Thighs (1 kg)', qty: '1 kg', estCost: '₹320', category: 'Poultry' },
-      { item: 'Paneer (500g)', qty: '500g', estCost: '₹210', category: 'Dairy' },
-      { item: 'Cooking Cream & Butter', qty: '1 unit each', estCost: '₹180', category: 'Dairy' },
-      { item: 'Basmati Rice (1 kg)', qty: '1 kg', estCost: '₹120', category: 'Pantry' },
-      { item: 'Tomatoes & Onions', qty: '2 kg', estCost: '₹90', category: 'Produce' },
-    ],
-    prepTimeline: [
-      {
-        timeMarker: 'T-minus 120m',
-        action: 'Marinate chicken & paneer skewers. Rinse and soak basmati rice and black lentils.',
-        chefTip: 'Early salting draws moisture for a deeper crust.',
-      },
-      {
-        timeMarker: 'T-minus 75m',
-        action: 'Begin tomato-fenugreek butter gravy. Simmer over low heat to reduce acidity.',
-        chefTip: 'Cover to avoid stove splatters.',
-      },
-      {
-        timeMarker: 'T-minus 35m',
-        action: 'Bake/sear appetizers and simmer jeera rice on low steam.',
-        chefTip: 'Rest cooked proteins 5 minutes before serving.',
-      },
-      {
-        timeMarker: 'T-minus 10m',
-        action: 'Warm serving platters, chop fresh cilantro, reheat gravies to steaming.',
-        chefTip: 'Never serve hot curries onto cold ceramic plates.',
-      },
-    ],
-    servingSchedule: [
-      { time: '00:00', action: 'Serve welcome drinks and warm paneer skewers.' },
-      { time: '+00:30', action: 'Buffet / family-style main course spread with steaming jeera rice.' },
-      { time: '+01:15', action: 'Digestive cardamom tea or sweet fruit compote.' },
-    ],
-    cateringProTip:
-      'Cook both curries in parallel using identical aromatic bases (onion-ginger-garlic paste) to cut prep time by 40%.',
-  });
+  const [cateringPlan, setCateringPlan] = useState<EventCateringPlanResult | null>(null);
 
   if (!isOpen) return null;
 
@@ -238,6 +171,8 @@ export const EventCateringPlannerModal: React.FC<EventCateringPlannerModalProps>
           </div>
         </div>
 
+        {cateringPlan ? (
+        <>
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {/* Menu Spread Courses */}
@@ -325,6 +260,10 @@ export const EventCateringPlannerModal: React.FC<EventCateringPlannerModalProps>
             </div>
           </div>
         </div>
+        </>
+        ) : (
+          <EmptyResult title="Plan your event" hint="Set guests, budget and cuisine above, then generate a menu, prep timeline and shopping list." />
+        )}
       </motion.div>
     </div>
   );

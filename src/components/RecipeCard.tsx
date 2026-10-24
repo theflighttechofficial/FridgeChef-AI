@@ -133,7 +133,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   const flavorDna = getFlavorScores(recipe);
 
   return (
-    <div className="bg-slate-900 rounded-[1.75rem] overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/40 flex flex-col justify-between group">
+    <div className="cv-auto bg-slate-900 rounded-[1.75rem] overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/40 flex flex-col justify-between group">
       <div>
         {/* Card Header Media View */}
         <div className="relative h-48 w-full bg-slate-950 overflow-hidden">

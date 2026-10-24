@@ -14,6 +14,8 @@ import { AppShell } from './components/shell/AppShell';
 import { buildTools } from './components/shell/tools';
 import { analyzeFridgePhoto, generateRecipes, localRecipes, RecipeSource } from './ai/recipeEngine';
 import { recordTaste } from './ml/tasteModel';
+import { recordCook, userKey } from './state/userData';
+import { blankHousehold } from './state/household';
 import { AuthGate } from './components/onboarding/AuthFlow';
 import { getAccount, useAccount } from './auth/account';
 import { cuisineMatches } from './ml/data/schema';
@@ -21,18 +23,10 @@ import { FridgeScanner } from './components/FridgeScanner';
 import { SidebarFilter } from './components/SidebarFilter';
 import { RecipeCard } from './components/RecipeCard';
 
-import { BioEnvironmentBar } from './components/BioEnvironmentBar';
-import { KitchenSoundscapePlayer } from './components/KitchenSoundscapePlayer';
 
-import { EcologyArbitrageWidget } from './components/EcologyArbitrageWidget';
 
 import { PantryEmergencyMode } from './components/PantryEmergencyMode';
-import { EnergyApplianceRouter } from './components/EnergyApplianceRouter';
-import { TupperwareTrackerWidget } from './components/TupperwareTrackerWidget';
-import { FamilyPantrySyncWidget } from './components/FamilyPantrySyncWidget';
 
-import { ExpirationSimulatorWidget } from './components/ExpirationSimulatorWidget';
-import { HouseholdChoreLeaderboardWidget } from './components/HouseholdChoreLeaderboardWidget';
 import { PantryHealthNotificationBanner } from './components/PantryHealthNotificationBanner';
 
 import { HouseholdMemoryBanner } from './components/HouseholdMemoryBanner';
@@ -57,8 +51,6 @@ import {
 import {
   INITIAL_PRESET_FRIDGES,
   INITIAL_RECIPES,
-  INITIAL_SHOPPING_LIST,
-  DEFAULT_HOUSEHOLD_MEMORY,
 } from './data/sampleData';
 import { usePersistentState } from './hooks/usePersistentState';
 
@@ -309,17 +301,18 @@ export default function App() {
   };
 
   // Household Memory Engine State
-  const [memoryProfile, setMemoryProfile] = useState<HouseholdMemoryProfile>(DEFAULT_HOUSEHOLD_MEMORY);
+  const [memoryProfile, setMemoryProfile] = usePersistentState<HouseholdMemoryProfile>(userKey('household'), blankHousehold(getAccount()));
 
   // Core Data States
   const [presetFridges] = useState<PresetFridge[]>(INITIAL_PRESET_FRIDGES);
-  const [currentIngredients, setCurrentIngredients] = useState<Ingredient[]>(
-    INITIAL_PRESET_FRIDGES[0]?.ingredients || []
-  );
-  const [recipes, setRecipes] = useState<Recipe[]>(INITIAL_RECIPES);
-  const [recipeSource, setRecipeSource] = useState<RecipeSource | 'sample'>('sample');
-  const [savedRecipes, setSavedRecipes] = usePersistentState<Recipe[]>('fridgechef.savedRecipes', []);
-  const [shoppingList, setShoppingList] = usePersistentState<ShoppingItem[]>('fridgechef.shoppingList', INITIAL_SHOPPING_LIST);
+  // Everything below is the person's own data: empty for a new account, kept on the device
+  // (and wiped by "Delete account"). Only the sample dishes ship with the app.
+  const [currentIngredients, setCurrentIngredients] = usePersistentState<Ingredient[]>(userKey('pantry'), []);
+  const [fridgePhoto, setFridgePhoto] = usePersistentState<string | null>(userKey('fridgePhoto'), null);
+  const [recipes, setRecipes] = usePersistentState<Recipe[]>(userKey('recipes'), INITIAL_RECIPES);
+  const [recipeSource, setRecipeSource] = usePersistentState<RecipeSource | 'sample'>(userKey('recipeSource'), 'sample');
+  const [savedRecipes, setSavedRecipes] = usePersistentState<Recipe[]>(userKey('savedRecipes'), []);
+  const [shoppingList, setShoppingList] = usePersistentState<ShoppingItem[]>(userKey('shoppingList'), []);
 
   // Cooking Modal State
   const [cookingRecipe, setCookingRecipe] = useState<Recipe | null>(null);
@@ -388,8 +381,11 @@ export default function App() {
   const { account } = useAccount();
   const accountCreatedAt = account?.createdAt;
   useEffect(() => {
-    if (accountCreatedAt) setFilters((prev) => ({ ...prev, dietary: getAccount()?.dietary || prev.dietary }));
-  }, [accountCreatedAt]);
+    if (!accountCreatedAt) return;
+    setFilters((prev) => ({ ...prev, dietary: getAccount()?.dietary || prev.dietary }));
+    // The household was set up before anyone signed in; give it the new person's name and tastes
+    setMemoryProfile((prev) => (prev.members.length === 1 && prev.members[0].id === 'self' && prev.members[0].name === 'You' ? blankHousehold(getAccount()) : prev));
+  }, [accountCreatedAt, setMemoryProfile]);
   const resetFilters = useCallback(() => setFilters(DEFAULT_FILTERS), []);
 
   // Handle Preset Fridge Selection
@@ -508,6 +504,7 @@ export default function App() {
   // Starting to cook a recipe is a strong "I like this" signal for the on-device taste model
   const handleStartCooking = (recipe: Recipe) => {
     recordTaste(recipe, 1);
+    recordCook(recipe);
     setCookingRecipe(recipe);
   };
 
@@ -668,10 +665,13 @@ export default function App() {
         />
 
         {/* 🧠 Household Memory Engine Proactive Insight Banner */}
-        <HouseholdMemoryBanner
-          memoryProfile={memoryProfile}
-          onOpenMemoryModal={() => setIsMemoryModalOpen(true)}
-        />
+        {memoryProfile.learnedInsights.length > 0 && (
+          <HouseholdMemoryBanner
+            memoryProfile={memoryProfile}
+            onOpenMemoryModal={() => setIsMemoryModalOpen(true)}
+            insightText={memoryProfile.learnedInsights[memoryProfile.learnedInsights.length - 1]}
+          />
+        )}
         </>)}
 
         <AnimatePresence mode="wait">
@@ -679,15 +679,17 @@ export default function App() {
           {activeTab === 'scan' && (
             <motion.div
               key="tab-scan"
-              initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
               className="space-y-6"
             >
               {/* Primary Fridge Scanner: Snap Your Open Fridge. Let AI cook the perfect meal. */}
               <FridgeScanner
                 presetFridges={presetFridges}
+                photo={fridgePhoto}
+                onPhotoChange={setFridgePhoto}
                 currentIngredients={currentIngredients}
                 onIngredientsChange={setCurrentIngredients}
                 onAnalyzeImage={handleAnalyzeImage}
@@ -696,12 +698,14 @@ export default function App() {
                 isAnalyzing={isAnalyzing || isGeneratingRecipes}
               />
 
+              {/* Widgets that read the pantry appear once there is something in it */}
+              {currentIngredients.length > 0 && (<>
               {/* 🤖 Autonomous Meal Decision Engine: What Should Be Cooked Right Now? */}
               <Reveal>
                 <AutonomousMealDecisionWidget
                   ingredients={currentIngredients}
                   memoryProfile={memoryProfile}
-                  onStartCookingRecipe={(rec) => setCookingRecipe(rec)}
+                  onStartCookingRecipe={(rec) => handleStartCooking(rec)}
                 />
               </Reveal>
 
@@ -715,41 +719,11 @@ export default function App() {
                   }}
                 />
               </Reveal>
+              </>)}
               <Reveal>
-                <PantryEmergencyMode onStartCooking={setCookingRecipe} />
+                <PantryEmergencyMode onStartCooking={handleStartCooking} />
               </Reveal>
 
-              {/* Bio-Sync, Soundscape & Energy Appliance Bar Pushed Below Emergency Filter */}
-              <Reveal>
-                <BioEnvironmentBar />
-              </Reveal>
-              <Reveal>
-                <KitchenSoundscapePlayer />
-              </Reveal>
-              <Reveal>
-                <EnergyApplianceRouter />
-              </Reveal>
-
-              <Reveal>
-                <TupperwareTrackerWidget />
-              </Reveal>
-              <Reveal>
-                <FamilyPantrySyncWidget />
-              </Reveal>
-              <Reveal>
-                <ExpirationSimulatorWidget />
-              </Reveal>
-              <Reveal>
-                <HouseholdChoreLeaderboardWidget />
-              </Reveal>
-              <Reveal>
-                <Suspense fallback={<SectionFallback />}>
-                  <AcousticSensoryLab />
-                </Suspense>
-              </Reveal>
-              <Reveal>
-                <EcologyArbitrageWidget />
-              </Reveal>
             </motion.div>
           )}
 
@@ -757,10 +731,10 @@ export default function App() {
         {(activeTab === 'recipes' || activeTab === 'saved') && (
           <motion.div
             key="tab-recipes"
-            initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
             className="space-y-6"
           >
             {/* Header: what this list is, where it came from, regenerate */}
@@ -907,17 +881,13 @@ export default function App() {
                 currentIngredients={currentIngredients}
                 recipes={recipes}
                 onAddMissingToShoppingList={handleAddCustomIngredientNamesToShoppingList}
+                onStartCooking={handleStartCooking}
               />
               <GourmetSommelierWidget />
             </Suspense>
             </Reveal>
 
             {/* Global Status Bars below recipe discovery */}
-            <Reveal className="pt-6 space-y-6">
-              <BioEnvironmentBar />
-              <KitchenSoundscapePlayer />
-              <EnergyApplianceRouter />
-            </Reveal>
           </motion.div>
         )}
 
@@ -925,10 +895,10 @@ export default function App() {
         {activeTab === 'molecular' && (
           <motion.div
             key="tab-molecular"
-            initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
             className="space-y-6"
           >
             <Suspense fallback={<SectionFallback />}>
@@ -942,10 +912,10 @@ export default function App() {
         {activeTab === 'shopping' && (
           <motion.div
             key="tab-shopping"
-            initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
             className="space-y-6"
           >
             <Suspense fallback={<SectionFallback />}>
@@ -958,9 +928,6 @@ export default function App() {
                 onClearAll={() => setShoppingList([])}
               />
             </Suspense>
-            <Reveal>
-              <EcologyArbitrageWidget />
-            </Reveal>
           </motion.div>
         )}
         {/* Settings: AI engine, own API key, on-device model, colours */}
@@ -1015,7 +982,6 @@ export default function App() {
         <TastePreferenceLearningModal
           isOpen
           onClose={() => setIsTasteModalOpen(false)}
-          recentMealTitle={recipes[0]?.title || 'Garlic Chicken & Spinach Skillet'}
         />
       )}
 
@@ -1043,7 +1009,7 @@ export default function App() {
           isOpen
           onClose={() => setIsAutonomousAgentOpen(false)}
           availableIngredients={currentIngredients}
-          onStartCookingRecipe={(rec) => setCookingRecipe(rec)}
+          onStartCookingRecipe={(rec) => handleStartCooking(rec)}
           onSyncShoppingList={(items) => handleAddCustomIngredientNamesToShoppingList(items)}
         />
       )}
@@ -1093,7 +1059,7 @@ export default function App() {
           isOpen
           onClose={() => setIsDinnerForEveryoneOpen(false)}
           availableIngredients={currentIngredients}
-          onStartCookingRecipe={(rec) => setCookingRecipe(rec)}
+          onStartCookingRecipe={(rec) => handleStartCooking(rec)}
         />
       )}
 
@@ -1103,7 +1069,7 @@ export default function App() {
           isOpen
           onClose={() => setIsKitchenVoiceOpen(false)}
           availableIngredients={currentIngredients}
-          onStartCookingRecipe={(rec) => setCookingRecipe(rec)}
+          onStartCookingRecipe={(rec) => handleStartCooking(rec)}
         />
       )}
 
@@ -1146,7 +1112,7 @@ export default function App() {
           isOpen={!!evolvingRecipe}
           onClose={() => setEvolvingRecipe(null)}
           baseRecipe={evolvingRecipe}
-          onStartCookingEvolution={(morphed) => setCookingRecipe(morphed)}
+          onStartCookingEvolution={(morphed) => handleStartCooking(morphed)}
         />
       )}
 
@@ -1165,7 +1131,7 @@ export default function App() {
           isOpen
           onClose={() => setIsChefPersonaOpen(false)}
           availableIngredients={currentIngredients}
-          onStartCookingRecipe={(rec) => setCookingRecipe(rec)}
+          onStartCookingRecipe={(rec) => handleStartCooking(rec)}
         />
       )}
 
@@ -1175,7 +1141,7 @@ export default function App() {
           isOpen
           onClose={() => setIsPantryChallengeOpen(false)}
           availableIngredients={currentIngredients}
-          onStartCookingRecipe={(rec) => setCookingRecipe(rec)}
+          onStartCookingRecipe={(rec) => handleStartCooking(rec)}
         />
       )}
 
@@ -1185,7 +1151,7 @@ export default function App() {
           isOpen
           onClose={() => setIsBudgetModeOpen(false)}
           availableIngredients={currentIngredients}
-          onStartCookingRecipe={(rec) => setCookingRecipe(rec)}
+          onStartCookingRecipe={(rec) => handleStartCooking(rec)}
           onAddMissingToShoppingList={(items) => handleAddCustomIngredientNamesToShoppingList(items)}
         />
       )}
@@ -1203,7 +1169,7 @@ export default function App() {
       {isIronChefOpen && (
         <IronChefGameModal
           currentIngredients={currentIngredients}
-          onStartCooking={setCookingRecipe}
+          onStartCooking={handleStartCooking}
           onClose={() => setIsIronChefOpen(false)}
         />
       )}
@@ -1220,7 +1186,7 @@ export default function App() {
       {isNeuroOpen && (
         <NeuroGastronomyModal
           currentIngredients={currentIngredients}
-          onStartCooking={setCookingRecipe}
+          onStartCooking={handleStartCooking}
           onClose={() => setIsNeuroOpen(false)}
         />
       )}

@@ -12,7 +12,7 @@ interface HouseholdMemoryBannerProps {
 export const HouseholdMemoryBanner: React.FC<HouseholdMemoryBannerProps> = ({
   memoryProfile,
   onOpenMemoryModal,
-  insightText = "You usually prefer spicy South Indian breakfasts and you haven't used the spinach you bought 4 days ago.",
+  insightText,
 }) => {
   return (
     <motion.div
@@ -35,11 +35,11 @@ export const HouseholdMemoryBanner: React.FC<HouseholdMemoryBannerProps> = ({
                 Personal Culinary Model
               </span>
               <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-mono font-bold">
-                {memoryProfile.members.length} PROFILES SYNCED
+                {memoryProfile.members.length} {memoryProfile.members.length === 1 ? 'PROFILE' : 'PROFILES'}
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-200 font-medium mt-0.5">
-              "{insightText}"
+              {insightText}
             </p>
           </div>
         </div>

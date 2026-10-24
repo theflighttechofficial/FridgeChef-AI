@@ -23,17 +23,29 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
   const [activeTab, setActiveTab] = useState<'members' | 'preferences' | 'insights'>('members');
   const [selectedMemberId, setSelectedMemberId] = useState<string>(profile.members[0]?.id || '');
   const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
-  const [liveInsight, setLiveInsight] = useState<string>(
-    "You usually prefer spicy South Indian breakfasts and you haven't used the spinach you bought 4 days ago."
-  );
+  const [liveInsight, setLiveInsight] = useState<string>(profile.learnedInsights[profile.learnedInsights.length - 1] || '');
+  const [newMember, setNewMember] = useState('');
+
+  const save = (nextProfile: HouseholdMemoryProfile) => {
+    setProfile(nextProfile);
+    onUpdateProfile(nextProfile);
+  };
+
+  const handleAddMember = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newMember.trim();
+    if (!name) return;
+    const member: HouseholdMember = { id: `m-${Date.now()}`, name, role: 'Partner', dislikedIngredients: [], allergens: [], spiceTolerance: 3, favoriteCuisines: [] };
+    save({ ...profile, members: [...profile.members, member] });
+    setSelectedMemberId(member.id);
+    setNewMember('');
+  };
 
   const activeMember = profile.members.find((m) => m.id === selectedMemberId) || profile.members[0];
 
   const handleUpdateMember = (id: string, updates: Partial<HouseholdMember>) => {
     const updatedMembers = profile.members.map((m) => (m.id === id ? { ...m, ...updates } : m));
-    const nextProfile = { ...profile, members: updatedMembers };
-    setProfile(nextProfile);
-    onUpdateProfile(nextProfile);
+    save({ ...profile, members: updatedMembers });
   };
 
   const handleGenerateFreshInsight = async () => {
@@ -52,6 +64,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
       const data = await res.json();
       if (data.conversationalGreeting) {
         setLiveInsight(data.conversationalGreeting);
+        save({ ...profile, learnedInsights: [...profile.learnedInsights, data.conversationalGreeting].slice(-12) });
       }
     } catch (e) {
       showToast(AI_OFFLINE_MESSAGE);
@@ -102,7 +115,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
           <div className="flex items-center gap-2.5">
             <Zap className="w-4 h-4 text-purple-400 shrink-0" />
             <p className="text-xs sm:text-sm font-semibold text-purple-200 italic">
-              "{liveInsight}"
+              {liveInsight ? `"${liveInsight}"` : 'Add your household below, then tap Get insight for a tip based on your pantry.'}
             </p>
           </div>
           <button
@@ -111,7 +124,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
             className="shrink-0 px-3 py-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5"
           >
             <Zap className={`w-3.5 h-3.5 ${isGeneratingInsight ? 'animate-spin' : ''}`} />
-            <span>{isGeneratingInsight ? 'Synthesizing...' : 'Re-Sync Memory'}</span>
+            <span>{isGeneratingInsight ? 'Synthesizing...' : liveInsight ? 'Refresh insight' : 'Get insight'}</span>
           </button>
         </div>
 
@@ -160,7 +173,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Members</span>
-                  <span className="text-[10px] text-purple-400 font-mono">3 PROFILES</span>
+                  <span className="text-[10px] text-purple-400 font-mono">{profile.members.length} {profile.members.length === 1 ? 'PROFILE' : 'PROFILES'}</span>
                 </div>
                 {profile.members.map((member) => (
                   <button
@@ -183,6 +196,15 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                     )}
                   </button>
                 ))}
+                <form onSubmit={handleAddMember} className="flex gap-2">
+                  <input
+                    value={newMember}
+                    onChange={(e) => setNewMember(e.target.value)}
+                    placeholder="Add a member"
+                    className="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-purple-500"
+                  />
+                  <button type="submit" className="px-3 py-2 rounded-xl bg-purple-500/20 text-purple-300 text-xs font-bold">Add</button>
+                </form>
               </div>
 
               {/* Selected Member Edit Form */}
@@ -337,6 +359,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                   <span>Learned Behavioral Memory Graph</span>
                 </span>
                 <div className="space-y-2">
+                  {!profile.learnedInsights.length && <p className="text-xs text-slate-400">No insights yet. Tap Get insight above once your pantry has a few items.</p>}
                   {profile.learnedInsights.map((insight, idx) => (
                     <div key={idx} className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-200 flex items-start gap-2">
                       <span className="text-purple-400 font-bold">#{idx + 1}</span>
@@ -352,6 +375,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                   Frequently Purchased Household Staples
                 </span>
                 <div className="flex flex-wrap gap-2">
+                  {!profile.frequentlyPurchased.length && <span className="text-xs text-slate-500">Scan receipts to build this list.</span>}
                   {profile.frequentlyPurchased.map((item, i) => (
                     <span key={i} className="px-2.5 py-1 bg-slate-900 text-slate-300 rounded-lg text-xs border border-slate-800">
                       {item}
@@ -369,7 +393,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
             onClick={onClose}
             className="px-5 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-purple-500/25 hover:opacity-90 transition-all"
           >
-            Save & Sync Personal Model
+            Done
           </button>
         </div>
       </motion.div>

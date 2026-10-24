@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Camera, Upload, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCw, Layers, Zap, Sparkles, Images, X } from 'lucide-react';
@@ -7,9 +7,7 @@ import { compressImageFile, drawToJpeg } from '../utils/imageUtils';
 import { showToast } from '../utils/toast';
 
 // recharts is heavy; keep it out of the initial bundle
-const ConsumptionWasteTrendChart = lazy(() =>
-  import('./ConsumptionWasteTrendChart').then((m) => ({ default: m.ConsumptionWasteTrendChart }))
-);
+
 
 interface FridgeScannerProps {
   presetFridges: PresetFridge[];
@@ -19,6 +17,9 @@ interface FridgeScannerProps {
   onSelectPreset: (preset: PresetFridge) => void;
   onGenerateRecipes: () => void;
   isAnalyzing: boolean;
+  // The person's fridge photo; kept until they upload or take a new one
+  photo: string | null;
+  onPhotoChange: (photo: string) => void;
 }
 
 export const FridgeScanner: React.FC<FridgeScannerProps> = ({
@@ -29,8 +30,9 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
   onSelectPreset,
   onGenerateRecipes,
   isAnalyzing,
+  photo: selectedImage,
+  onPhotoChange: setSelectedImage,
 }) => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(presetFridges[0]?.imageUrl || null);
   const [isWebcamActive, setIsWebcamActive] = useState(false);
   const [newIngredientName, setNewIngredientName] = useState('');
   const [newIngredientCategory, setNewIngredientCategory] = useState<Ingredient['category']>('Produce');
@@ -332,7 +334,6 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
                 <button
                   key={preset.id}
                   onClick={() => {
-                    setSelectedImage(preset.imageUrl);
                     onSelectPreset(preset);
                   }}
                   className="group flex items-start gap-3 p-3 bg-slate-950 border border-slate-800 hover:border-emerald-500/50 rounded-xl text-left transition-all hover:scale-[1.01]"
@@ -502,12 +503,6 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
         </div>
       </div>
 
-      {/* 30-Day Recharts Consumption & Food Waste Hotspot Trend Chart */}
-      <div className="pt-6 border-t border-slate-800/80">
-        <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-slate-900/60" />}>
-          <ConsumptionWasteTrendChart />
-        </Suspense>
-      </div>
 
       {/* Photo inputs: gallery picker, and camera capture (opens the camera directly on phones) */}
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />

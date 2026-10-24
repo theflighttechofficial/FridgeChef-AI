@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DollarSign, TrendingDown, PieChart, AlertTriangle, ShieldCheck, CheckCircle2, X, Receipt, ArrowRight, TrendingUp, Zap } from 'lucide-react';
-import { PantryFinancialAudit } from '../types';
+import { receiptLog } from '../state/userData';
+import { EmptyResult } from './ui/EmptyResult';
 
 interface PantryFinancialIntelligenceModalProps {
   isOpen: boolean;
@@ -12,52 +13,27 @@ export const PantryFinancialIntelligenceModal: React.FC<PantryFinancialIntellige
   isOpen,
   onClose,
 }) => {
-  const [financialAudit] = useState<PantryFinancialAudit>({
-    monthlyTotalSpendRupees: 7640,
-    categorySpending: {
-      protein: 2840,
-      produce: 1920,
-      dairy: 1140,
-      snacks: 980,
-      grains: 760,
-    },
-    spoilageLossMonthlyRupees: 620,
-    wasteReductionTargetRupees: 180,
-    repeatedlyUnusedItems: [
-      {
-        name: 'Fresh Cilantro / Coriander',
-        category: 'Produce',
-        timesBought: 4,
-        timesWasted: 3,
-        lossEstimateRupees: 120,
-        preventionTip: 'Blend leftover stems into a quick green chutney freezer puck with green chiles & salt.',
-      },
-      {
-        name: 'Cooking Cream (200ml)',
-        category: 'Dairy',
-        timesBought: 3,
-        timesWasted: 2,
-        lossEstimateRupees: 160,
-        preventionTip: 'Freeze in silicone ice cube trays for instant 1-cube pan sauce enrichment.',
-      },
-      {
-        name: 'Fresh Mint Leaves',
-        category: 'Produce',
-        timesBought: 3,
-        timesWasted: 2,
-        lossEstimateRupees: 80,
-        preventionTip: 'Dry in microwave for 90 seconds between paper towels to make homemade dried spearmint.',
-      },
-      {
-        name: 'Plain Greek Yogurt',
-        category: 'Dairy',
-        timesBought: 4,
-        timesWasted: 1,
-        lossEstimateRupees: 95,
-        preventionTip: 'Strain through cheesecloth for labneh spread or whisk into pancake batter.',
-      },
-    ],
-  });
+  const receipts = receiptLog.use();
+  const audit = useMemo(() => {
+    const since = Date.now() - 30 * 86400000;
+    const recent = receipts.filter((r) => Date.parse(r.at) >= since);
+    const items = recent.flatMap((r) => r.items);
+    const total = Math.round(recent.reduce((t, r) => t + (r.total || r.items.reduce((s, i) => s + i.price, 0)), 0));
+    const byCategory = new Map<string, number>();
+    items.forEach((i) => byCategory.set(i.category, (byCategory.get(i.category) || 0) + i.price));
+    const categorySum = [...byCategory.values()].reduce((a, b) => a + b, 0) || 1;
+    const categories = [...byCategory.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, amount]) => ({ label, amount: Math.round(amount), pct: Math.round((amount / categorySum) * 100) }));
+    const counts = new Map<string, { name: string; times: number; spent: number }>();
+    items.forEach((i) => {
+      const k = i.name.toLowerCase();
+      const c = counts.get(k) || { name: i.name, times: 0, spent: 0 };
+      counts.set(k, { ...c, times: c.times + 1, spent: c.spent + i.price });
+    });
+    const frequent = [...counts.values()].sort((a, b) => b.times - a.times || b.spent - a.spent).slice(0, 6);
+    return { recent, total, categories, frequent, stores: new Set(recent.map((r) => r.store)).size };
+  }, [receipts]);
 
   if (!isOpen) return null;
 
@@ -79,11 +55,11 @@ export const PantryFinancialIntelligenceModal: React.FC<PantryFinancialIntellige
               <div className="flex items-center gap-2">
                 <h3 className="text-base sm:text-lg font-extrabold text-white">Pantry Financial Intelligence</h3>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-500/30">
-                  EXPENDITURE & SPOILAGE AUDIT
+                  LAST 30 DAYS
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                “Where is my grocery money going?” Identify monthly spending distributions & arrest recurring spoilage leaks.
+                Where your grocery money goes, from the receipts you scanned.
               </p>
             </div>
           </div>
@@ -92,44 +68,30 @@ export const PantryFinancialIntelligenceModal: React.FC<PantryFinancialIntellige
           </button>
         </div>
 
-        {/* Spoilage Loss Alert Ribbon */}
-        <div className="p-5 bg-gradient-to-r from-rose-950/50 via-slate-950 to-rose-950/50 border-b border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 animate-bounce" />
-            <div>
-              <strong className="text-rose-200 text-sm font-extrabold block">
-                ₹{financialAudit.spoilageLossMonthlyRupees} / month lost to expired groceries
-              </strong>
-              <p className="text-rose-300/90 leading-snug">
-                Produce & dairy items left uneaten account for 8.1% of your total grocery budget.
-              </p>
-            </div>
-          </div>
-
-          <span className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 font-mono font-bold text-xs border border-rose-500/30 shrink-0">
-            ACTIONABLE RECOVERY ACTIVE
-          </span>
-        </div>
-
-        {/* Content Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
-          {/* Category Spending Breakdown Bars */}
-          <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-white uppercase tracking-wider">
-                Monthly Grocery Spend Distribution (Total: ₹{financialAudit.monthlyTotalSpendRupees})
-              </span>
-              <span className="font-mono text-emerald-400">30-Day Rolling Audit</span>
-            </div>
-
-            <div className="space-y-3">
+        {!audit.recent.length ? (
+          <EmptyResult
+            title="No receipts yet"
+            hint="Scan a grocery receipt and add it to your fridge. Your spending over the last 30 days will show up here, kept only on this device."
+            icon={<Receipt className="w-6 h-6" />}
+          />
+        ) : (
+          <div className="p-6 overflow-y-auto space-y-6 flex-1">
+            <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Proteins & Poultry', amount: financialAudit.categorySpending.protein, pct: 37, color: 'bg-emerald-400' },
-                { label: 'Fresh Vegetables & Produce', amount: financialAudit.categorySpending.produce, pct: 25, color: 'bg-teal-400' },
-                { label: 'Dairy & Eggs', amount: financialAudit.categorySpending.dairy, pct: 15, color: 'bg-cyan-400' },
-                { label: 'Snacks & Condiments', amount: financialAudit.categorySpending.snacks, pct: 13, color: 'bg-amber-400' },
-                { label: 'Grains & Pulses', amount: financialAudit.categorySpending.grains, pct: 10, color: 'bg-purple-400' },
-              ].map((cat) => (
+                { label: 'Spent (30 days)', value: `₹${audit.total.toLocaleString('en-IN')}`, tone: 'text-emerald-400' },
+                { label: 'Receipts', value: audit.recent.length, tone: 'text-cyan-400' },
+                { label: 'Stores', value: audit.stores, tone: 'text-purple-400' },
+              ].map((c) => (
+                <div key={c.label} className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{c.label}</span>
+                  <strong className={`text-lg font-black font-mono mt-0.5 block ${c.tone}`}>{c.value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+              <span className="text-xs font-bold text-white uppercase tracking-wider block">Spending by category</span>
+              {audit.categories.map((cat) => (
                 <div key={cat.label} className="space-y-1">
                   <div className="flex justify-between text-xs">
                     <span className="text-slate-300 font-medium">{cat.label}</span>
@@ -138,44 +100,25 @@ export const PantryFinancialIntelligenceModal: React.FC<PantryFinancialIntellige
                     </span>
                   </div>
                   <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
-                    <div className={`h-full rounded-full ${cat.color}`} style={{ width: `${cat.pct}%` }} />
+                    <div className="h-full rounded-full bg-emerald-400" style={{ width: `${cat.pct}%` }} />
                   </div>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Repeatedly Unused & Spoiled Items */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-white uppercase tracking-wider">
-                Repeat Spoilage Offender Culprits ({financialAudit.repeatedlyUnusedItems.length} Identified)
-              </span>
-              <span className="text-xs text-slate-400">AI Zero-Waste Prevention Hacks</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {financialAudit.repeatedlyUnusedItems.map((item, idx) => (
-                <div key={idx} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <strong className="text-white text-xs font-bold block">{item.name}</strong>
-                      <span className="text-[10px] text-slate-400">{item.category}</span>
-                    </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">
-                      Wasted {item.timesWasted} of {item.timesBought}x (-₹{item.lossEstimateRupees})
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800 text-[11px] text-emerald-300 space-y-0.5">
-                    <span className="font-bold block text-[10px] text-emerald-400 uppercase">PREVENTION HACK:</span>
-                    <p className="leading-snug text-slate-300">{item.preventionTip}</p>
-                  </div>
+            <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-2">
+              <span className="text-xs font-bold text-white uppercase tracking-wider block">What you buy most</span>
+              {audit.frequent.map((item) => (
+                <div key={item.name} className="flex justify-between text-xs py-1.5 border-b border-slate-800/60 last:border-0">
+                  <span className="text-slate-300">{item.name}</span>
+                  <span className="font-mono text-slate-400">
+                    {item.times}× · ₹{Math.round(item.spent)}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        )}
       </motion.div>
     </div>
   );

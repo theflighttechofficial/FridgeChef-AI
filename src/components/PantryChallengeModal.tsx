@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Flame, Award, CheckCircle2, Dice5, Play, X, Target, BarChart3, TrendingUp, ShieldCheck, Zap, Users } from 'lucide-react';
 import { Ingredient, PantryChallengeScore, Recipe } from '../types';
+import { cookLog, cookStreak } from '../state/userData';
 import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface PantryChallengeModalProps {
@@ -20,20 +21,10 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>(
     availableIngredients.slice(0, 4).map((i) => i.name)
   );
+  const log = cookLog.use();
+  const streak = cookStreak(log);
   const [isJudging, setIsJudging] = useState(false);
-  const [challengeResult, setChallengeResult] = useState<PantryChallengeScore | null>({
-    challengeDishTitle: 'Crispy Pan-Seared Pantry Medley',
-    ingredientUtilization: 94,
-    creativity: 87,
-    nutrition: 82,
-    wasteReduction: 96,
-    difficulty: 61,
-    xpEarned: 380,
-    badgeUnlocked: 'Zero-Waste Prodigy',
-    feedbackQuote:
-      'Outstanding pantry arbitrage! You utilized 94% of your selected items and rescued 2 perishable goods in under 20 minutes.',
-    cookTimeMinutes: 18,
-  });
+  const [challengeResult, setChallengeResult] = useState<PantryChallengeScore | null>(null);
 
   if (!isOpen) return null;
 
@@ -155,11 +146,11 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 font-bold font-mono">
               <Flame className="w-4 h-4 text-orange-400" />
-              <span>5-DAY STREAK </span>
+              <span>{streak}-DAY STREAK</span>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-xl text-purple-300 font-bold font-mono">
               <Award className="w-4 h-4 text-purple-400" />
-              <span>LEVEL 4 PANTRY ALCHEMIST</span>
+              <span>LEVEL {Math.floor(log.length / 5) + 1} COOK</span>
             </div>
           </div>
 

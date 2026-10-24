@@ -5,11 +5,14 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, Eye, EyeOff, Lock, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, ExternalLink, Eye, EyeOff, KeyRound, Lock, ShieldCheck, Sparkles } from 'lucide-react';
 import { LogoMark } from '../Logo';
 import { SEEDS, setSeed, useSeed } from '../../theme/dynamicColor';
 import { REGIONS } from '../../ml/data/schema';
 import { createAccount, deleteAccount, initials, signIn, useAccount } from '../../auth/account';
+import { PROVIDERS } from '../../ai/providers';
+import { activeProvider, getAiSettings, updateAiSettings, useAiSettings } from '../../ai/settings';
+import { userKey } from '../../state/userData';
 
 const DIETS = ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Keto', 'Low-Carb', 'Nut-Free', 'Paleo'];
 const REGION_CHOICES = Object.keys(REGIONS).filter((r) => r !== 'Fusion');
@@ -455,8 +458,8 @@ const SignIn: React.FC = () => {
             >
               <h2 id="reset-title" className="text-2xl font-semibold">Reset account?</h2>
               <p className="text-on-surface-variant text-sm leading-relaxed">
-                Passwords are stored only on this device, so they can't be recovered. You can remove this account and create a new one.
-                Your saved recipes, shopping list and settings stay.
+                Passwords are stored only on this device, so they can't be recovered. Resetting removes this account and everything
+                saved with it, so you can start fresh with a new one.
               </p>
               <div className="flex justify-end gap-2 pt-2">
                 <button onClick={() => setConfirmReset(false)} className="h-10 px-4 rounded-full text-primary font-semibold state-layer">
@@ -474,12 +477,108 @@ const SignIn: React.FC = () => {
   );
 };
 
+// ---------- Connect AI (shown once after signing in) ----------
+
+const AI_PROMPT_SEEN = userKey('aiPromptSeen');
+const KEY_PROVIDERS = PROVIDERS.filter((p) => p.keyUrl);
+
+const promptSeen = () => {
+  try {
+    return localStorage.getItem(AI_PROMPT_SEEN) === '1';
+  } catch {
+    return true;
+  }
+};
+
+const ConnectAi: React.FC<{ onDone: () => void }> = ({ onDone }) => {
+  const [providerId, setProviderId] = useState(getAiSettings().provider || KEY_PROVIDERS[0].id);
+  const [key, setKey] = useState('');
+  const provider = KEY_PROVIDERS.find((p) => p.id === providerId) || KEY_PROVIDERS[0];
+
+  const finish = (save: boolean) => {
+    if (save && key.trim()) updateAiSettings({ provider: provider.id, apiKey: key.trim(), model: '', engine: 'auto' });
+    try {
+      localStorage.setItem(AI_PROMPT_SEEN, '1');
+    } catch {}
+    haptic(save ? 12 : 5);
+    onDone();
+  };
+
+  return (
+    <Screen>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          finish(true);
+        }}
+        className="flex-1 flex flex-col min-h-0"
+      >
+        <div className="flex-1 overflow-y-auto px-6 pt-8 pb-4 space-y-6">
+          <motion.span
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-16 h-16 rounded-3xl bg-primary-container text-on-primary-container grid place-items-center"
+          >
+            <KeyRound className="w-8 h-8" />
+          </motion.span>
+          <div className="space-y-2">
+            <h1 className="text-[2rem] leading-tight font-semibold tracking-tight">Connect your AI</h1>
+            <p className="text-on-surface-variant">
+              Add a free API key so FridgeChef can read fridge photos and write recipes with cloud AI. Without one, the on-device model still works offline.
+            </p>
+          </div>
+
+          <section className="space-y-3">
+            <h2 className="text-sm font-semibold text-on-surface-variant">1. Pick a provider</h2>
+            <div className="flex flex-wrap gap-2">
+              {KEY_PROVIDERS.map((p) => (
+                <Chip key={p.id} selected={p.id === provider.id} onClick={() => setProviderId(p.id)}>
+                  {p.label}
+                </Chip>
+              ))}
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-sm font-semibold text-on-surface-variant">2. Create a key</h2>
+            <a
+              href={provider.keyUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="h-12 px-5 rounded-full border border-outline-variant text-primary font-semibold inline-flex items-center gap-2 state-layer"
+            >
+              Open {provider.label} <ExternalLink className="w-4 h-4" />
+            </a>
+            <p className="text-xs text-on-surface-variant">Sign in there, create an API key and copy it.</p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-sm font-semibold text-on-surface-variant">3. Paste it here</h2>
+            <PasswordField label={`${provider.label} API key`} value={key} onChange={setKey} autoComplete="off" supporting={`Looks like ${provider.keyHint}`} />
+            <p className="flex items-start gap-2 text-xs text-on-surface-variant">
+              <ShieldCheck className="w-4 h-4 shrink-0 text-primary" /> Your key is stored only on this device. You can change it any time in Settings.
+            </p>
+          </section>
+        </div>
+        <div className="px-6 pb-6 pt-2 space-y-2">
+          <PrimaryButton disabled={!key.trim()}>Save and continue</PrimaryButton>
+          <button type="button" onClick={() => finish(false)} className="w-full h-12 rounded-full text-primary font-semibold state-layer">
+            Skip for now
+          </button>
+        </div>
+      </form>
+    </Screen>
+  );
+};
+
 // ---------- Gate ----------
 
 /** Renders the setup or sign-in screen when needed, otherwise the app. */
 export const AuthGate: React.FC<{ children: React.ReactNode; paused?: boolean }> = ({ children, paused }) => {
   const { account, signedIn } = useAccount();
+  const ai = useAiSettings();
   const [celebrate, setCelebrate] = useState(false);
+  const [askAi, setAskAi] = useState(() => !promptSeen());
   const wasNew = useRef(!account);
 
   // Brief welcome after creating an account
@@ -500,6 +599,13 @@ export const AuthGate: React.FC<{ children: React.ReactNode; paused?: boolean }>
   return (
     <>
       {children}
+      <AnimatePresence>
+        {askAi && !celebrate && !activeProvider(ai) && (
+          <motion.div key="connect-ai" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            <ConnectAi onDone={() => setAskAi(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {celebrate && (
           <motion.div

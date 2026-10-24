@@ -4,6 +4,7 @@
  * signed in until they sign out in Settings.
  */
 import { useSyncExternalStore } from 'react';
+import { wipeUserData } from '../state/userData';
 
 export interface Account {
   name: string;
@@ -98,12 +99,16 @@ export const updateProfile = (patch: Partial<Pick<Account, 'name' | 'email' | 's
 };
 
 /** Remove the account (used by "Delete account" and "Forgot password"). Recipes and lists stay. */
+/** Remove the account and everything saved with it; the next person starts from scratch. */
 export const deleteAccount = () => {
   account = null;
   signedIn = false;
   write(ACCOUNT_KEY, null);
   write(SESSION_KEY, null);
+  wipeUserData();
   emit();
+  // In-memory state (pantry, taste model, logs) was loaded from storage at start-up
+  if (typeof location !== 'undefined') location.reload();
 };
 
 const subscribe = (l: () => void) => {

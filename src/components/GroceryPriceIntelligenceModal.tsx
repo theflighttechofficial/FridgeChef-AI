@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DollarSign, TrendingDown, ShieldCheck, Users, ShoppingBag, Play, X, Plus, RefreshCw, Clock, ArrowRight, Receipt, Zap } from 'lucide-react';
+import { EmptyResult } from './ui/EmptyResult';
 import { Ingredient, BudgetMealPlanResult, Recipe } from '../types';
 import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
@@ -24,30 +25,7 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
   const [currency, setCurrency] = useState<'₹' | '$' | '€'>('₹');
   const [isLoading, setIsLoading] = useState(false);
 
-  const [budgetPlan, setBudgetPlan] = useState<BudgetMealPlanResult>({
-    recipeTitle: 'Spiced Lentil, Chicken & Spinach Family Skillet',
-    totalEstimatedCost: '₹368',
-    costPerServing: '₹92',
-    proteinPerServingGrams: 42,
-    caloriesPerServing: 618,
-    costPer10gProtein: '₹21.9',
-    groceryBreakdown: [
-      { item: 'Chicken Breast (400g)', qty: '400g', cost: '₹180', source: 'To Buy' },
-      { item: 'Baby Spinach', qty: '1 bunch', cost: '₹30', source: 'Pantry (Free)' },
-      { item: 'Brown Lentils', qty: '200g', cost: '₹38', source: 'To Buy' },
-      { item: 'Basmati Rice', qty: '400g', cost: '₹60', source: 'Pantry (Free)' },
-      { item: 'Tomatoes & Onions', qty: '4 pcs', cost: '₹40', source: 'To Buy' },
-      { item: 'Cooking Spices & Oil', qty: 'Staple', cost: '₹20', source: 'Pantry (Free)' },
-    ],
-    strategyHighlight:
-      'Stretches poultry 1:1 with nutritious brown lentils to deliver 42g protein per person for under ₹92 per plate.',
-    steps: [
-      { stepNumber: 1, instruction: 'Rinse lentils and simmer in 3 cups water until tender (15 mins).', timerSeconds: 900 },
-      { stepNumber: 2, instruction: 'Sauté chopped onions and diced chicken in oil until browned.', timerSeconds: 360 },
-      { stepNumber: 3, instruction: 'Combine cooked lentils, chicken, tomatoes, and spinach in one large pot; simmer for 6 minutes.', timerSeconds: 360 },
-      { stepNumber: 4, instruction: 'Serve warm over steamed fluffy rice with fresh lime wedges.', timerSeconds: 60 },
-    ],
-  });
+  const [budgetPlan, setBudgetPlan] = useState<BudgetMealPlanResult | null>(null);
 
   if (!isOpen) return null;
 
@@ -77,6 +55,7 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
   };
 
   const handleCook = () => {
+    if (!budgetPlan) return;
     const budgetRecipe: Recipe = {
       id: `budget-${Date.now()}`,
       title: budgetPlan.recipeTitle,
@@ -100,7 +79,7 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
     onClose();
   };
 
-  const toBuyItems = budgetPlan.groceryBreakdown.filter((i) => i.source === 'To Buy');
+  const toBuyItems = (budgetPlan?.groceryBreakdown || []).filter((i) => i.source === 'To Buy');
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
@@ -186,6 +165,8 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
           </div>
         </div>
 
+        {budgetPlan ? (
+        <>
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {/* Key 4 Metric Badges: Cost, Protein, Calories, and COST / 10g PROTEIN */}
@@ -264,6 +245,10 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
             </div>
           </div>
         </div>
+        </>
+        ) : (
+          <EmptyResult title="Cook within budget" hint="Set your budget and party size, then build a plan that uses your pantry first." />
+        )}
 
         {/* Modal Footer */}
         <div className="px-6 py-4 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">

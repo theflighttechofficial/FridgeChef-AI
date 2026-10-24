@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Heart, Flame, ShieldCheck, CheckCircle2, X, Play, ArrowRight, UserCheck, Layers, ChefHat, Zap } from 'lucide-react';
+import { EmptyResult } from './ui/EmptyResult';
 import { DinnerMember, DinnerForEveryoneResult, Ingredient, Recipe } from '../types';
+import { getAccount } from '../auth/account';
+import { usePersistentState } from '../hooks/usePersistentState';
+import { userKey } from '../state/userData';
 import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface DinnerForEveryoneModalProps {
@@ -11,52 +15,23 @@ interface DinnerForEveryoneModalProps {
   onStartCookingRecipe: (recipe: Recipe) => void;
 }
 
-export const INITIAL_HOUSEHOLD_MEMBERS: DinnerMember[] = [
-  {
-    id: 'mem-1',
-    name: 'Varun',
-    role: 'Fitness Enthusiast',
+// Starts with just the account holder; more people can be added from the strip below
+const selfMember = (): DinnerMember => {
+  const account = getAccount();
+  return {
+    id: 'self',
+    name: account?.name || 'You',
+    role: 'Self',
     avatar: '',
-    dietaryPreference: 'High Protein (40g+)',
-    spiceTolerance: 'Level 4/5 (Spicy)',
-    dislikedIngredients: ['Mushrooms', 'Cilantro stems'],
+    dietaryPreference: account?.dietary.length ? account.dietary.join(', ') : 'No restrictions',
+    spiceTolerance: 'Level 3/5 (Medium)',
+    dislikedIngredients: [],
     medicalAllergens: [],
-    healthGoals: 'Lean Muscle & High Satiety',
-  },
-  {
-    id: 'mem-2',
-    name: 'Mom',
-    role: 'Vegetarian Cook',
-    avatar: '',
-    dietaryPreference: 'Vegetarian (No meat/fish)',
-    spiceTolerance: 'Level 1/5 (Mild Aromatic)',
-    dislikedIngredients: ['Excessive raw onions'],
-    medicalAllergens: [],
-    healthGoals: 'Digestive Ease & Antioxidants',
-  },
-  {
-    id: 'mem-3',
-    name: 'Dad',
-    role: 'Cardio Health',
-    avatar: '',
-    dietaryPreference: 'Low Sodium (< 400mg/meal)',
-    spiceTolerance: 'Level 2/5 (Gentle)',
-    dislikedIngredients: ['Heavily salted pickles'],
-    medicalAllergens: [],
-    healthGoals: 'Blood Pressure & Heart Health',
-  },
-  {
-    id: 'mem-4',
-    name: 'Arjun',
-    role: 'Child / Student',
-    avatar: '',
-    dietaryPreference: 'Kid-Friendly Familiar',
-    spiceTolerance: 'Level 1/5 (Zero Heat)',
-    dislikedIngredients: ['Bitter greens', 'Spicy chiles'],
-    medicalAllergens: ['Peanuts'],
-    healthGoals: 'Growth & High Energy',
-  },
-];
+    healthGoals: 'Balanced',
+  };
+};
+
+const PREFERENCES = ['No restrictions', 'Vegetarian', 'Vegan', 'High Protein', 'Low Sodium', 'Kid-Friendly', 'Gluten-Free'];
 
 export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
   isOpen,
@@ -64,81 +39,11 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
   availableIngredients,
   onStartCookingRecipe,
 }) => {
-  const [members, setMembers] = useState<DinnerMember[]>(INITIAL_HOUSEHOLD_MEMBERS);
+  const [members, setMembers] = usePersistentState<DinnerMember[]>(userKey('dinnerMembers'), [selfMember()]);
+  const [newName, setNewName] = useState('');
+  const [newPref, setNewPref] = useState(PREFERENCES[0]);
   const [isLoading, setIsLoading] = useState(false);
-  const [dinnerPlan, setDinnerPlan] = useState<DinnerForEveryoneResult>({
-    baseRecipeTitle: 'Fragrant Turmeric Rice & Roasted Mediterranean Veg Base',
-    tagline: 'A flexible, golden spiced one-pot foundation with customized protein and seasoning modules',
-    cookTimeMinutes: 28,
-    baseTechnique: 'Aromatic one-skillet steaming with split pan finishing',
-    sharedBaseIngredients: ['Basmati Rice', 'Baby Spinach', 'Tomatoes', 'Onions', 'Garlic', 'Turmeric'],
-    harmonyScore: 94,
-    harmonyReason:
-      'Zero allergen crossover. Base is vegetarian and zero-added-salt, allowing individual customization in the final 4 minutes without cooking 3 separate dinners.',
-    memberModifications: [
-      {
-        memberName: 'Varun',
-        memberDietary: 'High Protein • Spicy • No Mushrooms',
-        personalizedDishName: 'Chili-Charred Chicken & Turmeric Skillet',
-        modifications: [
-          'Sear 200g diced chicken breast in a mini side-skillet with crushed bird’s eye chiles and smoked paprika',
-          'Fold into Varun’s bowl for +36g protein',
-        ],
-        spiceAdjustment: 'Level 4/5 Fiery Heat',
-        macros: { protein: '44g', carbs: '42g', fat: '11g' },
-        chefNote: 'Tossed with fried garlic chili crisp for high-protein crunch.',
-      },
-      {
-        memberName: 'Mom',
-        memberDietary: 'Vegetarian • Mild Spice',
-        personalizedDishName: 'Golden Paneer & Spinach Pilaf',
-        modifications: [
-          'Pan-sear 120g cubed paneer/tofu in ghee until golden',
-          'Fold gently into Mom’s portion with sweet roasted tomatoes',
-        ],
-        spiceAdjustment: 'Level 1/5 Gentle & Aromatic',
-        macros: { protein: '22g', carbs: '46g', fat: '14g' },
-        chefNote: 'Finished with a squeeze of fresh lemon and toasted cumin.',
-      },
-      {
-        memberName: 'Dad',
-        memberDietary: 'Low Sodium • Heart-Healthy',
-        personalizedDishName: 'Herbed Citrus & Lentil Rice Bowl',
-        modifications: [
-          'Scooped directly from un-salted base',
-          'Enhanced with fresh dill, cracked black pepper, lemon zest, and toasted walnuts for potassium and healthy fats',
-        ],
-        spiceAdjustment: 'Level 2/5 Balanced',
-        macros: { protein: '24g', carbs: '48g', fat: '9g' },
-        chefNote: 'Acidity from lemon zest and herbs compensates for the lack of sodium.',
-      },
-    ],
-    steps: [
-      {
-        stepNumber: 1,
-        instruction:
-          'Sauté onions and garlic in olive oil without adding salt. Add basmati rice, turmeric, and 2 cups vegetable broth; cover and simmer for 15 mins.',
-        timerSeconds: 900,
-      },
-      {
-        stepNumber: 2,
-        instruction:
-          'In parallel, sear Varun’s chili chicken in one small skillet, and Mom’s paneer cubes in another (5 mins).',
-        timerSeconds: 300,
-      },
-      {
-        stepNumber: 3,
-        instruction: 'Scoop Dad’s portion from the base pot, finish with lemon juice and fresh herbs.',
-        timerSeconds: 60,
-      },
-      {
-        stepNumber: 4,
-        instruction:
-          'Portion remaining base into Varun’s and Mom’s bowls, top with their respective proteins and customized seasoning.',
-        timerSeconds: 60,
-      },
-    ],
-  });
+  const [dinnerPlan, setDinnerPlan] = useState<DinnerForEveryoneResult | null>(null);
 
   if (!isOpen) return null;
 
@@ -166,6 +71,7 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
   };
 
   const handleCookDinnerForEveryone = () => {
+    if (!dinnerPlan) return;
     const combinedRecipe: Recipe = {
       id: `dinner-everyone-${Date.now()}`,
       title: dinnerPlan.baseRecipeTitle,
@@ -210,7 +116,7 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Varun wants spicy high-protein, Mom is vegetarian mild, Dad needs low-sodium. AI invents ONE dinner that satisfies everyone.
+                Add everyone you are cooking for and get ONE dinner that works for all of them.
               </p>
             </div>
           </div>
@@ -227,13 +133,37 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
                 key={m.id}
                 className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-xs shrink-0"
               >
-                <span className="text-lg">{m.avatar}</span>
                 <div>
                   <strong className="text-white block font-bold leading-tight">{m.name}</strong>
                   <span className="text-[10px] text-purple-300 font-mono">{m.dietaryPreference}</span>
                 </div>
+                {m.id !== 'self' && (
+                  <button onClick={() => setMembers(members.filter((x) => x.id !== m.id))} aria-label={`Remove ${m.name}`} className="p-1 text-slate-500 hover:text-white">
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
               </div>
             ))}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newName.trim()) return;
+                setMembers([...members, { ...selfMember(), id: `m-${Date.now()}`, name: newName.trim(), role: 'Family', dietaryPreference: newPref }]);
+                setNewName('');
+              }}
+              className="flex items-center gap-1.5 shrink-0"
+            >
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Add person"
+                className="w-24 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-white outline-none focus:border-purple-500"
+              />
+              <select value={newPref} onChange={(e) => setNewPref(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-[11px] text-slate-300 outline-none">
+                {PREFERENCES.map((p) => <option key={p}>{p}</option>)}
+              </select>
+              <button type="submit" className="px-2.5 py-2 rounded-xl bg-purple-500/20 text-purple-300 text-xs font-bold">+</button>
+            </form>
           </div>
 
           <button
@@ -242,10 +172,12 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
             className="shrink-0 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5"
           >
             <Zap className="w-3.5 h-3.5" />
-            <span>{isLoading ? 'Resolving Dietary Matrix...' : 'Re-Synthesize Harmony Meal'}</span>
+            <span>{isLoading ? 'Resolving Dietary Matrix...' : dinnerPlan ? 'Rebuild meal' : 'Build meal'}</span>
           </button>
         </div>
 
+        {dinnerPlan ? (
+        <>
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {/* Harmony Score Banner */}
@@ -343,6 +275,10 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
             <span>Cook “Dinner for Everyone” (Guided Voice Session)</span>
           </button>
         </div>
+        </>
+        ) : (
+          <EmptyResult title="One dinner for the whole table" hint="Add the people you are cooking for, then build a meal that fits everyone." />
+        )}
       </motion.div>
     </div>
   );

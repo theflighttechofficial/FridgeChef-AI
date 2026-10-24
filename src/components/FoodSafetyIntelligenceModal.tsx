@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, ShieldCheck, AlertTriangle, Flame, Thermometer, Layers, CheckCircle2, X, Info, Clock, Zap } from 'lucide-react';
+import { EmptyResult } from './ui/EmptyResult';
 import { Ingredient, FoodSafetyProfile, SafetyWindowStatus } from '../types';
 
 interface FoodSafetyIntelligenceModalProps {
@@ -14,7 +15,7 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
   onClose,
   ingredients,
 }) => {
-  const [selectedIngredient, setSelectedIngredient] = useState<string>('Chicken Breast');
+  const [selectedIngredient, setSelectedIngredient] = useState<string>(ingredients[0]?.name || '');
 
   // Rule-based deterministic Food Safety database
   const getFoodSafetyProfile = (name: string): FoodSafetyProfile => {
@@ -100,6 +101,7 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
   if (!isOpen) return null;
 
   const currentProfile = getFoodSafetyProfile(selectedIngredient);
+  const selectedItem = ingredients.find((i) => i.name === selectedIngredient);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
@@ -132,6 +134,14 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
           </button>
         </div>
 
+        {!ingredients.length ? (
+          <EmptyResult
+            title="Your fridge is empty"
+            hint="Scan your fridge or add items, then pick one here to see how to store it and the safe cooking temperature."
+            icon={<ShieldAlert className="w-6 h-6" />}
+          />
+        ) : (
+          <>
         {/* Ingredient Quick Selector Horizontal Strip */}
         <div className="p-4 bg-slate-950/70 border-b border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
           <span className="text-[10px] font-mono text-slate-400 uppercase font-bold shrink-0 mr-1">Select Item:</span>
@@ -173,7 +183,7 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
                 >
                   {currentProfile.safetyStatus.toUpperCase()}
                 </span>
-                <span className="text-xs text-slate-400 font-mono">Opened {currentProfile.openedDaysAgo} days ago</span>
+                {selectedItem?.freshness && <span className="text-xs text-slate-400 font-mono">Marked {selectedItem.freshness}</span>}
               </div>
             </div>
 
@@ -214,9 +224,9 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
                 <span>LIFESPAN WINDOW</span>
               </span>
               <strong className="text-xl font-black text-amber-300 font-mono block">
-                {currentProfile.openedDaysAgo} / {currentProfile.maxRefrigeratedDays} Days
+                Up to {currentProfile.maxRefrigeratedDays} days
               </strong>
-              <span className="text-[10px] text-slate-400">From package unsealing</span>
+              <span className="text-[10px] text-slate-400">In the fridge once opened</span>
             </div>
           </div>
 
@@ -252,6 +262,8 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
             </div>
           )}
         </div>
+          </>
+        )}
       </motion.div>
     </div>
   );

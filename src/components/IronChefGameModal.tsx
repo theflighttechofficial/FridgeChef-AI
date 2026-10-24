@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { cookLog, cookStreak } from '../state/userData';
 import { Flame, Trophy, Clock, ShieldAlert, Award, Play, CheckCircle2, X, RefreshCw, Zap } from 'lucide-react';
 import { Ingredient, Recipe } from '../types';
 
@@ -13,8 +14,10 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
   onStartCooking,
   onClose,
 }) => {
-  const [xpPoints, setXpPoints] = useState(1250);
-  const [streakDays, setStreakDays] = useState(5);
+  // XP and streak come from meals actually cooked, so every new account starts at zero
+  const log = cookLog.use();
+  const xpPoints = log.length * 50;
+  const streakDays = useMemo(() => cookStreak(log), [log]);
   const [isChallengeActive, setIsChallengeActive] = useState(false);
 
   // Randomly select 3 ingredients as Mystery Box items
@@ -97,7 +100,7 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
             Cook a meal using ONLY these 3 mystery items from your fridge scan.
           </h1>
           <p className="text-xs text-slate-400">
-            Completing this challenge prevents food waste, awards +250 Profile XP, and extends your Zero-Waste Streak!
+            Completing this challenge prevents food waste, earns +50 XP, and extends your Zero-Waste Streak!
           </p>
         </div>
 
@@ -136,7 +139,7 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
           </h4>
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-medium">
-              Zero-Waste Hero (+250 XP)
+              Zero-Waste Hero (+50 XP)
             </span>
             <span className="px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-medium">
               Mystery Box Master

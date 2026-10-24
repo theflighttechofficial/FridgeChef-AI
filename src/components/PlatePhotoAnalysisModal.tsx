@@ -29,27 +29,11 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
   isOpen,
   onClose,
 }) => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(SAMPLE_PLATE_PRESETS[0].img);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   // Sample photos come from the web; show a placeholder when offline
   const [failedImage, setFailedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<PlateAnalysisResult | null>({
-    dishName: 'Pan-Seared Golden Protein Bowl with Herb Wilted Greens',
-    estimatedPortionSize: 'Single entree portion (~420g)',
-    detectedIngredients: ['Seared Chicken', 'Sautéed Baby Spinach', 'Steamed Rice', 'Garlic Glaze', 'Toasted Sesame'],
-    approximateMacros: { calories: 510, protein: '38g', carbs: '46g', fat: '13g' },
-    plateScores: {
-      presentation: 82,
-      nutritionalBalance: 91,
-      colorDiversity: 88,
-      platingGeometry: 79,
-      overallScore: 85,
-    },
-    chefCritique:
-      'Beautiful Maillard crust on the protein and vibrant chlorophyll retention in the greens. The starch foundation anchors the dish cleanly.',
-    elevationTip:
-      'Add a small acidic garnish (pickled shallots or micro-cilantro) and move the protein slightly off-center using the rule-of-thirds.',
-  });
+  const [analysisResult, setAnalysisResult] = useState<PlateAnalysisResult | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 

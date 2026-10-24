@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Receipt, Camera, Upload, ArrowRight, CheckCircle2, AlertCircle, Clock, X, Plus, Scale, DollarSign, TrendingUp, ChefHat, Zap } from 'lucide-react';
 import { ReceiptAnalysisResult, Ingredient } from '../types';
 import { compressImageFile, getDataUrlMimeType } from '../utils/imageUtils';
+import { receiptLog } from '../state/userData';
 import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
 interface ReceiptScannerModalProps {
@@ -17,26 +18,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
   onImportToFridge,
 }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<ReceiptAnalysisResult | null>({
-    storeName: 'DMart Supercenter',
-    totalCost: '₹1,842',
-    totalWeightKg: 6.2,
-    estimatedPantryUtilizationPercent: 91,
-    items: [
-      { name: 'Chicken Breast', category: 'Meat & Seafood', quantity: '500 g', estimatedWeightGrams: 500, price: '₹220', estimatedShelfLifeDays: 3, storageLocation: 'Middle Shelf' },
-      { name: 'Whole Milk', category: 'Dairy & Eggs', quantity: '1 L', estimatedWeightGrams: 1000, price: '₹66', estimatedShelfLifeDays: 6, storageLocation: 'Top Shelf' },
-      { name: 'Cherry Tomatoes', category: 'Produce', quantity: '6 pcs (250g)', estimatedWeightGrams: 250, price: '₹40', estimatedShelfLifeDays: 5, storageLocation: 'Crisper Drawer' },
-      { name: 'Farm Fresh Eggs', category: 'Dairy & Eggs', quantity: '12 pcs', estimatedWeightGrams: 600, price: '₹84', estimatedShelfLifeDays: 21, storageLocation: 'Top Shelf' },
-      { name: 'Tender Baby Spinach', category: 'Produce', quantity: '250 g', estimatedWeightGrams: 250, price: '₹35', estimatedShelfLifeDays: 4, storageLocation: 'Crisper Drawer' },
-      { name: 'Basmati Rice', category: 'Grains & Pulses', quantity: '5 kg', estimatedWeightGrams: 5000, price: '₹550', estimatedShelfLifeDays: 365, storageLocation: 'Pantry Cupboard' }
-    ],
-    immediateUseItems: ['Chicken Breast', 'Tender Baby Spinach', 'Cherry Tomatoes'],
-    mealSuggestions: [
-      'Garlic Chicken & Wilted Spinach Rice Bowl',
-      'Creamy Spinach & Tomato Scrambled Eggs',
-      'Herbed Pan-Seared Chicken with Sautéed Greens'
-    ]
-  });
+  const [analysisResult, setAnalysisResult] = useState<ReceiptAnalysisResult | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,6 +56,13 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
       confidence: 0.96,
     }));
 
+    const money = (v: string) => Number.parseFloat(String(v).replace(/[^\d.]/g, '')) || 0;
+    receiptLog.add({
+      store: analysisResult.storeName,
+      total: money(analysisResult.totalCost),
+      items: analysisResult.items.map((i) => ({ name: i.name, category: i.category, price: money(i.price) })),
+      at: new Date().toISOString(),
+    });
     onImportToFridge(newIngredients, analysisResult.mealSuggestions);
     onClose();
   };

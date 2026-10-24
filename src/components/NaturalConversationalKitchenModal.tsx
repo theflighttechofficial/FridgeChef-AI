@@ -17,33 +17,18 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
   availableIngredients,
   onStartCookingRecipe,
 }) => {
-  const [messages, setMessages] = useState<KitchenConversationMessage[]>([
-    {
-      id: 'msg-1',
-      role: 'assistant',
-      text: 'Hey! I’m your FridgeChef Voice Kitchen Agent. You’ve got chicken, baby spinach, and rice in your fridge. What kind of meal are you craving right now?',
-      timestamp: 'Just now',
-    },
-  ]);
+  const [messages, setMessages] = useState<KitchenConversationMessage[]>(() => {
+    const names = availableIngredients.slice(0, 3).map((i) => i.name.toLowerCase());
+    const pantry = names.length ? `I can see ${names.join(', ')}${availableIngredients.length > 3 ? ' and more' : ''} in your fridge. ` : 'Your fridge is empty right now, so tell me what you have. ';
+    return [{ id: 'msg-1', role: 'assistant', text: `Hi! I'm your kitchen assistant. ${pantry}What are you in the mood for?`, timestamp: 'Just now' }];
+  });
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const [activeDraftRecipe, setActiveDraftRecipe] = useState<any>({
-    title: 'Garlic Chicken & Wilted Spinach Rice Skillet',
-    description: 'Quick-seared protein bowl with garlic wilted greens',
-    cookTimeMinutes: 22,
-    calories: 480,
-    macros: { protein: '36g', carbs: '44g', fat: '12g' },
-    spiceLevel: 'Medium (Level 2/5)',
-    keyModification: 'Balanced everyday healthy dinner',
-    steps: [
-      { stepNumber: 1, instruction: 'Dice chicken and season with black pepper, garlic powder, and a pinch of salt.', timerSeconds: 120 },
-      { stepNumber: 2, instruction: 'Sear chicken in skillet over medium-high heat for 6 minutes.', timerSeconds: 360 },
-      { stepNumber: 3, instruction: 'Fold in fresh baby spinach and pre-cooked rice; toss for 3 minutes.', timerSeconds: 180 },
-    ],
-  });
+  const [activeDraftRecipe, setActiveDraftRecipe] = useState<any>(null);
+
 
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -175,6 +160,7 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
   };
 
   const handleLaunchCooking = () => {
+    if (!activeDraftRecipe) return;
     const recipeToCook: Recipe = {
       id: `voice-agent-${Date.now()}`,
       title: activeDraftRecipe.title,
