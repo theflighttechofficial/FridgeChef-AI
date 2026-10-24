@@ -265,6 +265,30 @@ button:not(:disabled):active {
   }
 }
 
+/* ---------- Fluidity on phones ---------- */
+
+/* Taps fire immediately (no double-tap zoom wait) */
+button, a, [role='button'], input, select, label { touch-action: manipulation; }
+
+/* Scroll areas inside sheets don't drag the page behind them */
+.overflow-y-auto { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+
+/* Off-screen recipe cards skip layout and paint until scrolled near */
+.cv-auto { content-visibility: auto; contain-intrinsic-size: auto 460px; }
+
+/* Attention animations play a few times instead of forever */
+.animate-bounce { animation-iteration-count: 3; }
+
+@media (max-width: 767px), (pointer: coarse) {
+  /* Live blur is the most expensive effect in Android WebViews; full-screen sheets don't need it */
+  [class*='backdrop-blur'] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  /* Hover lift doesn't exist on touch; skip the transform work */
+  .hover\:-translate-y-1:hover { transform: none; }
+}
+
 /* Soft sheen that sweeps across primary buttons on hover */
 .btn-sheen {
   position: relative;

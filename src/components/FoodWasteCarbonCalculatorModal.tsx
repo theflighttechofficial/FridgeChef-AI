@@ -1,31 +1,39 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf, Droplets, DollarSign, TrendingDown, Globe, ShieldCheck, CheckCircle2, X, Award, Zap, BarChart3 } from 'lucide-react';
-import { SustainabilityMetrics } from '../types';
+import { cookLog } from '../state/userData';
+import { EmptyResult } from './ui/EmptyResult';
 
 interface FoodWasteCarbonCalculatorModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+// Rough per-item averages used for the estimates (household produce/dairy portions)
+const KG_PER_ITEM = 0.15;
+const CO2_PER_KG = 2.5;
+const WATER_PER_KG = 1000;
+const RUPEES_PER_KG = 180;
+
 export const FoodWasteCarbonCalculatorModal: React.FC<FoodWasteCarbonCalculatorModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [metrics] = useState<SustainabilityMetrics>({
-    foodRescuedKg: 3.8,
-    estimatedMoneySavedRupees: 1240,
-    foodWasteAvoidedKg: 4.6,
-    co2AvoidedKg: 8.2,
-    waterSavedLiters: 2900,
-    householdSustainabilityScore: 84,
-    scoreBreakdown: {
-      wasteDiversionScore: 91,
-      localSeasonalityScore: 85,
-      resourceEfficiencyScore: 88,
-      compostingPackagingScore: 72,
-    },
-  });
+  const log = cookLog.use();
+  const impact = useMemo(() => {
+    const since = Date.now() - 30 * 86400000;
+    const meals = log.filter((m) => Date.parse(m.at) >= since);
+    const used = meals.reduce((t, m) => t + m.ingredients.length, 0);
+    const kg = +(used * KG_PER_ITEM).toFixed(1);
+    return {
+      meals: meals.length,
+      used,
+      kg,
+      co2: +(kg * CO2_PER_KG).toFixed(1),
+      water: Math.round(kg * WATER_PER_KG),
+      money: Math.round(kg * RUPEES_PER_KG),
+    };
+  }, [log]);
 
   if (!isOpen) return null;
 
@@ -47,11 +55,11 @@ export const FoodWasteCarbonCalculatorModal: React.FC<FoodWasteCarbonCalculatorM
               <div className="flex items-center gap-2">
                 <h3 className="text-base sm:text-lg font-extrabold text-white">Food Waste Carbon & Water Calculator</h3>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-500/30">
-                  CLIMATE CULINARY ARBITRAGE
+                  ESTIMATE
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Audited planetary footprint reductions derived from pantry item rescues and zero-waste cooking.
+                What cooking from your own fridge saved this month.
               </p>
             </div>
           </div>
@@ -60,129 +68,33 @@ export const FoodWasteCarbonCalculatorModal: React.FC<FoodWasteCarbonCalculatorM
           </button>
         </div>
 
-        {/* Sustainability Score Ribbon */}
-        <div className="p-6 bg-gradient-to-r from-emerald-950/40 via-slate-950 to-emerald-950/40 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex flex-col items-center justify-center font-mono">
-              <span className="text-2xl font-black text-emerald-400 leading-none">{metrics.householdSustainabilityScore}</span>
-              <span className="text-[10px] text-slate-400 font-bold">/100</span>
+        {!impact.meals ? (
+          <EmptyResult
+            title="Nothing to count yet"
+            hint="Cook with what is already in your fridge and FridgeChef estimates the food, money, CO₂ and water you saved this month."
+            icon={<Leaf className="w-6 h-6" />}
+          />
+        ) : (
+          <div className="p-6 overflow-y-auto space-y-6 flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'Food used up', value: `${impact.kg} kg`, note: `${impact.used} items in ${impact.meals} meals`, tone: 'text-emerald-400' },
+                { label: 'Money kept', value: `₹${impact.money.toLocaleString('en-IN')}`, note: 'Groceries not thrown out', tone: 'text-teal-400' },
+                { label: 'CO₂ avoided', value: `${impact.co2} kg`, note: 'From food not wasted', tone: 'text-purple-400' },
+                { label: 'Water saved', value: `${impact.water.toLocaleString()} L`, note: 'Used to grow that food', tone: 'text-blue-400' },
+              ].map((c) => (
+                <div key={c.label} className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{c.label}</span>
+                  <strong className={`text-xl font-black font-mono mt-0.5 block ${c.tone}`}>{c.value}</strong>
+                  <span className="text-[10px] text-slate-500">{c.note}</span>
+                </div>
+              ))}
             </div>
-            <div>
-              <span className="text-[10px] text-emerald-400 uppercase font-mono font-bold tracking-wider">
-                COMMUNITY RANK: TOP 6% ZERO-WASTE HOMES
-              </span>
-              <h4 className="text-base font-extrabold text-white">Household Sustainability Score</h4>
-              <p className="text-xs text-slate-300">
-                You prevent 82% more food spoilage than the average urban refrigerator.
-              </p>
-            </div>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Estimates for the last 30 days, assuming about {KG_PER_ITEM * 1000} g per pantry item cooked, {CO2_PER_KG} kg CO₂ and {WATER_PER_KG.toLocaleString()} L of water per kg of food.
+            </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold">
-              ECO-CHEF CERTIFIED
-            </span>
-          </div>
-        </div>
-
-        {/* Content Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
-          {/* Key 5 Impact Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">FOOD RESCUED</span>
-              <strong className="text-xl font-black text-emerald-400 font-mono mt-0.5 block">
-                {metrics.foodRescuedKg} kg
-              </strong>
-              <span className="text-[10px] text-slate-500">This Month</span>
-            </div>
-
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">MONEY SAVED</span>
-              <strong className="text-xl font-black text-teal-400 font-mono mt-0.5 block">
-                ₹{metrics.estimatedMoneySavedRupees}
-              </strong>
-              <span className="text-[10px] text-slate-500">Unspoiled grocery value</span>
-            </div>
-
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">WASTE AVOIDED</span>
-              <strong className="text-xl font-black text-cyan-400 font-mono mt-0.5 block">
-                {metrics.foodWasteAvoidedKg} kg
-              </strong>
-              <span className="text-[10px] text-slate-500">Diverted from landfill</span>
-            </div>
-
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">CO₂ AVOIDED</span>
-              <strong className="text-xl font-black text-purple-400 font-mono mt-0.5 block">
-                {metrics.co2AvoidedKg} kg
-              </strong>
-              <span className="text-[10px] text-slate-500">Methane emissions saved</span>
-            </div>
-
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 col-span-2 sm:col-span-1">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">WATER SAVED</span>
-              <strong className="text-xl font-black text-blue-400 font-mono mt-0.5 block">
-                {metrics.waterSavedLiters.toLocaleString()} L
-              </strong>
-              <span className="text-[10px] text-slate-500">Embedded agricultural H₂O</span>
-            </div>
-          </div>
-
-          {/* Detailed Sustainability Pillars */}
-          <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-            <span className="text-xs font-bold text-white uppercase tracking-wider block">
-              Sustainability Pillar Breakdown
-            </span>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
-                <div className="flex justify-between text-xs font-bold text-slate-200">
-                  <span>Waste Diversion Rate</span>
-                  <span className="font-mono text-emerald-400">{metrics.scoreBreakdown.wasteDiversionScore}%</span>
-                </div>
-                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${metrics.scoreBreakdown.wasteDiversionScore}%` }} />
-                </div>
-                <p className="text-[10px] text-slate-400 pt-1">91% of items entering your fridge are cooked before expiration.</p>
-              </div>
-
-              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
-                <div className="flex justify-between text-xs font-bold text-slate-200">
-                  <span>Resource & Water Efficiency</span>
-                  <span className="font-mono text-cyan-400">{metrics.scoreBreakdown.resourceEfficiencyScore}%</span>
-                </div>
-                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-cyan-400 h-full rounded-full" style={{ width: `${metrics.scoreBreakdown.resourceEfficiencyScore}%` }} />
-                </div>
-                <p className="text-[10px] text-slate-400 pt-1">One-skillet low-energy cooking saves 2,900 L embedded water.</p>
-              </div>
-
-              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
-                <div className="flex justify-between text-xs font-bold text-slate-200">
-                  <span>Local Seasonality Index</span>
-                  <span className="font-mono text-purple-400">{metrics.scoreBreakdown.localSeasonalityScore}%</span>
-                </div>
-                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-purple-400 h-full rounded-full" style={{ width: `${metrics.scoreBreakdown.localSeasonalityScore}%` }} />
-                </div>
-                <p className="text-[10px] text-slate-400 pt-1">85% of scanned produce matches active regional crop cycles.</p>
-              </div>
-
-              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
-                <div className="flex justify-between text-xs font-bold text-slate-200">
-                  <span>Packaging & Plastic Avoidance</span>
-                  <span className="font-mono text-amber-400">{metrics.scoreBreakdown.compostingPackagingScore}%</span>
-                </div>
-                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-amber-400 h-full rounded-full" style={{ width: `${metrics.scoreBreakdown.compostingPackagingScore}%` }} />
-                </div>
-                <p className="text-[10px] text-slate-400 pt-1">High pantry usage avoids single-use plastic takeout containers.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </motion.div>
     </div>
   );

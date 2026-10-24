@@ -4,7 +4,9 @@ import App from './App.tsx';
 import './index.css';
 import { installApiClient } from './ai/apiClient';
 import { initDynamicColor } from './theme/dynamicColor';
+import { migrateLegacyUserData } from './state/userData';
 
+migrateLegacyUserData();
 installApiClient();
 initDynamicColor();
 if ((window as any).Capacitor) import('./native/android').then((m) => m.initAndroid());

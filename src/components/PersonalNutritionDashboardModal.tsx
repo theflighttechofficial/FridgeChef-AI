@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Heart, TrendingUp, AlertTriangle, Zap, CheckCircle2, X, Apple, Salad, Flame, ArrowRight, ShieldCheck, ChevronRight } from 'lucide-react';
-import { WeeklyNutritionProfile, Recipe } from '../types';
+import { cookLog } from '../state/userData';
+import { EmptyResult } from './ui/EmptyResult';
 
 interface PersonalNutritionDashboardModalProps {
   isOpen: boolean;
@@ -14,46 +15,35 @@ export const PersonalNutritionDashboardModal: React.FC<PersonalNutritionDashboar
   onClose,
   onSelectBalancingMeal,
 }) => {
-  const [profile] = useState<WeeklyNutritionProfile>({
-    weeklyAverages: {
-      calories: 2150,
-      proteinGrams: 128,
-      carbsGrams: 165,
-      fatGrams: 58,
-      fiberGrams: 14,
-      sodiumMg: 2100,
-      sugarGrams: 28,
-    },
-    mealDiversityCount: 19,
-    micronutrients: [
-      { name: 'Dietary Fiber', amount: '14g / 30g', recommendedDailyPercent: 47, status: 'Low' },
-      { name: 'Iron', amount: '16mg / 18mg', recommendedDailyPercent: 88, status: 'Optimal' },
-      { name: 'Potassium', amount: '3,200mg / 3,500mg', recommendedDailyPercent: 91, status: 'Optimal' },
-      { name: 'Vitamin C', amount: '85mg / 90mg', recommendedDailyPercent: 94, status: 'Optimal' },
-      { name: 'Calcium', amount: '920mg / 1,000mg', recommendedDailyPercent: 92, status: 'Optimal' },
-    ],
-    dailyHistory: [
-      { day: 'Mon', calories: 2100, proteinGrams: 132, carbsGrams: 160, fatGrams: 55, fiberGrams: 12, sodiumMg: 2050, sugarGrams: 26 },
-      { day: 'Tue', calories: 2250, proteinGrams: 140, carbsGrams: 170, fatGrams: 62, fiberGrams: 15, sodiumMg: 2200, sugarGrams: 30 },
-      { day: 'Wed', calories: 2050, proteinGrams: 120, carbsGrams: 155, fatGrams: 54, fiberGrams: 11, sodiumMg: 1980, sugarGrams: 22 },
-      { day: 'Thu', calories: 2300, proteinGrams: 135, carbsGrams: 180, fatGrams: 60, fiberGrams: 16, sodiumMg: 2150, sugarGrams: 32 },
-      { day: 'Fri', calories: 2180, proteinGrams: 126, carbsGrams: 162, fatGrams: 57, fiberGrams: 13, sodiumMg: 2080, sugarGrams: 27 },
-      { day: 'Sat', calories: 2020, proteinGrams: 118, carbsGrams: 150, fatGrams: 52, fiberGrams: 17, sodiumMg: 1900, sugarGrams: 24 },
-      { day: 'Sun', calories: 2150, proteinGrams: 125, carbsGrams: 178, fatGrams: 66, fiberGrams: 14, sodiumMg: 2340, sugarGrams: 35 },
-    ],
-    diagnosis: {
-      headline: 'Your week is protein-heavy but fiber-light.',
-      observation:
-        'You are crushing your protein target (avg 128g/day), but fiber intake is sitting at 14g vs the 30g daily baseline. Gut microbiome diversity can be improved with prebiotic legumes and leafy crucifers.',
-      recommendedAction:
-        'Incorporate 1 legume-rich or whole chia/flax dinner tonight to boost dietary fiber by +14g without displacing protein.',
-      balancingMealSuggestions: [
-        'Spiced Green Lentil & Sautéed Kale Bowl (+16g Fiber)',
-        'Warm Chickpea, Spinach & Cumin Stew (+14g Fiber)',
-        'Chia, Berry & Toasted Almond Overnight Oats (+11g Fiber)',
-      ],
-    },
-  });
+  const log = cookLog.use();
+  const week = useMemo(() => {
+    const since = Date.now() - 7 * 86400000;
+    const meals = log.filter((m) => Date.parse(m.at) >= since);
+    const days = new Set(meals.map((m) => m.at.slice(0, 10))).size || 1;
+    const sum = (k: 'calories' | 'protein' | 'carbs' | 'fat') => meals.reduce((t, m) => t + (m[k] || 0), 0);
+    const per = (k: 'calories' | 'protein' | 'carbs' | 'fat') => Math.round(sum(k) / days);
+    const macroCals = sum('protein') * 4 + sum('carbs') * 4 + sum('fat') * 9 || 1;
+    const share = {
+      protein: Math.round(((sum('protein') * 4) / macroCals) * 100),
+      carbs: Math.round(((sum('carbs') * 4) / macroCals) * 100),
+      fat: Math.round(((sum('fat') * 9) / macroCals) * 100),
+    };
+    const ingredients = new Set(meals.flatMap((m) => m.ingredients.map((i) => i.toLowerCase())));
+    const cuisines = new Set(meals.map((m) => m.cuisine));
+    return { meals, days, calories: per('calories'), protein: per('protein'), carbs: per('carbs'), fat: per('fat'), share, diversity: ingredients.size, cuisines: cuisines.size };
+  }, [log]);
+
+  // Simple, explainable checks on what was actually cooked this week
+  const diagnosis = useMemo(() => {
+    const { share, diversity, meals } = week;
+    if (share.protein < 15)
+      return { headline: 'Protein is on the low side this week.', action: 'Add a dal, paneer, egg or bean dish to the next few meals.', meals: ['Chana Masala', 'Moong Dal', 'Paneer Bhurji', 'Black Bean Tacos'] };
+    if (share.fat > 40)
+      return { headline: 'A rich, fat-heavy week.', action: 'Balance with something lighter: soups, salads or steamed dishes.', meals: ['Rasam', 'Vegetable Soup', 'Greek Salad', 'Steamed Fish'] };
+    if (diversity < Math.max(6, meals.length * 2))
+      return { headline: 'You are rotating the same few ingredients.', action: 'Try a dish built around a vegetable or legume you have not cooked yet.', meals: ['Avial', 'Ratatouille', 'Rajma', 'Stir Fry'] };
+    return { headline: 'A well-balanced week. Keep it up.', action: 'Your macros and variety look healthy. Explore a new cuisine for fun.', meals: ['Pho', 'Shakshuka', 'Bibimbap', 'Khichdi'] };
+  }, [week]);
 
   if (!isOpen) return null;
 
@@ -79,7 +69,7 @@ export const PersonalNutritionDashboardModal: React.FC<PersonalNutritionDashboar
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Beyond the radar chart: Macro & micronutrient tracking, weekly rolling averages & imbalance corrections.
+                Your last 7 days, from the meals you cooked.
               </p>
             </div>
           </div>
@@ -88,112 +78,81 @@ export const PersonalNutritionDashboardModal: React.FC<PersonalNutritionDashboar
           </button>
         </div>
 
-        {/* Proactive AI Diagnosis Banner */}
-        <div className="p-5 bg-gradient-to-r from-amber-950/40 via-slate-950 to-amber-950/40 border-b border-amber-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="text-sm font-extrabold">{profile.diagnosis.headline}</span>
-          </div>
-          <p className="text-xs text-slate-300 leading-relaxed">{profile.diagnosis.observation}</p>
-          <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20 text-xs text-amber-200">
-            <strong>Recommended Correction: </strong>
-            <span>{profile.diagnosis.recommendedAction}</span>
-          </div>
-        </div>
-
-        {/* Content Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
-          {/* Key Metric Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">WEEKLY AVG CALORIES</span>
-              <strong className="text-xl font-black text-amber-400 font-mono mt-0.5 block">
-                {profile.weeklyAverages.calories}
-              </strong>
-              <span className="text-[10px] text-slate-500">Target: 2,200 kcal</span>
+        {!week.meals.length ? (
+          <EmptyResult
+            title="No meals logged yet"
+            hint="Every recipe you start cooking is logged here on your device. Cook a few meals and your weekly nutrition picture will appear."
+            icon={<Activity className="w-6 h-6" />}
+          />
+        ) : (
+          <div className="p-6 overflow-y-auto space-y-6 flex-1">
+            <div className="p-4 bg-amber-950/20 rounded-2xl border border-amber-500/30 space-y-1.5">
+              <div className="flex items-center gap-2 text-amber-300 text-sm font-extrabold">
+                <Heart className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>{diagnosis.headline}</span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">{diagnosis.action}</p>
             </div>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">DAILY PROTEIN AVG</span>
-              <strong className="text-xl font-black text-emerald-400 font-mono mt-0.5 block">
-                {profile.weeklyAverages.proteinGrams}g
-              </strong>
-              <span className="text-[10px] text-emerald-400 font-bold">116% of daily goal</span>
-            </div>
-
-            <div className="p-4 bg-slate-950 rounded-2xl border border-rose-500/30">
-              <span className="text-[10px] text-rose-300 font-bold uppercase block">DAILY FIBER AVG </span>
-              <strong className="text-xl font-black text-rose-400 font-mono mt-0.5 block">
-                {profile.weeklyAverages.fiberGrams}g
-              </strong>
-              <span className="text-[10px] text-rose-400 font-bold">47% of 30g target</span>
-            </div>
-
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">MEAL DIVERSITY SCORE</span>
-              <strong className="text-xl font-black text-cyan-400 font-mono mt-0.5 block">
-                {profile.mealDiversityCount}
-              </strong>
-              <span className="text-[10px] text-slate-500">Unique plant/protein sources</span>
-            </div>
-          </div>
-
-          {/* Micronutrient Progress Bars */}
-          <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
-            <span className="text-xs font-bold text-white uppercase tracking-wider block">
-              Essential Micronutrients & Electrolytes
-            </span>
-            <div className="space-y-3">
-              {profile.micronutrients.map((m) => (
-                <div key={m.name} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-bold text-slate-300">{m.name}</span>
-                    <span className="font-mono text-slate-400">
-                      {m.amount} ({m.recommendedDailyPercent}%)
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        m.status === 'Low' ? 'bg-rose-500' : 'bg-emerald-400'
-                      }`}
-                      style={{ width: `${Math.min(100, m.recommendedDailyPercent)}%` }}
-                    />
-                  </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'Meals cooked (7 days)', value: week.meals.length, tone: 'text-cyan-400' },
+                { label: 'Calories per day', value: week.calories, tone: 'text-amber-400' },
+                { label: 'Protein per day', value: `${week.protein}g`, tone: 'text-emerald-400' },
+                { label: 'Different ingredients', value: week.diversity, tone: 'text-purple-400' },
+              ].map((c) => (
+                <div key={c.label} className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{c.label}</span>
+                  <strong className={`text-xl font-black font-mono mt-0.5 block ${c.tone}`}>{c.value}</strong>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Corrective Meal Recommendations */}
-          <div className="bg-gradient-to-r from-teal-950/40 via-slate-950 to-emerald-950/40 p-5 rounded-2xl border border-teal-500/30 space-y-3">
-            <span className="text-xs font-bold text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-teal-400" />
-              <span>Corrective Balancing Meals Recommended by AI</span>
-            </span>
-            <div className="space-y-2">
-              {profile.diagnosis.balancingMealSuggestions.map((meal) => (
+            <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+              <span className="text-xs font-bold text-white uppercase tracking-wider block">Where your calories came from</span>
+              {(
+                [
+                  ['Protein', week.share.protein, `${week.protein}g/day`, 'bg-emerald-400'],
+                  ['Carbs', week.share.carbs, `${week.carbs}g/day`, 'bg-amber-400'],
+                  ['Fat', week.share.fat, `${week.fat}g/day`, 'bg-rose-400'],
+                ] as const
+              ).map(([name, pct, amount, tone]) => (
+                <div key={name} className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-bold text-slate-300">{name}</span>
+                    <span className="font-mono text-slate-400">
+                      {amount} ({pct}%)
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
+                    <div className={`h-full rounded-full ${tone}`} style={{ width: `${Math.min(100, pct)}%` }} />
+                  </div>
+                </div>
+              ))}
+              <p className="text-[10px] text-slate-500">Estimated from the recipes you cooked across {week.cuisines} cuisine{week.cuisines === 1 ? '' : 's'}.</p>
+            </div>
+
+            <div className="bg-slate-950 p-5 rounded-2xl border border-teal-500/30 space-y-2">
+              <span className="text-xs font-bold text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Salad className="w-3.5 h-3.5 text-teal-400" />
+                <span>Ideas to balance it out</span>
+              </span>
+              {diagnosis.meals.map((meal) => (
                 <button
                   key={meal}
                   onClick={() => {
                     onSelectBalancingMeal(meal);
                     onClose();
                   }}
-                  className="w-full p-3 bg-slate-900/90 hover:bg-slate-850 rounded-xl border border-slate-800 hover:border-teal-400/60 transition-all flex items-center justify-between text-left text-xs font-bold text-white group"
+                  className="w-full p-3 bg-slate-900 rounded-xl border border-slate-800 hover:border-teal-400/60 transition-colors flex items-center justify-between text-left text-xs font-bold text-white"
                 >
-                  <div className="flex items-center gap-2">
-                    <Salad className="w-4 h-4 text-emerald-400" />
-                    <span>{meal}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-[11px] text-teal-400 group-hover:translate-x-1 transition-transform">
-                    <span>View Recipe</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </div>
+                  <span>{meal}</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-teal-400" />
                 </button>
               ))}
             </div>
           </div>
-        </div>
+        )}
       </motion.div>
     </div>
   );

@@ -96,7 +96,7 @@ const AccountCard: React.FC = () => {
       </div>
       {confirmDelete && (
         <div className="rounded-2xl bg-surface/40 p-4 space-y-3" role="alert">
-          <p className="text-sm">Delete your account from this device? Saved recipes, your shopping list and settings stay.</p>
+          <p className="text-sm">Delete your account from this device? Your pantry, saved recipes, shopping list, history and AI key are removed too.</p>
           <div className="flex gap-2 justify-end">
             <button onClick={() => setConfirmDelete(false)} className="h-10 px-4 rounded-full text-sm font-semibold state-layer">
               Cancel

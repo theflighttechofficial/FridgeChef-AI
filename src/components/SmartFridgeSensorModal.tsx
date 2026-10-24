@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Thermometer, Droplets, DoorClosed, DoorOpen, Scale, Wind, AlertTriangle, CheckCircle2, X, RefreshCw, Zap, Activity, ShieldAlert, Sliders } from 'lucide-react';
+import { EmptyResult } from './ui/EmptyResult';
 import { SmartFridgeSensors } from '../types';
 
 interface SmartFridgeSensorModalProps {
@@ -16,6 +17,7 @@ export const SmartFridgeSensorModal: React.FC<SmartFridgeSensorModalProps> = ({
   sensors,
   onToggleAnomaly,
 }) => {
+  const [showDemo, setShowDemo] = useState(false);
   if (!isOpen) return null;
 
   return (
@@ -36,11 +38,11 @@ export const SmartFridgeSensorModal: React.FC<SmartFridgeSensorModalProps> = ({
               <div className="flex items-center gap-2">
                 <h3 className="text-base sm:text-lg font-extrabold text-white">Smart Fridge IoT Sensor Hub</h3>
                 <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-500/30">
-                  REAL-TIME TELEMETRY
+                  SENSORS
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Connected IoT hardware sensors: Microclimates, door open triggers, shelf load cells & VOC odor detection.
+                Temperature, humidity and door sensors from a connected smart fridge.
               </p>
             </div>
           </div>
@@ -49,6 +51,20 @@ export const SmartFridgeSensorModal: React.FC<SmartFridgeSensorModalProps> = ({
           </button>
         </div>
 
+        {!showDemo ? (
+          <div className="flex flex-col items-center">
+            <EmptyResult
+              title="No smart fridge connected"
+              hint="FridgeChef can show live temperature, humidity and door sensors from a connected fridge. None is linked to this account yet."
+              icon={<Thermometer className="w-6 h-6" />}
+            />
+            <button onClick={() => setShowDemo(true)} className="mb-8 -mt-6 px-4 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-bold hover:bg-slate-700">
+              Preview with sample data
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="px-6 py-2 bg-amber-500/10 border-b border-amber-500/30 text-[11px] text-amber-300 font-bold">Sample data: not from your fridge</div>
         {/* Temperature Anomaly Banner */}
         {sensors.isAnomalyActive && (
           <motion.div
@@ -209,6 +225,8 @@ export const SmartFridgeSensorModal: React.FC<SmartFridgeSensorModalProps> = ({
             </button>
           </div>
         </div>
+          </>
+        )}
       </motion.div>
     </div>
   );

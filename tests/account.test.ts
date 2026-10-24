@@ -6,6 +6,10 @@ const store = new Map<string, string>();
   getItem: (k: string) => store.get(k) ?? null,
   setItem: (k: string, v: string) => store.set(k, v),
   removeItem: (k: string) => store.delete(k),
+  get length() {
+    return store.size;
+  },
+  key: (i: number) => [...store.keys()][i] ?? null,
 };
 
 const auth = await import('../src/auth/account');
@@ -22,6 +26,13 @@ test('account is created, stays signed in, and checks the password', async () =>
   assert.equal(await auth.signIn('secret12'), true);
   assert.equal(auth.initials('Asha Rao'), 'AR');
 
+  store.set('fridgechef.u.pantry', '[{"name":"Eggs"}]');
+  store.set('fridgechef.aiSettings.v1', '{"apiKey":"k"}');
+  store.set('fridgechef.theme.v1', 'basil');
   auth.deleteAccount();
   assert.equal(store.get('fridgechef.account.v1'), undefined);
+  // Everything personal goes with the account; device appearance stays
+  assert.equal(store.get('fridgechef.u.pantry'), undefined);
+  assert.equal(store.get('fridgechef.aiSettings.v1'), undefined);
+  assert.equal(store.get('fridgechef.theme.v1'), 'basil');
 });

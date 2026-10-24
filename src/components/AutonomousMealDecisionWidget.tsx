@@ -16,32 +16,11 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
   onStartCookingRecipe,
 }) => {
   const [isComputing, setIsComputing] = useState(false);
-  const [decision, setDecision] = useState<AutonomousDecision>({
-    title: 'Spiced Chicken & Wilted Spinach Rice Skillet',
-    cookTimeMinutes: 24,
-    difficulty: 'Easy',
-    cuisine: 'Aromatic Coastal Fusion',
-    spiceLevel: 'Spiced (4/5)',
-    estimatedCost: '₹68 per serving ($1.80)',
-    preventedWasteGrams: 180,
-    proteinGrams: 31,
-    calories: 485,
-    expiringIngredientsUsed: ['Chicken Breast', 'Baby Spinach', 'Cherry Tomatoes'],
-    decisionFactors: [
-      { factor: 'Expiring Ingredients Urgency', detail: 'Rescues spinach (day 4) & poultry within safe freshness window', impact: 'Critical (35%)' },
-      { factor: 'Household Memory Calibration', detail: 'Honors spicy palate; zero prohibited raw cilantro', impact: 'High (25%)' },
-      { factor: 'Time Budget', detail: 'One-skillet prep completed in exactly 24 minutes', impact: 'High (15%)' },
-      { factor: 'Weather Comfort', detail: 'Warm aromatic turmeric & cumin ideal for 21°C evening', impact: 'Medium (10%)' },
-      { factor: 'Energy Efficiency', detail: 'Induction cooktop uses only 0.38 kWh ($0.04 energy cost)', impact: 'High (15%)' }
-    ],
-    briefWhy: 'Rescues 180g of tender spinach and chicken nearing expiration date, provides 31g protein, and matches your household preference for aromatic spices in 24 minutes.',
-    steps: [
-      { stepNumber: 1, instruction: 'Dice chicken breast into 1-inch bite pieces and toss with crushed garlic, black pepper, and chili flakes.', timerSeconds: 120 },
-      { stepNumber: 2, instruction: 'Heat skillet with 1 tsp oil over medium-high. Sear chicken for 6-7 minutes until caramelized.', timerSeconds: 420 },
-      { stepNumber: 3, instruction: 'Add cherry tomatoes and whole spinach leaves. Cover with lid for 2 minutes to let spinach steam-wilt.', timerSeconds: 120 },
-      { stepNumber: 4, instruction: 'Stir in pre-cooked basmati rice, drizzle a splash of soy or lime juice, and serve immediately.', timerSeconds: 60 }
-    ]
-  });
+  // Nothing is decided until the person asks; the pick comes from their own fridge
+  const [decision, setDecision] = useState<AutonomousDecision | null>(null);
+  const hour = new Date().getHours();
+  const mealNow = hour < 11 ? 'Breakfast' : hour < 16 ? 'Lunch' : hour < 19 ? 'Snack' : 'Dinner';
+  const clockNow = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
   const handleRunDecisionEngine = async () => {
     setIsComputing(true);
@@ -53,8 +32,7 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
           currentIngredients: ingredients,
           memoryProfile: memoryProfile,
           context: {
-            time: 'Dinner (8:30 PM)',
-            weather: '21°C Cool Evening',
+            time: `${mealNow} (${clockNow})`,
             timeAvailable: '30 mins'
           }
         }),
@@ -74,6 +52,7 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
   };
 
   const handleStartCooking = () => {
+    if (!decision) return;
     const recipeToCook: Recipe = {
       id: `auto-${Date.now()}`,
       title: decision.title,
@@ -125,11 +104,8 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
         {/* Ambient Kitchen Context & Re-evaluate button */}
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-400 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
-            <CloudSun className="w-3.5 h-3.5 text-amber-400" />
-            <span>21°C Cool</span>
-            <span>•</span>
             <Clock className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Dinner (8:30 PM)</span>
+            <span>{mealNow} ({clockNow})</span>
           </div>
 
           <button
@@ -138,7 +114,7 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
             className="px-3 py-1.5 bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-indigo-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isComputing ? 'animate-spin' : ''}`} />
-            <span>{isComputing ? 'Evaluating...' : 'Re-Evaluate'}</span>
+            <span>{isComputing ? 'Deciding...' : decision ? 'Decide again' : 'Decide for me'}</span>
           </button>
         </div>
       </div>
@@ -157,6 +133,21 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
       </div>
 
       {/* Main Autonomous Recommendation Card */}
+      {!decision ? (
+        <div className="relative z-10 rounded-2xl bg-slate-950/60 p-6 text-center space-y-3">
+          <p className="text-sm text-slate-300">
+            Not sure what to cook? FridgeChef weighs what is expiring, your tastes and the time of day, and picks one {mealNow.toLowerCase()} for you.
+          </p>
+          <button
+            onClick={handleRunDecisionEngine}
+            disabled={isComputing}
+            className="h-11 px-6 rounded-full bg-emerald-300 text-emerald-950 text-sm font-semibold inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <RefreshCw className={`w-4 h-4 ${isComputing ? 'animate-spin' : ''}`} />
+            {isComputing ? 'Deciding...' : 'Decide for me'}
+          </button>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
         <div className="lg:col-span-2 bg-slate-950/80 border border-slate-800 rounded-2xl p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -255,6 +246,7 @@ export const AutonomousMealDecisionWidget: React.FC<AutonomousMealDecisionWidget
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 };

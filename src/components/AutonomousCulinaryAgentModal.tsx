@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Zap, CheckCircle2, X, Play, RotateCcw, Calendar, Layers, ArrowRight, TrendingDown, DollarSign, ShieldCheck, Send } from 'lucide-react';
+import { EmptyResult } from './ui/EmptyResult';
 import { AutonomousCulinaryAgentResult, Ingredient, Recipe } from '../types';
 import { showToast, AI_OFFLINE_MESSAGE, noteIfFallback } from '../utils/toast';
 
@@ -19,55 +20,9 @@ export const AutonomousCulinaryAgentModal: React.FC<AutonomousCulinaryAgentModal
   onStartCookingRecipe,
   onSyncShoppingList,
 }) => {
-  const [goalText, setGoalText] = useState(
-    'Plan my meals for this week while minimizing food waste and keeping groceries below ₹2,500.'
-  );
+  const [goalText, setGoalText] = useState('');
   const [isRunning, setIsRunning] = useState(false);
-  const [agentResult, setAgentResult] = useState<AutonomousCulinaryAgentResult>({
-    goal: 'Plan my meals for this week while minimizing food waste and keeping groceries below ₹2,500.',
-    agentStatus: 'OPTIMIZED & EXECUTABLE',
-    projectedWeeklySavings: '₹1,180',
-    projectedWasteReductionKg: 4.8,
-    weeklyCostEstimate: '₹2,140',
-    pantryUtilizationRate: 92,
-    stages: [
-      { stageNumber: 1, title: 'Pantry Inventory Audited', detail: '14 active items cataloged across 4 fridge microclimates.', status: 'Completed' },
-      { stageNumber: 2, title: 'Expiry Matrix Calculated', detail: 'Flagged spinach & chicken for immediate 48-hour rescue.', status: 'Completed' },
-      { stageNumber: 3, title: 'Household Taste Vectors Synthesized', detail: 'Weighted for high protein, low sodium, and spicy aromatics.', status: 'Completed' },
-      { stageNumber: 4, title: '7-Day Cyclical Menu Generated', detail: 'Zero duplicate meals; all balanced with high protein & fiber.', status: 'Completed' },
-      { stageNumber: 5, title: 'Ingredient Cross-Reuse Optimized', detail: 'Rice, spinach, and roasted aromatics reused across 4 dinners.', status: 'Completed' },
-      { stageNumber: 6, title: 'Nutritional Equilibrium Verified', detail: 'Average 126g protein, 28g fiber, 2,150 kcal daily.', status: 'Completed' },
-      { stageNumber: 7, title: 'Cost Arbitrage Enforced', detail: 'Total grocery spend capped at ₹2,140 (under ₹2,500 ceiling).', status: 'Completed' },
-      { stageNumber: 8, title: 'Consolidated Shopping List Built', detail: 'Only 5 missing items needed; 68% sourced from existing pantry.', status: 'Completed' },
-      { stageNumber: 9, title: 'Cooking Order Scheduled', detail: 'Batch grain cooking on Sunday saves 1.5 hrs of weeknight prep.', status: 'Completed' },
-      { stageNumber: 10, title: 'Voice Guidance Ready', detail: 'All 7 meals mapped to step-by-step hands-free voice audio.', status: 'Ready' },
-      { stageNumber: 11, title: 'Leftover Repurposing Engine Active', detail: 'Day 3 leftover chicken auto-transforms into Day 4 skillet wrap.', status: 'Ready' },
-      { stageNumber: 12, title: 'Continuous Feedback Learning Armed', detail: 'Every star rating will adapt future macro & seasoning weights.', status: 'Ready' },
-    ],
-    sevenDayMealPlan: [
-      { day: 'Monday', mealName: 'Garlic Chicken & Spinach Skillet', cookTime: '20 min', rescuedIngredient: 'Fresh Spinach & Chicken', protein: '38g', calories: 480 },
-      { day: 'Tuesday', mealName: 'Spiced Lentil, Paneer & Cumin Bowl', cookTime: '25 min', rescuedIngredient: 'Brown Lentils', protein: '32g', calories: 510 },
-      { day: 'Wednesday', mealName: 'Sesame Edamame & Egg Fried Quinoa', cookTime: '15 min', rescuedIngredient: 'Edamame & Eggs', protein: '30g', calories: 460 },
-      { day: 'Thursday', mealName: 'Crispy Herb Chicken & Roasted Veggies', cookTime: '22 min', rescuedIngredient: 'Monday Chicken Fond', protein: '36g', calories: 490 },
-      { day: 'Friday', mealName: 'Mediterranean Chickpea & Tomato Ragout', cookTime: '18 min', rescuedIngredient: 'Tomatoes & Herbs', protein: '26g', calories: 440 },
-      { day: 'Saturday', mealName: 'High-Protein Tofu & Broccoli Flash Wok', cookTime: '14 min', rescuedIngredient: 'Pre-cut Greens', protein: '34g', calories: 420 },
-      { day: 'Sunday', mealName: 'Slow-Simmered Sunday Curry & Fluffy Rice', cookTime: '35 min', rescuedIngredient: 'Whole Spices & Yogurt', protein: '42g', calories: 580 },
-    ],
-    ingredientCrossReuseGraph: [
-      { ingredient: 'Baby Spinach', usedInDays: ['Monday', 'Tuesday', 'Friday'], savingsNote: 'Bought 1 bulk bunch, zero leaves wasted.' },
-      { ingredient: 'Chicken Breast', usedInDays: ['Monday', 'Thursday'], savingsNote: 'Prep once, sear fresh twice.' },
-      { ingredient: 'Basmati Rice', usedInDays: ['Monday', 'Wednesday', 'Sunday'], savingsNote: '1 batch cook, 3 rapid dinners.' },
-    ],
-    consolidatedShoppingList: [
-      { item: 'Chicken Breast (800g)', qty: '800g', estCost: '₹340' },
-      { item: 'Paneer / Tofu (400g)', qty: '400g', estCost: '₹160' },
-      { item: 'Fresh Broccoli & Cabbage', qty: '1 kg', estCost: '₹80' },
-      { item: 'Greek Yogurt (400g)', qty: '400g', estCost: '₹95' },
-      { item: 'Brown Lentils (500g)', qty: '500g', estCost: '₹65' },
-    ],
-    agentExecutiveSummary:
-      'Autonomous plan achieves 92% pantry utilization, saves ₹1,180 in avoided food waste, and meets all personal macro and taste constraints while keeping grocery spending at ₹2,140.',
-  });
+  const [agentResult, setAgentResult] = useState<AutonomousCulinaryAgentResult | null>(null);
 
   if (!isOpen) return null;
 
@@ -134,14 +89,14 @@ export const AutonomousCulinaryAgentModal: React.FC<AutonomousCulinaryAgentModal
               type="text"
               value={goalText}
               onChange={(e) => setGoalText(e.target.value)}
-              placeholder="State your culinary objective..."
+              placeholder="e.g. Plan this week's meals, waste nothing, stay under ₹2,500"
               className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none font-medium"
             />
           </div>
 
           <button
             onClick={handleRunAgent}
-            disabled={isRunning}
+            disabled={isRunning || !goalText.trim()}
             className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2 shrink-0 active:scale-95"
           >
             <Zap className="w-4 h-4 fill-slate-950" />
@@ -149,6 +104,8 @@ export const AutonomousCulinaryAgentModal: React.FC<AutonomousCulinaryAgentModal
           </button>
         </div>
 
+        {agentResult ? (
+        <>
         {/* 4 Agent Telemetry Metrics Strip */}
         <div className="px-6 py-3 bg-slate-950/80 border-b border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div>
@@ -280,6 +237,10 @@ export const AutonomousCulinaryAgentModal: React.FC<AutonomousCulinaryAgentModal
             </div>
           </div>
         </div>
+        </>
+        ) : (
+          <EmptyResult title="Your agent is ready" hint="Describe a goal above and run it. The plan is built from what is in your pantry right now." />
+        )}
       </motion.div>
     </div>
   );
