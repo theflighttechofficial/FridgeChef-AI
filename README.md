@@ -12,8 +12,33 @@
 
 ---
 
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/screenshots/01-welcome.jpg" alt="Welcome screen" width="240"><br><sub><b>Welcome</b>: on-device account, nothing leaves the phone</sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/02-colour.jpg" alt="Pick your colour step" width="240"><br><sub><b>Material You setup</b>: the colour you pick tints the whole app</sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/03-connect-ai.jpg" alt="Connect your AI screen" width="240"><br><sub><b>Connect your AI</b>: one-time prompt to add your own API key</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/04-fridge.jpg" alt="My fridge tab" width="240"><br><sub><b>My fridge</b>: snap a photo or pick a sample fridge</sub></td>
+    <td align="center"><img src="docs/screenshots/05-recipes.jpg" alt="Recipes tab" width="240"><br><sub><b>Cook tonight</b>: recipes from the on-device model</sub></td>
+    <td align="center"><img src="docs/screenshots/06-cooking.jpg" alt="Step-by-step cooking mode" width="240"><br><sub><b>Cooking mode</b>: hands-free steps with timers</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/07-tools.jpg" alt="All tools sheet" width="240"><br><sub><b>All tools</b>: searchable sheet of AI agents and planners</sub></td>
+    <td align="center"><img src="docs/screenshots/08-nutrition.jpg" alt="Personal nutrition dashboard" width="240"><br><sub><b>Nutrition</b>: built from meals you actually cooked</sub></td>
+    <td align="center"><img src="docs/screenshots/09-settings.jpg" alt="Settings screen" width="240"><br><sub><b>Settings</b>: account, recipe engine and AI provider</sub></td>
+  </tr>
+</table>
+
+<p align="center"><img src="docs/screenshots/10-desktop.jpg" alt="Recipes on desktop with navigation rail" width="900"><br><sub><b>Website on desktop</b>: navigation rail, filters and recipe cards</sub></p>
+
+---
+
 ## 📑 Table of Contents
 
+- [📸 Screenshots](#-screenshots)
 - [Overview](#-overview)
 - [Architecture & Tech Stack](#-architecture--tech-stack)
 - [⭐ Flagship AI & Culinary Innovations](#-flagship-ai--culinary-innovations)

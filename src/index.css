@@ -285,6 +285,8 @@ button, a, [role='button'], input, select, label { touch-action: manipulation; }
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
+  /* Full-screen pages (cooking mode, Iron Chef) were see-through without the blur */
+  .fixed.inset-0.z-50.flex-col { background-color: var(--md-surface); }
   /* Hover lift doesn't exist on touch; skip the transform work */
   .hover\:-translate-y-1:hover { transform: none; }
 }
