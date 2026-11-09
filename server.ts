@@ -109,7 +109,7 @@ Generate a structured JSON response containing:
    - nutritionRadarData (array of 6 objects for attributes: 'Protein', 'Fats', 'Carbs', 'Fiber', 'Vitamins', 'Minerals' with relative percentage scores 0-100)
    - servings (number)
    - chefTip (string)
-   - steps: Array of objects ({ stepNumber: number, instruction: string, timerSeconds: optional number, keyIngredients: optional array of strings, chefTip: optional string })
+   - steps: 5-10 step objects a beginner can follow ({ stepNumber: number, instruction: string (one clear action), details: array of 2-4 short how-to sentences, cue: string (how to tell it is done), heat: 'Off'|'Low'|'Medium-low'|'Medium'|'Medium-high'|'High', timerSeconds: optional number, keyIngredients: optional array of strings, chefTip: optional string }). Start with a prep step (washing, chopping, measuring) and end with tasting and serving.
 ${extraPrompt ? `Additional note from user: ${extraPrompt}` : ''}`;
 
     const imagePart = {
@@ -158,6 +158,7 @@ ${extraPrompt ? `Additional note from user: ${extraPrompt}` : ''}`;
                   cuisine: { type: Type.STRING },
                   matchedIngredients: { type: Type.ARRAY, items: { type: Type.STRING } },
                   missingIngredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  assumedIngredients: { type: Type.ARRAY, items: { type: Type.STRING } },
                   macros: {
                     type: Type.OBJECT,
                     properties: {
@@ -185,6 +186,9 @@ ${extraPrompt ? `Additional note from user: ${extraPrompt}` : ''}`;
                       type: Type.OBJECT,
                       properties: {
                         stepNumber: { type: Type.NUMBER },
+                        details: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        cue: { type: Type.STRING },
+                        heat: { type: Type.STRING },
                         instruction: { type: Type.STRING },
                         timerSeconds: { type: Type.NUMBER },
                         keyIngredients: { type: Type.ARRAY, items: { type: Type.STRING } },
@@ -257,11 +261,16 @@ app.post('/api/generate-recipes', async (req, res) => {
       regionalTaxonomy,
       taxonomyRequirement,
       avoidTitles,
+      kitchenBasics,
+      missingBasics,
     } = req.body;
+    const list = (x: unknown) => (Array.isArray(x) ? x.slice(0, 30).map((v) => String(v).slice(0, 40)).join(', ') : '');
     const ai = getGeminiClient();
 
     const promptText = `You are an elite Michelin-star chef, master culinary taxonomist, and nutritionist.
 Given these available ingredients: [${(ingredients || []).join(', ')}]
+${list(kitchenBasics) ? `Assume the kitchen also has these basics, and use them freely where they make the dish better: [${list(kitchenBasics)}].` : ''}
+${list(missingBasics) ? `The user is OUT of: [${list(missingBasics)}]. Do not rely on them; list them under missingIngredients if a recipe truly needs them.` : ''}
 
 User Preferences & Restrictions:
 - Dietary Restrictions: ${dietary.length > 0 ? dietary.join(', ') : 'None'}
@@ -304,7 +313,8 @@ Each recipe must strictly contain:
 - macros ({ protein: string, carbs: string, fat: string })
 - servings (number)
 - chefTip (string)
-- steps: Array of detailed objects ({ stepNumber: number, instruction: string, timerSeconds: optional number, keyIngredients: optional array of strings, chefTip: optional string })
+- steps: 5-10 step objects a beginner can follow ({ stepNumber: number, instruction: string (one clear action), details: array of 2-4 short how-to sentences, cue: string (how to tell it is done), heat: 'Off'|'Low'|'Medium-low'|'Medium'|'Medium-high'|'High', timerSeconds: optional number, keyIngredients: optional array of strings, chefTip: optional string }). Start with a prep step (washing, chopping, measuring) and end with tasting and serving.
+- assumedIngredients (array of strings: kitchen basics from the list above that the recipe uses)
 `;
 
     const response = await ai.models.generateContent({
@@ -331,6 +341,7 @@ Each recipe must strictly contain:
                   cuisine: { type: Type.STRING },
                   matchedIngredients: { type: Type.ARRAY, items: { type: Type.STRING } },
                   missingIngredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  assumedIngredients: { type: Type.ARRAY, items: { type: Type.STRING } },
                   macros: {
                     type: Type.OBJECT,
                     properties: {
@@ -358,6 +369,9 @@ Each recipe must strictly contain:
                       type: Type.OBJECT,
                       properties: {
                         stepNumber: { type: Type.NUMBER },
+                        details: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        cue: { type: Type.STRING },
+                        heat: { type: Type.STRING },
                         instruction: { type: Type.STRING },
                         timerSeconds: { type: Type.NUMBER },
                         keyIngredients: { type: Type.ARRAY, items: { type: Type.STRING } },

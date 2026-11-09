@@ -274,7 +274,7 @@ button, a, [role='button'], input, select, label { touch-action: manipulation; }
 .overflow-y-auto { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 
 /* Off-screen recipe cards skip layout and paint until scrolled near */
-.cv-auto { content-visibility: auto; contain-intrinsic-size: auto 460px; }
+.cv-auto { content-visibility: auto; contain-intrinsic-size: auto 380px; }
 
 /* Attention animations play a few times instead of forever */
 .animate-bounce { animation-iteration-count: 3; }

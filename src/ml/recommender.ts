@@ -11,6 +11,8 @@ import { canonicalPantry } from './normalize';
 import { recipeFeatures, roleOf, Similarity } from './features';
 import { tasteScore } from './tasteModel';
 import { composeRecipes, predictRegions } from './composer';
+import { basicLabel } from './basics';
+import { elaborateRecipe } from './elaborate';
 
 const SUBSTITUTE_THRESHOLD = 0.85;
 const TASTE_WEIGHT = 1.2;
@@ -71,6 +73,9 @@ export interface RecommendOptions {
   round?: number;
   // Regions the person said they love during setup; a gentle boost, not a filter
   preferredRegions?: string[];
+  // Kitchen basics assumed to be at home (canonical names), and ones the person said they lack
+  assumed?: string[];
+  missingBasics?: string[];
 }
 
 export interface Recommendation {
@@ -78,10 +83,11 @@ export interface Recommendation {
   score: number;
 }
 
-const toRecipe = (r: CorpusRecipe, pantry: Map<string, string>): Recipe => {
+const toRecipe = (r: CorpusRecipe, pantry: Map<string, string>, assumed: Set<string> = new Set(), lacking: Set<string> = new Set()): Recipe => {
   const pantryCore = [...pantry.keys()].filter((p) => roleOf(p) === 'core');
   const matched: string[] = [];
   const missing: string[] = [];
+  const used: string[] = [];
   const substitutions: { missing: string; use: string }[] = [];
   for (const ing of r.ingredients) {
     const role = roleOf(ing);
@@ -89,7 +95,11 @@ const toRecipe = (r: CorpusRecipe, pantry: Map<string, string>): Recipe => {
       matched.push(pantry.get(ing)!);
       continue;
     }
-    if (role === 'staple') continue;
+    if (assumed.has(ing)) {
+      used.push(basicLabel(ing));
+      continue;
+    }
+    if (role === 'staple' && !lacking.has(ing)) continue;
     const best = role === 'core' ? pantryCore.map((p) => [p, similarity(ing, p)] as const).sort((a, b) => b[1] - a[1])[0] : undefined;
     if (best && best[1] >= SUBSTITUTE_THRESHOLD) substitutions.push({ missing: title(ing), use: pantry.get(best[0])! });
     else missing.push(title(ing));
@@ -108,6 +118,7 @@ const toRecipe = (r: CorpusRecipe, pantry: Map<string, string>): Recipe => {
     region: r.region,
     matchedIngredients: [...new Set(matched)],
     missingIngredients: missing,
+    assumedIngredients: used,
     substitutions,
     macros: { protein: `${protein}g`, carbs: `${carbs}g`, fat: `${fat}g` },
     servings: r.servings,
@@ -119,22 +130,28 @@ const toRecipe = (r: CorpusRecipe, pantry: Map<string, string>): Recipe => {
 };
 
 /** Rank the bundled recipes for this pantry. */
-export const recommend = (ingredients: Ingredient[], { filters = {}, limit = 6, exclude, explore = 0, round = 0, preferredRegions = [] }: RecommendOptions = {}): Recommendation[] => {
+export const recommend = (
+  ingredients: Ingredient[],
+  { filters = {}, limit = 6, exclude, explore = 0, round = 0, preferredRegions = [], assumed = [], missingBasics = [] }: RecommendOptions = {}
+): Recommendation[] => {
   const pantry = canonicalPantry(ingredients.map((i) => i.name));
-  const pantrySet = new Set(pantry.keys());
+  const owned = new Set(pantry.keys());
+  const assumedSet = new Set(assumed.filter((a) => !owned.has(a)));
+  const lacking = new Set(missingBasics);
+  const pantrySet = new Set([...owned, ...assumedSet]);
   const expiring = canonicalPantry(ingredients.filter((i) => i.freshness === 'Use Soon').map((i) => i.name));
   const weights: number[] = model.weights;
   const dietary = filters.dietary || [];
 
-  const regionFit = predictRegions([...pantrySet]);
+  const regionFit = predictRegions([...owned]);
   const coverage = new Map<string, number>();
   const scored = RECIPES.filter((r) => satisfiesDiet(r.tags, dietary))
     .filter((r) => !filters.difficulty || filters.difficulty === 'All' || r.difficulty === filters.difficulty)
     .filter((r) => !filters.cuisine || filters.cuisine === 'All' || r.cuisine === filters.cuisine || r.region === filters.cuisine)
     .map((r) => {
-      const feats = recipeFeatures(pantrySet, r.ingredients, similarity, regionFit[r.region] || 0);
+      const feats = recipeFeatures(pantrySet, r.ingredients, similarity, regionFit[r.region] || 0, owned);
       let score = feats.reduce((s, f, k) => s + f * weights[k], 0);
-      const recipe = toRecipe(r, pantry);
+      const recipe = toRecipe(r, pantry, assumedSet, lacking);
       coverage.set(recipe.id, feats[0]);
       score += TASTE_WEIGHT * tasteScore(recipe);
       if (preferredRegions.includes(r.region)) score += PREFERRED_REGION_BONUS;
@@ -177,13 +194,26 @@ export const recommend = (ingredients: Ingredient[], { filters = {}, limit = 6, 
   // Pantries the corpus covers poorly still get recipes built from exactly what is there
   const best = Math.max(0, ...picked.map((p) => coverage.get(p.recipe.id) || 0));
   const weak = best < WEAK_MATCH;
-  const composed = composeRecipes(pantry, { dietary, cuisine: filters.cuisine, limit: weak ? 2 : 1, variant: round }).map((recipe) => ({
+  const composed = composeRecipes(pantry, { dietary, cuisine: filters.cuisine, limit: weak ? 2 : 1, variant: round, assumed: assumedSet }).map((recipe) => ({
     recipe,
     score: weak ? Infinity : -Infinity,
   }));
-  if (!composed.length) return picked;
-  return weak ? [...composed, ...picked].slice(0, limit) : [...picked.slice(0, limit - 1), ...composed.slice(0, 1)];
+  const list = !composed.length ? picked : weak ? [...composed, ...picked].slice(0, limit) : [...picked.slice(0, limit - 1), ...composed.slice(0, 1)];
+  // Detailed, beginner-friendly method only for the recipes actually shown
+  return list.map(({ recipe, score }) => ({ recipe: withMethod(recipe), score }));
 };
+
+const withMethod = (r: Recipe): Recipe =>
+  r.steps.some((s) => s.kind) ? r : {
+    ...r,
+    steps: elaborateRecipe({
+      title: r.title,
+      ingredients: [...r.matchedIngredients, ...(r.substitutions || []).map((s) => s.use), ...r.missingIngredients],
+      assumed: r.assumedIngredients,
+      steps: r.steps,
+      chefTip: r.chefTip,
+    }),
+  };
 
 /** Closest substitutes in the pantry (or overall) for one ingredient, by learned similarity. */
 export const substitutesFor = (name: string, limit = 5) => {

@@ -106,7 +106,7 @@ export const parseJsonReply = <T = any>(raw: string): T => {
   }
 };
 
-const RECIPE_SHAPE = `Each recipe: { "title", "description", "prepTimeMinutes", "cookTimeMinutes", "calories", "difficulty" ("Easy"|"Medium"|"Hard"), "dietaryTags" (string[]), "cuisine", "matchedIngredients" (string[] from the available list), "missingIngredients" (1-3 strings), "macros" { "protein", "carbs", "fat" } as "25g" strings, "servings", "chefTip", "steps": [{ "stepNumber", "instruction", "timerSeconds" (optional number) }] }`;
+const RECIPE_SHAPE = `Each recipe: { "title", "description", "prepTimeMinutes", "cookTimeMinutes", "calories", "difficulty" ("Easy"|"Medium"|"Hard"), "dietaryTags" (string[]), "cuisine", "matchedIngredients" (string[] from the available list), "missingIngredients" (1-3 strings), "macros" { "protein", "carbs", "fat" } as "25g" strings, "servings", "chefTip", "assumedIngredients" (string[] of kitchen basics used), "steps": 5-10 beginner-friendly steps, starting with prep and ending with tasting and serving: [{ "stepNumber", "instruction" (one clear action), "details" (2-4 short how-to sentences), "cue" (how to tell it is done), "heat" ("Off"|"Low"|"Medium-low"|"Medium"|"Medium-high"|"High"), "timerSeconds" (optional number) }] }`;
 
 export const directGenerateRecipes = async (body: {
   ingredients: string[];
@@ -115,10 +115,12 @@ export const directGenerateRecipes = async (body: {
   difficulty?: string;
   cuisine?: string;
   avoidTitles?: string[];
+  kitchenBasics?: string[];
+  missingBasics?: string[];
 }) => {
   const prompt = `You are a professional chef. Suggest 6 varied, realistic recipes that mainly use these available ingredients: ${body.ingredients.join(', ')}.
 Make them genuinely different from each other: different cuisines, cooking methods (curry, stir-fry, roast, salad, soup, grill, bake) and main ingredients.${body.avoidTitles?.length ? `\nDo not suggest these again: ${body.avoidTitles.join('; ')}.` : ''}
-Dietary needs: ${body.dietary?.length ? body.dietary.join(', ') : 'none'}. Max total time: ${body.maxPrepTime ? `${body.maxPrepTime} minutes` : 'any'}. Difficulty: ${body.difficulty || 'any'}. Cuisine: ${body.cuisine || 'any, mix cuisines'}.
+${body.kitchenBasics?.length ? `Assume the kitchen also has these basics and use them freely: ${body.kitchenBasics.join(', ')}.\n` : ''}${body.missingBasics?.length ? `The user is out of: ${body.missingBasics.join(', ')}. Do not rely on them.\n` : ''}Dietary needs: ${body.dietary?.length ? body.dietary.join(', ') : 'none'}. Max total time: ${body.maxPrepTime ? `${body.maxPrepTime} minutes` : 'any'}. Difficulty: ${body.difficulty || 'any'}. Cuisine: ${body.cuisine || 'any, mix cuisines'}.
 Return JSON { "recipes": [...] }. ${RECIPE_SHAPE}`;
   return parseJsonReply<{ recipes: any[] }>(await directComplete({ prompt, json: true }));
 };

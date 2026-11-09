@@ -389,8 +389,11 @@ export default function App() {
   const resetFilters = useCallback(() => setFilters(DEFAULT_FILTERS), []);
 
   // Handle Preset Fridge Selection
-  const handleSelectPreset = (preset: PresetFridge) => {
+  // A sample fridge also gets matching recipes right away from the on-device model (instant, offline)
+  const handleSelectPreset = async (preset: PresetFridge) => {
     setCurrentIngredients(preset.ingredients);
+    setRecipes(await localRecipes(preset.ingredients, filters));
+    setRecipeSource('local-model');
   };
 
   // Photo -> ingredients (+ recipes). Cloud AI reads the photo; the on-device model fills in
@@ -698,32 +701,18 @@ export default function App() {
                 isAnalyzing={isAnalyzing || isGeneratingRecipes}
               />
 
-              {/* Widgets that read the pantry appear once there is something in it */}
-              {currentIngredients.length > 0 && (<>
-              {/* 🤖 Autonomous Meal Decision Engine: What Should Be Cooked Right Now? */}
+              {/* One suggestion for right now once there is food; sample dishes while the fridge is empty */}
               <Reveal>
-                <AutonomousMealDecisionWidget
-                  ingredients={currentIngredients}
-                  memoryProfile={memoryProfile}
-                  onStartCookingRecipe={(rec) => handleStartCooking(rec)}
-                />
+                {currentIngredients.length > 0 ? (
+                  <AutonomousMealDecisionWidget
+                    ingredients={currentIngredients}
+                    memoryProfile={memoryProfile}
+                    onStartCookingRecipe={(rec) => handleStartCooking(rec)}
+                  />
+                ) : (
+                  <PantryEmergencyMode onStartCooking={handleStartCooking} />
+                )}
               </Reveal>
-
-              {/* 🧊 Flagship Fridge Digital Twin */}
-              <Reveal>
-                <FridgeDigitalTwin
-                  ingredients={currentIngredients}
-                  onSelectIngredientToCook={(ingName) => {
-                    setFilters((prev) => ({ ...prev, searchQuery: ingName }));
-                    setActiveTab('recipes');
-                  }}
-                />
-              </Reveal>
-              </>)}
-              <Reveal>
-                <PantryEmergencyMode onStartCooking={handleStartCooking} />
-              </Reveal>
-
             </motion.div>
           )}
 
@@ -738,42 +727,30 @@ export default function App() {
             className="space-y-6"
           >
             {/* Header: what this list is, where it came from, regenerate */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-              <div className="space-y-2">
+            <div className="flex items-end justify-between gap-4">
+              <div className="space-y-1 min-w-0">
                 <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
                   {activeTab === 'saved' ? 'Saved recipes' : 'Cook tonight'}
                 </h2>
-                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
-                  <span>Matched against {currentIngredients.length} ingredients in your fridge</span>
-                  {activeTab === 'recipes' && (
-                    <span className="inline-flex items-center gap-1.5 h-7 px-3 rounded-lg bg-secondary-container text-on-secondary-container text-xs font-semibold">
-                      {recipeSource === 'local-model' ? <Cpu className="w-3.5 h-3.5" /> : recipeSource === 'ai' ? <Cloud className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
-                      {recipeSource === 'local-model' ? 'On-device model' : recipeSource === 'ai' ? 'Cloud AI' : 'Featured'}
+                {activeTab === 'recipes' && (
+                  <p className="text-sm text-slate-400 flex items-center gap-1.5">
+                    {recipeSource === 'local-model' ? <Cpu className="w-4 h-4 shrink-0" /> : recipeSource === 'ai' ? <Cloud className="w-4 h-4 shrink-0" /> : <Sparkles className="w-4 h-4 shrink-0" />}
+                    <span className="truncate">
+                      {recipeSource === 'sample' ? 'Sample dishes' : `${currentIngredients.length} fridge items + kitchen basics`}
                     </span>
-                  )}
-                </div>
+                  </p>
+                )}
               </div>
 
               {activeTab === 'recipes' && (
-                <div className="flex flex-wrap gap-2 self-start sm:self-auto">
-                  <button
-                    onClick={() => handleGenerateRecipesFromIngredients(true)}
-                    disabled={isGeneratingRecipes}
-                    className="h-12 px-5 rounded-full border border-slate-700 text-emerald-300 font-semibold text-sm flex items-center gap-2 state-layer disabled:opacity-50"
-                    title="Instant, offline suggestions from the model built into the app"
-                  >
-                    <Cpu className="w-5 h-5" />
-                    <span>On-device</span>
-                  </button>
-                  <button
-                    onClick={() => handleGenerateRecipesFromIngredients()}
-                    disabled={isGeneratingRecipes}
-                    className="h-12 px-6 rounded-full bg-emerald-300 text-emerald-950 font-semibold text-sm flex items-center gap-2 disabled:opacity-50 btn-sheen"
-                  >
-                    <RefreshCw className={`w-5 h-5 ${isGeneratingRecipes ? 'animate-spin' : ''}`} />
-                    <span>New ideas</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => handleGenerateRecipesFromIngredients()}
+                  disabled={isGeneratingRecipes}
+                  className="h-12 px-5 shrink-0 rounded-full bg-emerald-300 text-emerald-950 font-semibold text-sm flex items-center gap-2 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-5 h-5 ${isGeneratingRecipes ? 'animate-spin' : ''}`} />
+                  <span>New ideas</span>
+                </button>
               )}
             </div>
 
@@ -784,8 +761,6 @@ export default function App() {
               onSelectTime={selectTimeBudget}
               selectedMood={selectedMoodMode}
               onSelectMood={setSelectedMoodMode}
-              skillLevel={cookingSkillLevel}
-              onSelectSkillLevel={setCookingSkillLevel}
             />
             </>)}
 
@@ -883,7 +858,6 @@ export default function App() {
                 onAddMissingToShoppingList={handleAddCustomIngredientNamesToShoppingList}
                 onStartCooking={handleStartCooking}
               />
-              <GourmetSommelierWidget />
             </Suspense>
             </Reveal>
 
@@ -902,7 +876,17 @@ export default function App() {
             className="space-y-6"
           >
             <Suspense fallback={<SectionFallback />}>
+              {currentIngredients.length > 0 && (
+                <FridgeDigitalTwin
+                  ingredients={currentIngredients}
+                  onSelectIngredientToCook={(ingName) => {
+                    setFilters((prev) => ({ ...prev, searchQuery: ingName }));
+                    setActiveTab('recipes');
+                  }}
+                />
+              )}
               <MolecularLabTab currentIngredients={currentIngredients} />
+              <GourmetSommelierWidget />
               <AcousticSensoryLab />
             </Suspense>
           </motion.div>

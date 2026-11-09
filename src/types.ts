@@ -13,6 +13,12 @@ export interface CookingStep {
   timerSeconds?: number;
   keyIngredients?: string[];
   chefTip?: string;
+  // Beginner-friendly detail (src/ml/elaborate.ts or the AI): how to do it, heat and when it is done
+  title?: string;
+  details?: string[];
+  cue?: string;
+  heat?: 'Off' | 'Low' | 'Medium-low' | 'Medium' | 'Medium-high' | 'High';
+  kind?: 'prep' | 'cook' | 'serve';
 }
 
 export interface NutritionRadarPoint {
@@ -42,6 +48,8 @@ export interface Recipe {
   region?: string; // e.g. 'Indian', 'East Asian', 'European'
   matchedIngredients: string[];
   missingIngredients: string[];
+  // Kitchen basics (salt, spices, onion...) the recipe uses that were assumed rather than scanned
+  assumedIngredients?: string[];
   macros: {
     protein: string;
     carbs: string;

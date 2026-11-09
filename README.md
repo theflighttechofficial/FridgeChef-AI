@@ -117,6 +117,14 @@ Pick a model, then press **Test connection**.
 
 `src/ml/` holds a recipe recommender that runs fully offline:
 
+- **Kitchen basics** (`src/ml/basics.ts`): salt, oil, common spices, onion, garlic, ginger, green chili,
+  coriander leaves and lemon are assumed to be at home, so recipes can use them without them being in the
+  fridge scan. Tap one under *Kitchen basics* (Fridge tab or Settings), or on the cooking screen's prep step,
+  to report you're out of it; from then on it counts as missing. Cloud AI is told the same list.
+- **Detailed method** (`src/ml/elaborate.ts`): every recipe opens with a prep step (what to wash, chop and
+  measure), each cooking step adds how to do it, the heat to use and how to tell it's done, and a final step
+  covers tasting, garnish and serving.
+
 - **Recipes**: 424 recipes across 82 cuisines in 10 regions (`src/ml/data/`):
   - **Indian, 25 regional cuisines**: Punjabi, North Indian, Mughlai, Awadhi, Kashmiri, Rajasthani, Gujarati,
     Maharashtrian, Goan, Mangalorean, Sindhi, Parsi, Bengali, Odia, Bihari, Northeast Indian, Hyderabadi, Andhra,

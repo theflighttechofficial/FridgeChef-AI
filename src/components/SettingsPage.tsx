@@ -6,6 +6,7 @@ import { directComplete } from '../ai/directLlm';
 import { SEEDS, setSeed, useSeed } from '../theme/dynamicColor';
 import { getTasteState, resetTaste, subscribeTaste, topTastes } from '../ml/tasteModel';
 import model from '../ml/model.json';
+import { KitchenBasicsCard } from './KitchenBasicsCard';
 import { deleteAccount, initials, signOut, updateProfile, useAccount } from '../auth/account';
 
 const Card: React.FC<{ icon: React.ComponentType<{ className?: string }>; title: string; subtitle?: string; children: React.ReactNode }> = ({ icon: Icon, title, subtitle, children }) => (
@@ -156,6 +157,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTryLocalModel }) =
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-8">
       <AccountCard />
+      <KitchenBasicsCard defaultOpen />
       {/* Recipe engine */}
       <Card icon={Sparkles} title="Recipe engine" subtitle="Where recipe ideas come from.">
         <div className="grid grid-cols-2 p-1 rounded-full border border-outline-variant" role="radiogroup" aria-label="Recipe engine">
