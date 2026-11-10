@@ -4,6 +4,7 @@
  * OpenAI-compatible endpoints (Ollama, LM Studio) that the server never contacts.
  */
 import { activeProvider, getAiSettings } from './settings';
+import { canTryNextModel, friendlyAiError, geminiModelChain, listGeminiModels, parseLooseJson } from './resilience';
 
 export interface DirectRequest {
   prompt: string;
@@ -36,24 +37,76 @@ const withTimeout = async (url: string, init: RequestInit) => {
 
 const JSON_INSTRUCTION = 'Reply with one valid JSON object only. No prose, no code fences.';
 
-export const directComplete = async ({ prompt, json, image, maxTokens = 4096 }: DirectRequest): Promise<string> => {
+// Gemini model that last answered for a key + chosen model, so later calls skip the dead ones
+const workingGeminiModel = new Map<string, string>();
+
+/** Model that answered the most recent Gemini call (differs from the chosen one after a fallback). */
+export let lastGeminiModel = '';
+
+export const directComplete = async (request: DirectRequest): Promise<string> => {
   const p = activeProvider(getAiSettings());
   if (!p) throw new Error('Add an API key in Settings first');
-  if (image && !p.def.vision) throw new Error(`${p.def.label} cannot read photos; pick a vision-capable provider`);
+  if (request.image && !p.def.vision) throw new Error(`${p.def.label} cannot read photos; pick a vision-capable provider`);
+  try {
+    return await complete(p, request);
+  } catch (err) {
+    throw new Error(friendlyAiError(err, p.model));
+  }
+};
+
+const complete = async (p: NonNullable<ReturnType<typeof activeProvider>>, { prompt, json, image, maxTokens }: DirectRequest): Promise<string> => {
 
   if (p.def.kind === 'gemini') {
     const parts: any[] = [];
     if (image) parts.push({ inlineData: { data: image.base64, mimeType: image.mimeType } });
     parts.push({ text: prompt });
-    const data = await withTimeout(`${p.baseUrl}/v1beta/models/${encodeURIComponent(p.model)}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': p.apiKey },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts }],
-        generationConfig: { maxOutputTokens: maxTokens, ...(json ? { responseMimeType: 'application/json' } : {}) },
-      }),
-    });
-    return (data?.candidates?.[0]?.content?.parts || []).map((x: any) => x.text || '').join('');
+    // No output cap by default: thinking tokens count against it and a low cap cuts the answer off
+    const generationConfig = { ...(maxTokens ? { maxOutputTokens: maxTokens } : {}), ...(json ? { responseMimeType: 'application/json' } : {}) };
+    const call = async (model: string) => {
+      const data = await withTimeout(`${p.baseUrl}/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': p.apiKey },
+        body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig }),
+      });
+      const candidate = data?.candidates?.[0];
+      const text = (candidate?.content?.parts || []).filter((x: any) => !x.thought).map((x: any) => x.text || '').join('');
+      if (!text.trim()) {
+        const reason = data?.promptFeedback?.blockReason || candidate?.finishReason;
+        throw new Error(reason === 'MAX_TOKENS' ? 'The answer was cut off before it started. Try again.' : `The model returned no text${reason ? ` (${reason})` : ''}.`);
+      }
+      return text;
+    };
+
+    const memoKey = `${p.apiKey}|${p.model}`;
+    const remembered = workingGeminiModel.get(memoKey);
+    const chain = geminiModelChain(p.model);
+    const order = remembered ? [remembered, ...chain.filter((m) => m !== remembered)] : chain;
+    const tried = new Set<string>();
+    let lastError: unknown;
+    const attempt = async (model: string) => {
+      tried.add(model);
+      try {
+        const text = await call(model);
+        workingGeminiModel.set(memoKey, model);
+        lastGeminiModel = model;
+        return text;
+      } catch (err) {
+        // Report the failure of the model the person chose, not of a later stand-in
+        if (model === p.model || !lastError) lastError = err;
+        if (!canTryNextModel(err)) throw lastError;
+        return null;
+      }
+    };
+    for (const model of order) {
+      const text = await attempt(model);
+      if (text !== null) return text;
+    }
+    // Every known model failed: ask the API which models this key can really use
+    for (const model of (await listGeminiModels(p.baseUrl, p.apiKey)).filter((m) => !tried.has(m)).slice(0, 2)) {
+      const text = await attempt(model);
+      if (text !== null) return text;
+    }
+    throw lastError;
   }
 
   if (p.def.kind === 'anthropic') {
@@ -70,7 +123,7 @@ export const directComplete = async ({ prompt, json, image, maxTokens = 4096 }: 
       },
       body: JSON.stringify({
         model: p.model,
-        max_tokens: maxTokens,
+        max_tokens: maxTokens || 8192,
         ...(json ? { system: JSON_INSTRUCTION } : {}),
         messages: [{ role: 'user', content }],
       }),
@@ -94,17 +147,8 @@ export const directComplete = async ({ prompt, json, image, maxTokens = 4096 }: 
   return String(data?.choices?.[0]?.message?.content ?? '');
 };
 
-/** Strip code fences or stray prose around a JSON answer and parse it. */
-export const parseJsonReply = <T = any>(raw: string): T => {
-  const trimmed = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    const start = trimmed.search(/[[{]/);
-    const end = Math.max(trimmed.lastIndexOf('}'), trimmed.lastIndexOf(']'));
-    return JSON.parse(trimmed.slice(start, end + 1));
-  }
-};
+/** Strip code fences or stray prose around a JSON answer and parse it; a cut-off answer keeps its complete items. */
+export const parseJsonReply = parseLooseJson;
 
 const RECIPE_SHAPE = `Each recipe: { "title", "description", "prepTimeMinutes", "cookTimeMinutes", "calories", "difficulty" ("Easy"|"Medium"|"Hard"), "dietaryTags" (string[]), "cuisine", "matchedIngredients" (string[] from the available list), "missingIngredients" (1-3 strings), "macros" { "protein", "carbs", "fat" } as "25g" strings, "servings", "chefTip", "assumedIngredients" (string[] of kitchen basics used), "steps": 5-10 beginner-friendly steps, starting with prep and ending with tasting and serving: [{ "stepNumber", "instruction" (one clear action), "details" (2-4 short how-to sentences), "cue" (how to tell it is done), "heat" ("Off"|"Low"|"Medium-low"|"Medium"|"Medium-high"|"High"), "timerSeconds" (optional number) }] }`;
 

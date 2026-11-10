@@ -180,7 +180,7 @@ export const generateRecipes = async (ingredients: Ingredient[], filters: Filter
         return { recipes, source: 'ai' };
       }
     } catch (err: any) {
-      notice = `${provider.def.label} didn't answer (${String(err?.message || err).slice(0, 120)}).`;
+      notice = `${provider.def.label}: ${String(err?.message || err).slice(0, 160)}`;
     }
   }
 

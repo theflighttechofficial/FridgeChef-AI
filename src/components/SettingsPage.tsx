@@ -144,7 +144,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTryLocalModel }) =
       }
     }
     try {
-      const reply = await directComplete({ prompt: 'Reply with the single word OK.', maxTokens: 64 });
+      const reply = await directComplete({ prompt: 'Reply with the single word OK.' });
       setTest({ status: 'ok', reply: reply.trim().slice(0, 40), via: 'directly from this device' });
     } catch (err: any) {
       setTest({ status: 'error', error: String(err?.message || err).slice(0, 200) });

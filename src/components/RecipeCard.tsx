@@ -47,7 +47,7 @@ interface RecipeCardProps {
   onOpenValidation?: (recipe: Recipe) => void;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({
+const RecipeCardView: React.FC<RecipeCardProps> = ({
   recipe,
   onSelectRecipe,
   onAddMissingToShoppingList,
@@ -149,7 +149,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           />
         ) : (
           <div className="w-full h-full relative" style={{ background: `linear-gradient(135deg, oklch(42% 0.09 ${art.hue}), oklch(26% 0.05 ${art.hue}))` }}>
-            <span aria-hidden="true" className="absolute right-6 top-1/2 -translate-y-1/2 text-7xl rotate-[-8deg] drop-shadow-xl">
+            <span aria-hidden="true" className="absolute right-6 top-1/2 text-7xl drop-shadow-xl animate-float">
               {art.emoji}
             </span>
           </div>
@@ -349,3 +349,6 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
     </div>
   );
 };
+
+// Re-render a card only when its own recipe or state changes, not on every keystroke in the filters
+export const RecipeCard = React.memo(RecipeCardView);

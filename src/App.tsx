@@ -2,9 +2,6 @@ import React, { useState, useMemo, useCallback, useEffect, useRef, lazy, Suspens
 import { motion, AnimatePresence, Variants, MotionConfig } from 'framer-motion';
 import { Reveal } from './components/Reveal';
 import { LogoMark } from './components/Logo';
-import { IntroShowreel } from './components/IntroShowreel';
-import { LegalPage } from './components/LegalPage';
-import { ContactPage, ThanksPage, NotFoundPage } from './components/StaticPages';
 import { ConsentBanner } from './components/ConsentBanner';
 import { setPageMeta } from './utils/seo';
 import { track } from './utils/analytics';
@@ -53,10 +50,17 @@ import {
   INITIAL_RECIPES,
 } from './data/sampleData';
 import { usePersistentState } from './hooks/usePersistentState';
+import { useStableCallback } from './hooks/useStableCallback';
 
 import { RefreshCw, ChefHat, Bookmark, Cpu, Cloud, Sparkles } from 'lucide-react';
 
 // Code-split: modals and non-default tabs load on demand to keep the initial bundle small
+// Shown once (intro) or only on their own routes, so they stay out of the first download
+const IntroShowreel = lazy(() => import('./components/IntroShowreel').then((m) => ({ default: m.IntroShowreel })));
+const LegalPage = lazy(() => import('./components/LegalPage').then((m) => ({ default: m.LegalPage })));
+const ContactPage = lazy(() => import('./components/StaticPages').then((m) => ({ default: m.ContactPage })));
+const ThanksPage = lazy(() => import('./components/StaticPages').then((m) => ({ default: m.ThanksPage })));
+const NotFoundPage = lazy(() => import('./components/StaticPages').then((m) => ({ default: m.NotFoundPage })));
 const StepByStepCookingModal = lazy(() => import('./components/StepByStepCookingModal').then((m) => ({ default: m.StepByStepCookingModal })));
 const ShoppingListTab = lazy(() => import('./components/ShoppingListTab').then((m) => ({ default: m.ShoppingListTab })));
 const MolecularLabTab = lazy(() => import('./components/MolecularLabTab').then((m) => ({ default: m.MolecularLabTab })));
@@ -94,8 +98,8 @@ const containerVariants: Variants = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.04,
+      staggerChildren: 0.045,
+      delayChildren: 0.02,
     },
   },
 };
@@ -106,10 +110,7 @@ const itemVariants: Variants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: {
-      duration: 0.4,
-      ease: 'easeOut',
-    },
+    transition: { type: 'spring', stiffness: 380, damping: 30, mass: 0.8 },
   },
 };
 
@@ -168,7 +169,7 @@ const ModalFallback = () => (
 
 // Placeholder shaped like a RecipeCard, shown while new recipes are being generated
 const RecipeCardSkeleton = () => (
-  <div className="bg-slate-900 rounded-3xl overflow-hidden animate-pulse">
+  <div className="bg-slate-900 rounded-3xl overflow-hidden skeleton-shimmer">
     <div className="h-48 bg-slate-800/70" />
     <div className="p-5 space-y-3">
       <div className="h-4 w-2/3 rounded bg-slate-800" />
@@ -466,7 +467,7 @@ export default function App() {
   };
 
   // Add Missing Ingredients to Shopping List
-  const handleAddMissingToShoppingList = (recipe: Recipe) => {
+  const handleAddMissingToShoppingList = useStableCallback((recipe: Recipe) => {
     if (recipe.missingIngredients.length === 0 || addedShoppingRecipeIds.includes(recipe.id)) return;
 
     const newItems: ShoppingItem[] = recipe.missingIngredients.map((item, idx) => ({
@@ -481,7 +482,7 @@ export default function App() {
 
     setShoppingList((prev) => mergeShoppingItems(prev, newItems));
     setAddedShoppingRecipeIds((prev) => [...prev, recipe.id]);
-  };
+  });
 
   const handleAddCustomIngredientNamesToShoppingList = useCallback((ingredientNames: string[]) => {
     const newItems: ShoppingItem[] = ingredientNames.map((item, idx) => ({
@@ -498,18 +499,18 @@ export default function App() {
   }, []);
 
   // Save / Bookmark Recipe
-  const handleToggleSaveRecipe = (recipe: Recipe) => {
+  const handleToggleSaveRecipe = useStableCallback((recipe: Recipe) => {
     const wasSaved = savedRecipes.some((r) => r.id === recipe.id);
     recordTaste(recipe, wasSaved ? 0 : 1);
     setSavedRecipes((prev) => (wasSaved ? prev.filter((r) => r.id !== recipe.id) : [...prev, recipe]));
-  };
+  });
 
   // Starting to cook a recipe is a strong "I like this" signal for the on-device taste model
-  const handleStartCooking = (recipe: Recipe) => {
+  const handleStartCooking = useStableCallback((recipe: Recipe) => {
     recordTaste(recipe, 1);
     recordCook(recipe);
     setCookingRecipe(recipe);
-  };
+  });
 
   const savedRecipeIds = useMemo(() => new Set(savedRecipes.map((r) => r.id)), [savedRecipes]);
 
@@ -604,6 +605,11 @@ export default function App() {
     setShoppingList((prev) => prev.filter((i) => !i.checked));
   };
 
+  const openSubstitutesFor = useCallback((ingName: string) => {
+    setSubstitutionTargetIngredient(ingName);
+    setIsSubstitutionsModalOpen(true);
+  }, []);
+
   const tools = buildTools({
     agent: () => setIsAutonomousAgentOpen(true),
     voice: () => setIsKitchenVoiceOpen(true),
@@ -630,7 +636,7 @@ export default function App() {
 
   if (route !== 'app') {
     return (
-      <>
+      <Suspense fallback={null}>
         {route === 'terms' || route === 'privacy' ? (
           <LegalPage doc={route} />
         ) : route === 'contact' ? (
@@ -641,13 +647,13 @@ export default function App() {
           <NotFoundPage />
         )}
         <ConsentBanner />
-      </>
+      </Suspense>
     );
   }
 
   return (
     <MotionConfig reducedMotion="user">
-    <AnimatePresence>{showIntro && <IntroShowreel onContinue={dismissIntro} />}</AnimatePresence>
+    <Suspense fallback={null}><AnimatePresence>{showIntro && <IntroShowreel onContinue={dismissIntro} />}</AnimatePresence></Suspense>
     <Toaster />
     <ConsentBanner />
     <AuthGate paused={showIntro}>
@@ -824,6 +830,8 @@ export default function App() {
                           key={recipe.id}
                           variants={itemVariants}
                           layout
+                          whileHover={{ y: -4 }}
+                          transition={{ type: 'spring', stiffness: 420, damping: 32 }}
                           exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                         >
                           <RecipeCard
@@ -833,13 +841,10 @@ export default function App() {
                             isSaved={savedRecipeIds.has(recipe.id)}
                             onToggleSave={handleToggleSaveRecipe}
                             isMissingAdded={addedShoppingRecipeIds.includes(recipe.id)}
-                            onOpenSubstitutes={(ingName) => {
-                              setSubstitutionTargetIngredient(ingName);
-                              setIsSubstitutionsModalOpen(true);
-                            }}
-                            onEvolveRecipe={(r) => setEvolvingRecipe(r)}
-                            onExplainRecipe={(r) => setExplainabilityRecipe(r)}
-                            onOpenValidation={(r) => setValidationRecipe(r)}
+                            onOpenSubstitutes={openSubstitutesFor}
+                            onEvolveRecipe={setEvolvingRecipe}
+                            onExplainRecipe={setExplainabilityRecipe}
+                            onOpenValidation={setValidationRecipe}
                           />
                         </motion.div>
                       ))}
