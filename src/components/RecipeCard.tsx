@@ -1,6 +1,6 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Flame, ChefHat, Plus, Check, Bookmark, Heart, Play, AlertCircle, Activity, ChevronDown, ChevronUp, Layers, Dna, Brain, DollarSign, Zap, Cpu } from 'lucide-react';
+import { Clock, Flame, ChefHat, Check, Heart, Play, AlertCircle, Activity, ChevronDown, ChevronUp, Layers, Dna, Brain, MoreVertical } from 'lucide-react';
 import { D3RadarChart, NutritionPoint } from './D3RadarChart';
 import { MealPrepBatchModal } from './MealPrepBatchModal';
 import { SubRecipeModal } from './SubRecipeModal';
@@ -47,7 +47,7 @@ interface RecipeCardProps {
   onOpenValidation?: (recipe: Recipe) => void;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({
+const RecipeCardView: React.FC<RecipeCardProps> = ({
   recipe,
   onSelectRecipe,
   onAddMissingToShoppingList,
@@ -61,10 +61,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 }) => {
   const [imageFailed, setImageFailed] = useState(false);
   const [radarTab, setRadarTab] = useState<'flavor' | 'nutrition'>('flavor');
-  // Collapsed by default on phones so cards stay scannable; expanded on larger screens
-  const [showRadarChart, setShowRadarChart] = useState(
-    () => typeof window === 'undefined' || window.matchMedia('(min-width: 768px)').matches
-  );
+  const [showDetails, setShowDetails] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [showMealPrep, setShowMealPrep] = useState(false);
   const [selectedSubIngredient, setSelectedSubIngredient] = useState<string | null>(null);
 
@@ -73,11 +71,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   const matchCount = recipe.matchedIngredients.length;
   const totalRequired = matchCount + recipe.missingIngredients.length;
   const matchPercent = totalRequired > 0 ? Math.round((matchCount / totalRequired) * 100) : 100;
-
-  // Grocery Price Intelligence estimation
-  const proteinNum = parseInt(recipe.macros?.protein || '28') || 28;
-  const estCostRupees = Math.round(110 + (proteinNum * 1.8) + (recipe.matchedIngredients.length * 8));
-  const costPer10gProtein = ((estCostRupees / proteinNum) * 10).toFixed(1);
+  const basics = recipe.assumedIngredients || [];
 
   // Extract numerical values from macros strings for precise radar scores
   const parseGram = (str?: string) => {
@@ -132,349 +126,209 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
   const flavorDna = getFlavorScores(recipe);
 
+  const menu = [
+    onExplainRecipe && { label: 'Why this recipe?', icon: Brain, run: () => onExplainRecipe(recipe) },
+    onEvolveRecipe && { label: 'Make it better', icon: Dna, run: () => onEvolveRecipe(recipe) },
+    onOpenValidation && { label: 'Check the food science', icon: Activity, run: () => onOpenValidation(recipe) },
+    { label: 'Meal prep for the week', icon: Layers, run: () => setShowMealPrep(true) },
+  ].filter(Boolean) as { label: string; icon: typeof Brain; run: () => void }[];
+
   return (
-    <div className="cv-auto bg-slate-900 rounded-[1.75rem] overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/40 flex flex-col justify-between group">
-      <div>
-        {/* Card Header Media View */}
-        <div className="relative h-48 w-full bg-slate-950 overflow-hidden">
-          {recipe.imageUrl && !imageFailed ? (
-            <img
-              src={recipe.imageUrl}
-              alt={recipe.title}
-              loading="lazy"
-              decoding="async"
-              onError={() => setImageFailed(true)}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div
-              className="w-full h-full relative overflow-hidden"
-              style={{ background: `linear-gradient(135deg, oklch(42% 0.09 ${art.hue}), oklch(24% 0.04 ${art.hue}))` }}
-            >
-              <span aria-hidden="true" className="absolute -right-8 -top-10 w-44 h-44 animate-morph" style={{ background: `oklch(70% 0.14 ${art.hue} / 0.25)` }} />
-              <span aria-hidden="true" className="absolute right-6 top-12 text-7xl rotate-[-8deg] drop-shadow-xl transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110">
-                {art.emoji}
-              </span>
-            </div>
-          )}
-
-          {/* Gradient Scrim Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent" />
-
-          {/* Top Badges */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-            {/* Match Percentage Badge */}
-            <div className="flex items-center gap-1.5">
-              <div className="h-7 px-3 rounded-full bg-emerald-200 text-emerald-950 font-semibold text-xs flex items-center">
-                {matchPercent}% match
-              </div>
-              {recipe.source === 'local-model' && (
-                <div className="h-7 px-2.5 rounded-full bg-slate-950/70 backdrop-blur text-slate-100 font-medium text-[11px] flex items-center gap-1" title="Picked by the on-device model">
-                  <Cpu className="w-3.5 h-3.5" /> On-device
-                </div>
-              )}
-            </div>
-
-            {/* Favorite / Bookmark Button with Spring Pop Animation */}
-            <motion.button
-              whileTap={{ scale: 0.8 }}
-              onClick={() => {
-                if (typeof window !== 'undefined' && 'navigator' in window && 'vibrate' in navigator) {
-                  try {
-                    navigator.vibrate([20, 30]);
-                  } catch (e) {}
-                }
-                onToggleSave(recipe);
-              }}
-              className={`w-10 h-10 grid place-items-center rounded-full backdrop-blur-md transition-colors relative overflow-visible ${
-                isSaved
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/30'
-                  : 'bg-slate-950/70 text-slate-300 hover:text-white hover:bg-slate-950 border border-white/10'
-              }`}
-              title={isSaved ? 'Remove from favorites' : 'Save to favorites'}
-            >
-              <motion.div
-                key={isSaved ? 'saved' : 'unsaved'}
-                initial={{ scale: 0.5, rotate: -20 }}
-                animate={{ scale: [0.5, 1.4, 0.9, 1.15, 1], rotate: [0, -15, 15, -5, 0] }}
-                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                className="flex items-center justify-center"
-              >
-                <Heart className={`w-4 h-4 ${isSaved ? 'fill-current text-white' : 'text-slate-300 hover:text-rose-400'}`} />
-              </motion.div>
-
-              {/* Heart Pop Burst Particle Overlay */}
-              <AnimatePresence>
-                {isSaved && (
-                  <motion.span
-                    initial={{ scale: 0, opacity: 1 }}
-                    animate={{ scale: 2.2, opacity: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="absolute inset-0 rounded-xl bg-rose-400/40 pointer-events-none"
-                  />
-                )}
-              </AnimatePresence>
-            </motion.button>
-          </div>
-
-          {/* Bottom Overlay Title & Cuisine */}
-          <div className="absolute bottom-3 left-3 right-3 space-y-1">
-            <span className="text-[11px] font-semibold text-emerald-400 tracking-wider uppercase">
-              {recipe.cuisine}
+    <div className="cv-auto relative bg-slate-900 rounded-[1.75rem] overflow-hidden flex flex-col group">
+      {/* Cover */}
+      <div className="relative h-36 w-full overflow-hidden">
+        {recipe.imageUrl && !imageFailed ? (
+          <img
+            src={recipe.imageUrl}
+            alt={recipe.title}
+            loading="lazy"
+            decoding="async"
+            onError={() => setImageFailed(true)}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="w-full h-full relative" style={{ background: `linear-gradient(135deg, oklch(42% 0.09 ${art.hue}), oklch(26% 0.05 ${art.hue}))` }}>
+            <span aria-hidden="true" className="absolute right-6 top-1/2 text-7xl drop-shadow-xl animate-float">
+              {art.emoji}
             </span>
-            <h3 className="text-base font-extrabold text-white leading-snug drop-shadow-md line-clamp-1">
-              {recipe.title}
-            </h3>
           </div>
+        )}
+        <div className="absolute top-3 left-3 h-7 px-3 rounded-full bg-emerald-200 text-emerald-950 font-semibold text-xs flex items-center">{matchPercent}% match</div>
+        <motion.button
+          whileTap={{ scale: 0.85 }}
+          onClick={() => {
+            try {
+              navigator.vibrate?.(15);
+            } catch {}
+            onToggleSave(recipe);
+          }}
+          className={`absolute top-2 right-2 w-11 h-11 grid place-items-center rounded-full ${isSaved ? 'bg-rose-500 text-white' : 'bg-black/35 text-white'}`}
+          aria-label={isSaved ? 'Remove from saved' : 'Save recipe'}
+          aria-pressed={isSaved}
+        >
+          <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+        </motion.button>
+      </div>
+
+      {/* Body */}
+      <div className="p-4 space-y-3 flex-1">
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold text-emerald-400 tracking-wider uppercase">{recipe.cuisine}</p>
+          <h3 className="text-lg font-semibold text-white leading-snug line-clamp-2">{recipe.title}</h3>
+          <p className="flex items-center gap-3 text-xs text-slate-400">
+            <span className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" /> {totalTime} min
+            </span>
+            <span className="flex items-center gap-1">
+              <Flame className="w-3.5 h-3.5" /> {recipe.calories} kcal
+            </span>
+            <span>{recipe.difficulty}</span>
+          </p>
         </div>
 
-        {/* Card Body */}
-        <div className="p-5 space-y-4">
-          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-            {recipe.description}
-          </p>
+        {/* What you have, what is assumed, what you need */}
+        <ul className="space-y-1.5 text-sm">
+          {matchCount > 0 && (
+            <li className="flex gap-2 text-slate-200">
+              <Check className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" />
+              <span className="line-clamp-1">
+                {matchCount} from your fridge: {recipe.matchedIngredients.join(', ')}
+              </span>
+            </li>
+          )}
+          {basics.length > 0 && (
+            <li className="flex gap-2 text-slate-400">
+              <ChefHat className="w-4 h-4 mt-0.5 shrink-0" />
+              <span className="line-clamp-1">Kitchen basics: {basics.join(', ')}</span>
+            </li>
+          )}
+          {!!recipe.substitutions?.length && (
+            <li className="flex gap-2 text-slate-400">
+              <Layers className="w-4 h-4 mt-0.5 shrink-0" />
+              <span className="line-clamp-1">{recipe.substitutions.map((sub) => `${sub.use} for ${sub.missing}`).join(', ')}</span>
+            </li>
+          )}
+          {recipe.missingIngredients.length > 0 && (
+            <li className="flex gap-2 items-start text-amber-200/90">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
+              <span className="flex-1 line-clamp-1">Need: {recipe.missingIngredients.join(', ')}</span>
+              <button
+                onClick={() => onAddMissingToShoppingList(recipe)}
+                disabled={isMissingAdded}
+                className="shrink-0 text-xs font-semibold text-emerald-300 disabled:text-emerald-400/70"
+              >
+                {isMissingAdded ? 'Added' : 'Add to list'}
+              </button>
+            </li>
+          )}
+        </ul>
 
-          {/* Unboxed Metadata Discipline */}
-          <div className="flex items-center gap-2 text-xs text-slate-300 font-medium py-1 border-y border-slate-800/80">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{totalTime} min total</span>
-            </span>
-            <span aria-hidden="true" className="text-slate-600">·</span>
-            <span className="flex items-center gap-1">
-              <Flame className="w-3.5 h-3.5 text-amber-400" />
-              <span>{recipe.calories} kcal</span>
-            </span>
-            <span aria-hidden="true" className="text-slate-600">·</span>
-            <span className="text-slate-300">{recipe.difficulty}</span>
-          </div>
-
-          {/* Dietary Tags */}
-          {recipe.dietaryTags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-emerald-400/90 font-medium">
-              {recipe.dietaryTags.map((tag, idx) => (
-                <React.Fragment key={tag}>
-                  {idx > 0 && <span className="text-slate-600">•</span>}
-                  <span>{tag}</span>
-                </React.Fragment>
+        {/* Details on demand */}
+        {showDetails && (
+          <div className="space-y-3 pt-1">
+            <p className="text-sm text-slate-300 leading-relaxed">{recipe.description}</p>
+            {recipe.dietaryTags.length > 0 && <p className="text-xs text-emerald-400/90">{recipe.dietaryTags.join(' · ')}</p>}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              {(
+                [
+                  ['Protein', recipe.macros.protein],
+                  ['Carbs', recipe.macros.carbs],
+                  ['Fat', recipe.macros.fat],
+                ] as const
+              ).map(([k, v]) => (
+                <div key={k} className="rounded-xl bg-slate-950 py-2">
+                  <p className="text-[10px] text-slate-500 uppercase font-semibold">{k}</p>
+                  <p className="text-sm font-semibold text-slate-200">{v}</p>
+                </div>
               ))}
             </div>
-          )}
-
-          {/* Grocery Price Intelligence Strip */}
-          <div className="p-2.5 bg-slate-950/70 rounded-xl border border-slate-800 flex items-center justify-between text-xs font-mono">
-            <span className="flex items-center gap-1.5 text-slate-300 font-bold">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Est. ₹{estCostRupees}</span>
-            </span>
-            <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-              ₹{costPer10gProtein} / 10g protein
-            </span>
-          </div>
-
-          {/* Macros Summary Grid */}
-          <div className="grid grid-cols-3 gap-2 bg-slate-950 p-2.5 rounded-xl text-center border border-slate-800">
-            <div>
-              <p className="text-[10px] text-slate-500 uppercase font-semibold">Protein</p>
-              <p className="text-xs font-bold text-slate-200">{recipe.macros.protein}</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-500 uppercase font-semibold">Carbs</p>
-              <p className="text-xs font-bold text-slate-200">{recipe.macros.carbs}</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-500 uppercase font-semibold">Fat</p>
-              <p className="text-xs font-bold text-slate-200">{recipe.macros.fat}</p>
-            </div>
-          </div>
-
-          {/* Flavor DNA & Nutritional Radar Dual Profile (Powered by Recharts & D3) */}
-          <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/60">
-            <div className="px-2.5 py-1.5 flex items-center justify-between text-xs font-bold text-slate-300 border-b border-slate-800/80 bg-slate-900/60">
-              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+            <div className="flex gap-1 p-1 rounded-full bg-slate-950 w-fit">
+              {(['flavor', 'nutrition'] as const).map((t) => (
                 <button
-                  onClick={() => { setRadarTab('flavor'); setShowRadarChart(true); }}
-                  className={`px-2 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-colors ${
-                    radarTab === 'flavor' && showRadarChart
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                  key={t}
+                  onClick={() => setRadarTab(t)}
+                  className={`h-8 px-3 rounded-full text-xs font-semibold ${radarTab === t ? 'bg-secondary-container text-on-secondary-container' : 'text-slate-400'}`}
                 >
-                  <Zap className="w-3 h-3 text-amber-400" />
-                  <span>Flavor DNA</span>
+                  {t === 'flavor' ? 'Flavour profile' : 'Nutrition'}
                 </button>
-
-                <button
-                  onClick={() => { setRadarTab('nutrition'); setShowRadarChart(true); }}
-                  className={`px-2 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-colors ${
-                    radarTab === 'nutrition' && showRadarChart
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Activity className="w-3 h-3 text-emerald-400" />
-                  <span>Nutrition</span>
-                </button>
-              </div>
-
-              <button
-                onClick={() => setShowRadarChart(!showRadarChart)}
-                className="p-1 hover:text-emerald-400 text-slate-400 transition-colors"
-                title={showRadarChart ? 'Collapse Radar' : 'Expand Radar'}
-              >
-                {showRadarChart ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
+              ))}
             </div>
-
-            {showRadarChart && (
-              <div className="p-3 bg-slate-950 space-y-2">
-                {radarTab === 'flavor' ? (
-                  <div>
-                    <p className="text-[10px] text-slate-400 text-center font-medium pb-1">
-                      Palate Flavor DNA Profile (Recharts Radar mapping Salt, Sweet, Acid, Heat & Umami)
-                    </p>
-                    <Suspense fallback={<div className="h-[185px] animate-pulse rounded-xl bg-slate-900/60" />}>
-                      <FlavorDnaRadarChart flavorDna={flavorDna} height={185} />
-                    </Suspense>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-[10px] text-slate-400 text-center font-medium pb-1">
-                      D3 Nutritional Profile (Protein, Carbs, Fats, Vitamins, Fiber)
-                    </p>
-                    <D3RadarChart data={radarData5Axis} size={200} />
-                  </div>
+            {radarTab === 'flavor' ? (
+              <Suspense fallback={<div className="h-[185px] animate-pulse rounded-xl bg-slate-950/60" />}>
+                <FlavorDnaRadarChart flavorDna={flavorDna} height={185} />
+              </Suspense>
+            ) : (
+              <D3RadarChart data={radarData5Axis} size={200} />
+            )}
+            {recipe.missingIngredients.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => setSelectedSubIngredient(recipe.missingIngredients[0])} className="h-9 px-3 rounded-lg border border-slate-700 text-xs font-semibold text-slate-200 state-layer">
+                  Make {recipe.missingIngredients[0]} from scratch
+                </button>
+                {onOpenSubstitutes && (
+                  <button onClick={() => onOpenSubstitutes(recipe.missingIngredients[0])} className="h-9 px-3 rounded-lg border border-slate-700 text-xs font-semibold text-slate-200 state-layer">
+                    Swap {recipe.missingIngredients[0]}
+                  </button>
                 )}
               </div>
             )}
           </div>
-
-          {/* Substitutes the on-device model found in the pantry */}
-          {!!recipe.substitutions?.length && (
-            <div className="rounded-2xl bg-secondary-container/60 text-on-secondary-container px-3 py-2 text-xs flex items-start gap-2">
-              <Layers className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span>
-                {recipe.substitutions.map((sub) => `Use ${sub.use} for ${sub.missing}`).join(' · ')}
-              </span>
-            </div>
-          )}
-
-          {/* Missing Ingredients & One-Click Shopping List Addition */}
-          {recipe.missingIngredients.length > 0 ? (
-            <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Missing ({recipe.missingIngredients.length} items):</span>
-                </span>
-                <button
-                  onClick={() => onAddMissingToShoppingList(recipe)}
-                  disabled={isMissingAdded}
-                  className={`text-[11px] font-bold flex items-center gap-1 transition-colors ${
-                    isMissingAdded
-                      ? 'text-emerald-400'
-                      : 'text-emerald-400 hover:text-emerald-300 hover:underline'
-                  }`}
-                >
-                  {isMissingAdded ? (
-                    <>
-                      <Check className="w-3 h-3" />
-                      <span>Added to List</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-3 h-3" />
-                      <span>Add to Shopping List</span>
-                    </>
-                  )}
-                </button>
-              </div>
-              <p className="text-[11px] text-slate-300 italic truncate">
-                {recipe.missingIngredients.join(', ')}
-              </p>
-              {/* DIY Sub-Recipe & Substitution Intelligence Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                <button
-                  onClick={() => setSelectedSubIngredient(recipe.missingIngredients[0])}
-                  className="text-[10px] text-amber-400 font-bold hover:underline flex items-center gap-1"
-                >
-                  <Zap className="w-3 h-3" />
-                  <span>DIY Scratch: {recipe.missingIngredients[0]}</span>
-                </button>
-
-                {onOpenSubstitutes && (
-                  <button
-                    onClick={() => onOpenSubstitutes(recipe.missingIngredients[0])}
-                    className="text-[10px] text-teal-400 font-bold hover:underline flex items-center gap-1"
-                  >
-                    <Layers className="w-3 h-3" />
-                    <span>Substitution Intelligence: Swap {recipe.missingIngredients[0]}</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="bg-emerald-950/20 border border-emerald-500/20 p-2.5 rounded-xl text-center text-xs text-emerald-400 font-medium">
-              All ingredients available in your fridge!
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* Card Action Bar */}
-      <div className="p-5 pt-0 space-y-2">
-        <div className="grid grid-cols-3 gap-2">
-          {onEvolveRecipe && (
-            <button
-              onClick={() => onEvolveRecipe(recipe)}
-              className="py-2 bg-violet-500/10 border border-violet-500/30 hover:bg-violet-500/20 text-violet-300 font-bold text-[11px] rounded-xl transition-colors flex items-center justify-center gap-1"
-              title="Make this recipe better (6 variations)"
-            >
-              <Dna className="w-3.5 h-3.5 text-violet-400" />
-              <span>Evolve</span>
-            </button>
-          )}
-
-          {onExplainRecipe && (
-            <button
-              onClick={() => onExplainRecipe(recipe)}
-              className="py-2 bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 font-bold text-[11px] rounded-xl transition-colors flex items-center justify-center gap-1"
-              title="Why FridgeChef selected this (AI Explainability)"
-            >
-              <Brain className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Why This?</span>
-            </button>
-          )}
-
-          {onOpenValidation ? (
-            <button
-              onClick={() => onOpenValidation(recipe)}
-              className="py-2 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-300 font-bold text-[11px] rounded-xl transition-colors flex items-center justify-center gap-1"
-              title="Check the recipe's food-science reasoning"
-            >
-              <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Validate</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowMealPrep(true)}
-              className="py-2 bg-slate-950 border border-slate-800 hover:border-emerald-500 text-slate-300 font-bold text-[11px] rounded-xl transition-colors flex items-center justify-center gap-1"
-            >
-              <Layers className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Meal Prep</span>
-            </button>
-          )}
-        </div>
-
+      {/* Actions */}
+      <div className="px-4 pb-4 flex items-center gap-2">
         <button
           onClick={() => onSelectRecipe(recipe)}
-          className="w-full h-12 bg-emerald-300 text-emerald-950 font-semibold text-sm rounded-full transition-all flex items-center justify-center gap-2 hover:bg-emerald-200"
+          className="flex-1 h-12 bg-emerald-300 text-emerald-950 font-semibold text-sm rounded-full flex items-center justify-center gap-2"
         >
           <Play className="w-4 h-4 fill-emerald-950" />
           <span>Cook step by step</span>
         </button>
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+          className="w-12 h-12 grid place-items-center rounded-full border border-slate-700 text-slate-200 state-layer"
+          aria-label={showDetails ? 'Hide details' : 'Show details'}
+          aria-expanded={showDetails}
+        >
+          {showDetails ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </button>
+        <div className="relative">
+          <button onClick={() => setMenuOpen(!menuOpen)} className="w-12 h-12 grid place-items-center rounded-full border border-slate-700 text-slate-200 state-layer" aria-label="More actions" aria-expanded={menuOpen}>
+            <MoreVertical className="w-5 h-5" />
+          </button>
+          <AnimatePresence>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                <motion.ul
+                  initial={{ opacity: 0, scale: 0.92, y: 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.92, y: 6 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 bottom-14 z-20 w-60 py-2 rounded-2xl bg-surface-high shadow-2xl origin-bottom-right"
+                  role="menu"
+                >
+                  {menu.map((m) => (
+                    <li key={m.label}>
+                      <button
+                        role="menuitem"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          m.run();
+                        }}
+                        className="w-full h-12 px-4 flex items-center gap-3 text-sm text-on-surface state-layer"
+                      >
+                        <m.icon className="w-5 h-5 text-on-surface-variant" /> {m.label}
+                      </button>
+                    </li>
+                  ))}
+                </motion.ul>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Meal Prep Modal */}
@@ -495,3 +349,6 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
     </div>
   );
 };
+
+// Re-render a card only when its own recipe or state changes, not on every keystroke in the filters
+export const RecipeCard = React.memo(RecipeCardView);

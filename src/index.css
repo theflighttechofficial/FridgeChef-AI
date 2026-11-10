@@ -274,7 +274,7 @@ button, a, [role='button'], input, select, label { touch-action: manipulation; }
 .overflow-y-auto { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 
 /* Off-screen recipe cards skip layout and paint until scrolled near */
-.cv-auto { content-visibility: auto; contain-intrinsic-size: auto 460px; }
+.cv-auto { content-visibility: auto; contain-intrinsic-size: auto 380px; }
 
 /* Attention animations play a few times instead of forever */
 .animate-bounce { animation-iteration-count: 3; }
@@ -322,6 +322,29 @@ button, a, [role='button'], input, select, label { touch-action: manipulation; }
   50% { border-radius: 58% 42% 38% 62% / 56% 61% 39% 44%; }
 }
 .animate-morph { animation: morph 12s ease-in-out infinite; }
+
+/* Loading placeholder: a soft light band sweeps across */
+.skeleton-shimmer { position: relative; }
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.07) 50%, transparent 80%);
+  transform: translateX(-100%);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* Dish emoji on a recipe card drifts gently */
+@keyframes float {
+  0%, 100% { transform: translateY(-50%) rotate(-8deg); }
+  50% { transform: translateY(calc(-50% - 6px)) rotate(-3deg); }
+}
+.animate-float { animation: float 5s ease-in-out infinite; }
+
+/* Links and chips get the same press feedback as buttons */
+a[href], [role='button'] { transition: transform 200ms var(--ease-emphasized), opacity 200ms; }
+a[href]:active, [role='button']:active { transform: scale(0.97); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -64,10 +64,12 @@ export const useAiSettings = () => useSyncExternalStore(subscribe, getAiSettings
 export const activeProvider = (s: AiSettings = current) => {
   const def = providerById(s.provider);
   if (!def) return null;
-  if (!s.apiKey.trim() && def.id !== 'custom') return null;
+  // Keys are often pasted with quotes, spaces or a line break around them
+  const apiKey = s.apiKey.replace(/[\s"'`\u200b-\u200d\ufeff]/g, '');
+  if (!apiKey && def.id !== 'custom') return null;
   return {
     def,
-    apiKey: s.apiKey.trim(),
+    apiKey,
     model: s.model.trim() || def.defaultModel,
     baseUrl: (def.id === 'custom' && s.baseUrl.trim()) || def.baseUrl,
   };

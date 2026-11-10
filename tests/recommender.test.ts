@@ -119,3 +119,38 @@ test('"New ideas" brings different recipes for the same pantry', async () => {
   const repeated = second.filter((id) => first.includes(id));
   assert.ok(repeated.length <= 1, `repeated: ${repeated.join(', ')}`);
 });
+
+const { assumedBasics } = await import('../src/ml/basics');
+const { elaborateStep } = await import('../src/ml/elaborate');
+
+test('kitchen basics are assumed, and ones reported missing count as missing', () => {
+  const fridge = pantry('Paneer', 'Tomatoes', 'Spinach');
+  const withBasics = recommend(fridge, { limit: 6, assumed: assumedBasics([]) });
+  const uses = withBasics.flatMap((r) => r.recipe.assumedIngredients || []);
+  assert.ok(uses.includes('Onion'), 'onion is used as an assumed basic');
+  assert.ok(withBasics.every((r) => !r.recipe.missingIngredients.includes('Onion')));
+
+  const noOnion = recommend(fridge, { limit: 6, assumed: assumedBasics(['onion']), missingBasics: ['onion'] });
+  assert.ok(noOnion.every((r) => !(r.recipe.assumedIngredients || []).includes('Onion')));
+  assert.ok(noOnion.some((r) => r.recipe.missingIngredients.includes('Onion')), 'onion now shows as missing');
+});
+
+test('every recommended recipe gets a detailed, beginner-friendly method', () => {
+  for (const { recipe } of recommend(pantry('Chicken Breast', 'Rice', 'Bell Pepper'), { limit: 6, assumed: assumedBasics([]) })) {
+    const [first, ...rest] = recipe.steps;
+    assert.equal(first.kind, 'prep', `${recipe.title} starts with prep`);
+    assert.ok((first.details || []).length > 0);
+    assert.equal(rest[rest.length - 1].kind, 'serve', `${recipe.title} ends with tasting and serving`);
+    assert.ok(rest.filter((s) => s.kind === 'cook').every((s) => s.instruction.length > 0));
+  }
+  const simmer = elaborateStep('Add chickpeas and coconut milk; simmer.', 600);
+  assert.equal(simmer.heat, 'Low');
+  assert.match(simmer.cue || '', /10 minutes/);
+  assert.ok((simmer.details || []).length >= 2);
+});
+
+test('the detailed method covers almost every step in the corpus', () => {
+  const steps = corpus().flatMap((r) => r.steps);
+  const covered = steps.filter((s) => elaborateStep(s.instruction, s.timerSeconds).details?.length).length;
+  assert.ok(covered / steps.length > 0.95, `only ${covered}/${steps.length} steps have detail`);
+});

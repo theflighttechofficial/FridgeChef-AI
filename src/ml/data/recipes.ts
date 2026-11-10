@@ -12,6 +12,9 @@
 import { DF, GF, HP, KETO, LC, NF, PALEO, REGION_OF, Row, VEG, VG } from './schema';
 import { INDIAN_ROWS } from './indian';
 import { WORLD_ROWS } from './world';
+import { MORE_INDIAN_ROWS } from './more-indian';
+import { MORE_ASIA_ROWS } from './more-asia';
+import { MORE_WORLD_ROWS } from './more-world';
 
 export interface CorpusRecipe {
   id: string;
@@ -490,7 +493,7 @@ const CORE_ROWS: Row[] = [
     'Black salt (kala namak) gives an eggy flavour.'],
 ];
 
-const ROWS: Row[] = [...CORE_ROWS, ...INDIAN_ROWS, ...WORLD_ROWS];
+const ROWS: Row[] = [...CORE_ROWS, ...INDIAN_ROWS, ...WORLD_ROWS, ...MORE_INDIAN_ROWS, ...MORE_ASIA_ROWS, ...MORE_WORLD_ROWS];
 
 export const corpus = (): CorpusRecipe[] =>
   ROWS.map(([title, cuisine, description, tags, difficulty, prep, cook, kcal, servings, macros, emoji, ingredients, steps, chefTip]) => ({

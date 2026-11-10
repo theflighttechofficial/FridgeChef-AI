@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Camera, Upload, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCw, Layers, Zap, Sparkles, Images, X } from 'lucide-react';
+import { Camera, Upload, Plus, Trash2, RefreshCw, Sparkles, Images, X } from 'lucide-react';
+import { KitchenBasicsCard } from './KitchenBasicsCard';
 import { Ingredient, PresetFridge } from '../types';
 import { compressImageFile, drawToJpeg } from '../utils/imageUtils';
 import { showToast } from '../utils/toast';
@@ -35,7 +36,7 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
 }) => {
   const [isWebcamActive, setIsWebcamActive] = useState(false);
   const [newIngredientName, setNewIngredientName] = useState('');
-  const [newIngredientCategory, setNewIngredientCategory] = useState<Ingredient['category']>('Produce');
+  const newIngredientCategory: Ingredient['category'] = 'Produce';
   const [extraNote, setExtraNote] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -159,350 +160,193 @@ export const FridgeScanner: React.FC<FridgeScannerProps> = ({
   };
 
   return (
-    <div className="space-y-8">
-      {/* Hero: Material 3 expressive header with the two main actions */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-primary-container text-on-primary-container p-6 sm:p-10">
-        <div aria-hidden="true" className="absolute -right-16 -top-20 w-80 h-80 bg-emerald-400/25 animate-morph" />
-        <div aria-hidden="true" className="absolute right-24 -bottom-24 w-56 h-56 bg-teal-400/20 animate-morph [animation-delay:-6s]" />
-        <div aria-hidden="true" className="absolute right-6 sm:right-14 top-1/2 -translate-y-1/2 text-[5.5rem] sm:text-[8rem] leading-none select-none hidden min-[480px]:block rotate-[-8deg] drop-shadow-xl">
+    <div className="space-y-6">
+      {/* Hero: the two main actions */}
+      <section className="relative overflow-hidden rounded-[2rem] bg-primary-container text-on-primary-container p-6 sm:p-8">
+        <div aria-hidden="true" className="absolute -right-16 -top-20 w-72 h-72 bg-emerald-400/20 animate-morph" />
+        <div aria-hidden="true" className="absolute right-6 sm:right-12 top-1/2 -translate-y-1/2 text-[5rem] sm:text-[7rem] leading-none select-none hidden min-[480px]:block rotate-[-8deg]">
           🥗
         </div>
-        <div className="relative z-10 max-w-2xl space-y-4">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/40 text-emerald-100 text-xs font-semibold">
-            <Zap className="w-3.5 h-3.5" />
-            AI vision + on-device recipe model
-          </span>
-          <h1 className="text-[2rem] leading-[1.1] sm:text-6xl font-semibold tracking-tight text-emerald-50 min-[480px]:max-w-[70%] sm:max-w-none">
-            What's in your fridge tonight?
-          </h1>
-          <p className="text-emerald-100/85 text-sm sm:text-lg leading-relaxed max-w-xl">
-            Snap a photo or pick a sample fridge. FridgeChef spots the ingredients, flags what to use first and suggests dinner.
-          </p>
-          <div className="flex flex-wrap gap-3 pt-1">
+        <div className="relative z-10 max-w-xl space-y-3">
+          <h1 className="text-[2rem] leading-[1.1] sm:text-5xl font-semibold tracking-tight text-emerald-50 min-[480px]:max-w-[70%] sm:max-w-none">What's in your fridge?</h1>
+          <p className="text-emerald-100/85 text-sm sm:text-base leading-relaxed">Snap a photo or add items. We'll suggest what to cook, using your kitchen basics too.</p>
+          <div className="flex flex-wrap gap-3 pt-2">
             <button
               onClick={openSourcePicker}
               disabled={isAnalyzing}
-              className="h-12 px-6 rounded-full bg-emerald-200 text-emerald-950 font-semibold text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/30 hover:bg-emerald-100 disabled:opacity-60"
+              className="h-12 px-6 rounded-full bg-emerald-200 text-emerald-950 font-semibold text-sm flex items-center gap-2 disabled:opacity-60"
             >
               <Camera className="w-5 h-5" />
-              Snap fridge
+              {selectedImage ? 'New photo' : 'Snap fridge'}
             </button>
-            <button
-              onClick={onGenerateRecipes}
-              disabled={isAnalyzing || currentIngredients.length === 0}
-              className="h-12 px-6 rounded-full border border-emerald-200/40 text-emerald-50 font-semibold text-sm flex items-center gap-2 hover:bg-emerald-50/10 disabled:opacity-60"
-            >
-              <Sparkles className="w-5 h-5" />
-              Cook with {currentIngredients.length} items
-            </button>
+            {currentIngredients.length > 0 && (
+              <button
+                onClick={onGenerateRecipes}
+                disabled={isAnalyzing}
+                className="h-12 px-6 rounded-full border border-emerald-200/40 text-emerald-50 font-semibold text-sm flex items-center gap-2 state-layer disabled:opacity-60"
+              >
+                <Sparkles className="w-5 h-5" />
+                Cook with {currentIngredients.length} items
+              </button>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Main Scanner Section: 2 Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Camera / Image Dropzone & Presets (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Camera className="w-4 h-4 text-emerald-400" />
-                <span>Fridge Photo Capture</span>
-              </h2>
-              <span className="text-xs text-slate-500 font-medium">JPG, PNG, WEBP</span>
-            </div>
-
-            {/* Webcam Stream View */}
-            {isWebcamActive ? (
-              <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video border-2 border-emerald-500 shadow-2xl flex flex-col items-center justify-center">
-                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-4">
-                  <button
-                    onClick={capturePhoto}
-                    className="px-5 py-2.5 bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg hover:bg-emerald-400 transition-all flex items-center gap-2"
-                  >
-                    <Camera className="w-4 h-4" />
-                    <span>Take Snap</span>
-                  </button>
-                  <button
-                    onClick={stopCamera}
-                    className="px-4 py-2.5 bg-slate-800 text-slate-300 font-medium text-xs rounded-xl hover:bg-slate-700 transition-all"
-                  >
-                    Cancel
-                  </button>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Left: photo and sample fridges */}
+        <div className="space-y-6 min-w-0">
+          {isWebcamActive ? (
+            <div className="relative rounded-3xl overflow-hidden bg-slate-950 aspect-video">
+              <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+              <div className="absolute bottom-4 inset-x-0 flex items-center justify-center gap-3">
+                <button onClick={capturePhoto} className="h-12 px-6 bg-emerald-300 text-emerald-950 font-semibold text-sm rounded-full flex items-center gap-2">
+                  <Camera className="w-5 h-5" /> Take photo
+                </button>
+                <button onClick={stopCamera} className="h-12 px-5 bg-slate-900/80 text-slate-200 font-semibold text-sm rounded-full">
+                  Cancel
+                </button>
               </div>
-            ) : (
-              /* Dropzone / Preview Area */
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                className={`relative rounded-xl overflow-hidden border-2 border-dashed transition-all aspect-video flex flex-col items-center justify-center ${
-                  selectedImage
-                    ? 'border-emerald-500/50 bg-slate-950'
-                    : 'border-slate-800 hover:border-emerald-500/50 bg-slate-950/60'
-                }`}
-              >
-                {selectedImage ? (
-                  <div className="relative w-full h-full group">
-                    <img
-                      src={selectedImage}
-                      alt="Fridge interior"
-                      className="w-full h-full object-cover"
-                    />
-
-                    {/* Laser Scanner Effect when analyzing */}
-                    {isAnalyzing && (
-                      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px] flex flex-col items-center justify-center">
-                        <div className="w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent absolute shadow-[0_0_15px_#10B981] animate-scanline" />
-                        <div className="bg-slate-900/90 border border-emerald-500/50 px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-emerald-400 text-xs font-bold animate-pulse">
-                          <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
-                          <span>Gemini AI is analyzing fridge contents...</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {!isAnalyzing && (
-                      <div className="absolute top-3 right-3 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800">
-                        <button
-                          onClick={openSourcePicker}
-                          className="text-xs font-medium text-slate-300 hover:text-emerald-400 transition-colors flex items-center gap-1.5"
-                        >
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>Change Photo</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="p-8 text-center space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-                      <Camera className="w-7 h-7" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-white">
-                        Drag and drop your fridge photo here
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        or click below to upload / take a live picture
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-center gap-3 pt-2">
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-4 py-2 bg-slate-800 text-slate-200 hover:bg-slate-700 font-medium text-xs rounded-xl transition-all flex items-center gap-2"
-                      >
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>Upload File</span>
-                      </button>
-                      <button
-                        onClick={startCamera}
-                        className="px-4 py-2 bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl hover:bg-emerald-400 transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
-                      >
-                        <Camera className="w-3.5 h-3.5" />
-                        <span>Use Camera</span>
-                      </button>
-                    </div>
+            </div>
+          ) : selectedImage ? (
+            <section className="rounded-3xl overflow-hidden bg-slate-900">
+              <div className="relative aspect-video">
+                <img src={selectedImage} alt="Your fridge" className="w-full h-full object-cover" />
+                {isAnalyzing && (
+                  <div className="absolute inset-0 bg-slate-950/50 flex items-center justify-center">
+                    <div className="w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent absolute animate-scanline" />
+                    <span className="px-4 py-2 rounded-full bg-slate-900/90 text-emerald-300 text-sm font-semibold flex items-center gap-2">
+                      <RefreshCw className="w-4 h-4 animate-spin" /> Reading your fridge…
+                    </span>
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Optional Note for AI */}
-            <div className="pt-2 space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400">
-                Special Dietary Note or Prompt for AI (Optional):
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Focus on high protein recipes, ignore sauces, or I have extra garlic in pantry..."
-                value={extraNote}
-                onChange={(e) => setExtraNote(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
-              />
+              <div className="p-3 flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Note for the AI (optional)"
+                  value={extraNote}
+                  onChange={(e) => setExtraNote(e.target.value)}
+                  className="flex-1 min-w-0 h-11 bg-slate-950 rounded-full px-4 text-sm text-slate-200 placeholder-slate-500 outline-none focus:ring-2 ring-emerald-500/60"
+                />
+                <button
+                  onClick={() => onAnalyzeImage(selectedImage, extraNote)}
+                  disabled={isAnalyzing}
+                  className="h-11 px-4 shrink-0 rounded-full bg-secondary-container text-on-secondary-container text-sm font-semibold flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isAnalyzing ? 'animate-spin' : ''}`} /> Re-scan
+                </button>
+              </div>
+            </section>
+          ) : (
+            /* Drag-and-drop only makes sense with a mouse; phones use the hero button */
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+              className="hidden md:flex rounded-3xl border-2 border-dashed border-slate-800 hover:border-emerald-500/50 p-8 flex-col items-center justify-center gap-3 text-center"
+            >
+              <Camera className="w-8 h-8 text-emerald-400" />
+              <p className="text-sm font-semibold text-white">Drop a fridge photo here</p>
+              <div className="flex gap-2">
+                <button onClick={() => fileInputRef.current?.click()} className="h-10 px-4 rounded-full border border-slate-700 text-slate-200 text-sm font-semibold flex items-center gap-2 state-layer">
+                  <Upload className="w-4 h-4" /> Upload
+                </button>
+                <button onClick={startCamera} className="h-10 px-4 rounded-full bg-emerald-300 text-emerald-950 text-sm font-semibold flex items-center gap-2">
+                  <Camera className="w-4 h-4" /> Camera
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Sample Presets Section */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-xl">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-emerald-400" />
-              <span>Or Try Sample Fridge Presets</span>
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Sample fridges: one swipeable row */}
+          <section className="space-y-3">
+            <h2 className="text-sm font-semibold text-slate-300">Try a sample fridge</h2>
+            <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex gap-3 overflow-x-auto no-scrollbar snap-x">
               {presetFridges.map((preset) => (
                 <button
                   key={preset.id}
-                  onClick={() => {
-                    onSelectPreset(preset);
-                  }}
-                  className="group flex items-start gap-3 p-3 bg-slate-950 border border-slate-800 hover:border-emerald-500/50 rounded-xl text-left transition-all hover:scale-[1.01]"
+                  onClick={() => onSelectPreset(preset)}
+                  className="snap-start shrink-0 w-56 p-3 rounded-2xl bg-slate-900 text-left flex items-center gap-3 state-layer"
                 >
-                  <img
-                    src={preset.imageUrl}
-                    alt={preset.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-16 h-16 rounded-lg object-cover shrink-0 border border-slate-800 group-hover:border-emerald-500/50 transition-colors"
-                  />
-                  <div className="space-y-1 min-w-0">
-                    <p className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
-                      {preset.title}
-                    </p>
-                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-snug">
-                      {preset.subtitle}
-                    </p>
-                  </div>
+                  <img src={preset.imageUrl} alt="" loading="lazy" decoding="async" className="w-12 h-12 rounded-xl object-cover shrink-0 bg-slate-800" />
+                  <span className="text-sm font-semibold text-white line-clamp-2 leading-snug">{preset.title}</span>
                 </button>
               ))}
             </div>
-          </div>
+          </section>
         </div>
 
-        {/* Right Column: Detected Ingredients List & Manual Controls (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-5 shadow-xl flex flex-col h-full justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="space-y-0.5">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Detected Ingredients</span>
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    {currentIngredients.length} item{currentIngredients.length !== 1 ? 's' : ''} ready for recipe generation
-                  </p>
-                </div>
-                {selectedImage && (
-                  <button
-                    onClick={() => onAnalyzeImage(selectedImage, extraNote)}
-                    disabled={isAnalyzing}
-                    className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-3 h-3 ${isAnalyzing ? 'animate-spin' : ''}`} />
-                    <span>Re-Scan</span>
-                  </button>
-                )}
-              </div>
+        {/* Right: ingredients and basics */}
+        <div className="space-y-4 min-w-0">
+          <section className="rounded-3xl bg-slate-900 p-4 sm:p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold text-white">Your ingredients</h2>
+              <span className="text-sm text-slate-400">{currentIngredients.length}</span>
+            </div>
 
-              {/* Ingredients List */}
-              {currentIngredients.length === 0 ? (
-                <div className="p-8 text-center bg-slate-950/60 rounded-xl border border-slate-800 space-y-2">
-                  <AlertCircle className="w-6 h-6 text-slate-500 mx-auto" />
-                  <p className="text-xs text-slate-400">
-                    No ingredients detected yet. Snap a photo or add items manually below!
-                  </p>
-                </div>
-              ) : (
-                <div className="max-h-72 overflow-y-auto pr-1 space-y-2">
-                  {currentIngredients.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-2.5 bg-slate-950 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-xs font-bold text-white truncate">
-                              {item.name}
-                            </p>
-                            {/* Color-Coded Freshness Forecast Badge */}
-                            {item.freshness === 'Use Soon' ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse shrink-0">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                                <span>Expiring (1 Day)</span>
-                              </span>
-                            ) : item.freshness === 'Moderate' ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                <span>Use in 2-3 Days</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                <span>Fresh (5-7 Days)</span>
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
-                            <span>{item.category}</span>
-                            {item.quantity && (
-                              <>
-                                <span>•</span>
-                                <span className="text-slate-400">{item.quantity}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
+            {currentIngredients.length === 0 ? (
+              <p className="text-sm text-slate-400 py-4 text-center">Nothing here yet. Snap your fridge, pick a sample, or add items below.</p>
+            ) : (
+              <ul className="max-h-80 overflow-y-auto -mx-1 px-1 divide-y divide-slate-800/70">
+                {currentIngredients.map((item) => {
+                  const fresh =
+                    item.freshness === 'Use Soon'
+                      ? { dot: 'bg-rose-400', text: 'Use soon' }
+                      : item.freshness === 'Moderate'
+                      ? { dot: 'bg-amber-400', text: '2–3 days' }
+                      : { dot: 'bg-emerald-400', text: 'Fresh' };
+                  return (
+                    <li key={item.id} className="flex items-center gap-3 py-2.5">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${fresh.dot}`} aria-hidden />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white truncate">{item.name}</p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {fresh.text}
+                          {item.quantity ? ` · ${item.quantity}` : ''}
+                        </p>
                       </div>
-                      <button
-                        onClick={() => handleRemoveIngredient(item.id)}
-                        className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-900 transition-colors"
-                        title="Remove ingredient"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
+                      <button onClick={() => handleRemoveIngredient(item.id)} className="w-10 h-10 grid place-items-center rounded-full text-slate-500 state-layer" aria-label={`Remove ${item.name}`}>
+                        <Trash2 className="w-4 h-4" />
                       </button>
-                    </div>
-                  ))}
-                </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            <form onSubmit={handleAddManualIngredient} noValidate onInput={() => setFormError(null)} className="space-y-1">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Add an ingredient"
+                  value={newIngredientName}
+                  onChange={(e) => setNewIngredientName(e.target.value)}
+                  className="flex-1 min-w-0 h-12 bg-slate-950 rounded-full px-4 text-sm text-slate-200 placeholder-slate-500 outline-none focus:ring-2 ring-emerald-500/60"
+                  aria-label="Ingredient name"
+                />
+                <button type="submit" className="w-12 h-12 shrink-0 rounded-full bg-emerald-300 text-emerald-950 grid place-items-center" aria-label="Add ingredient">
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+              {formError && (
+                <p role="alert" className="text-xs text-rose-300 px-4">
+                  {formError}
+                </p>
               )}
+            </form>
 
-              {/* Add Custom Ingredient Form */}
-              <form onSubmit={handleAddManualIngredient} noValidate onInput={() => setFormError(null)} className="space-y-2 pt-2 border-t border-slate-800">
-                <label className="text-xs font-semibold text-slate-400">
-                  Add Missing or Extra Ingredient:
-                </label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    placeholder="e.g. Olive Oil, Garlic, Salt..."
-                    value={newIngredientName}
-                    onChange={(e) => setNewIngredientName(e.target.value)}
-                    className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors min-h-[44px]"
-                  />
-                  <select
-                    value={newIngredientCategory}
-                    onChange={(e) => setNewIngredientCategory(e.target.value as any)}
-                    className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-500 min-h-[44px]"
-                  >
-                    <option value="Produce">Produce</option>
-                    <option value="Dairy & Eggs">Dairy</option>
-                    <option value="Meat & Seafood">Meat</option>
-                    <option value="Pantry">Pantry</option>
-                    <option value="Condiments">Condiment</option>
-                    <option value="Spices">Spice</option>
-                  </select>
-                  <button
-                    type="submit"
-                    className="px-4 py-2.5 bg-emerald-500 text-slate-950 rounded-xl font-bold hover:bg-emerald-400 transition-colors shrink-0 flex items-center justify-center min-h-[44px]"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                {formError && (
-                  <p role="alert" className="text-xs text-rose-300 basis-full w-full">
-                    {formError}
-                  </p>
-                )}
-              </form>
-            </div>
+            <button
+              onClick={onGenerateRecipes}
+              disabled={currentIngredients.length === 0 || isAnalyzing}
+              className="w-full h-12 rounded-full bg-emerald-300 text-emerald-950 font-semibold text-sm disabled:opacity-40 flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-5 h-5" /> Suggest recipes
+            </button>
+          </section>
 
-            {/* Bottom Generate CTA Button */}
-            <div className="pt-4 border-t border-slate-800">
-              <button
-                onClick={onGenerateRecipes}
-                disabled={currentIngredients.length === 0 || isAnalyzing}
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 text-slate-950 font-bold text-sm rounded-xl shadow-xl shadow-emerald-500/25 hover:from-emerald-400 hover:to-teal-400 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <Zap className="w-4 h-4 fill-slate-950" />
-                <span>Suggest Recipes from {currentIngredients.length} Ingredients</span>
-              </button>
-            </div>
-          </div>
+          <KitchenBasicsCard />
         </div>
       </div>
-
 
       {/* Photo inputs: gallery picker, and camera capture (opens the camera directly on phones) */}
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />

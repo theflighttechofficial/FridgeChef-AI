@@ -32,10 +32,11 @@ export const roleOf = (name: string): Role => {
 /** Cosine similarity lookup between canonical ingredients, backed by the trained embeddings. */
 export type Similarity = (a: string, b: string) => number;
 
-export const recipeFeatures = (pantry: Set<string>, ingredients: string[], sim: Similarity, regionFit = 0): number[] => {
+// `owned` is what is really in the fridge; `pantry` also counts assumed kitchen basics
+export const recipeFeatures = (pantry: Set<string>, ingredients: string[], sim: Similarity, regionFit = 0, owned: Set<string> = pantry): number[] => {
   const core = ingredients.filter((i) => roleOf(i) === 'core');
   const flavour = ingredients.filter((i) => roleOf(i) === 'flavour');
-  const pantryCore = [...pantry].filter((i) => roleOf(i) === 'core');
+  const pantryCore = [...owned].filter((i) => roleOf(i) === 'core');
 
   const coreHits = core.filter((i) => pantry.has(i));
   const missing = core.filter((i) => !pantry.has(i));
@@ -48,7 +49,7 @@ export const recipeFeatures = (pantry: Set<string>, ingredients: string[], sim: 
     flavour.length ? flavour.filter((i) => pantry.has(i)).length / flavour.length : 0.5,
     missing.length ? missing.reduce((s, m) => s + Math.max(0, bestSub(m)), 0) / missing.length : 1,
     Math.min(1, missing.length / 5),
-    pantryCore.length ? coreHits.length / pantryCore.length : 0,
+    pantryCore.length ? core.filter((i) => owned.has(i)).length / pantryCore.length : 0,
     pantry.has(hero) ? 1 : 0,
     pantry.has(hero) ? 1 : Math.max(0, bestSub(hero)),
     regionFit,

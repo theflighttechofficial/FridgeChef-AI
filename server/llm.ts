@@ -21,6 +21,7 @@ import { createHash } from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { Request, Response, NextFunction } from 'express';
 import { HEADER_KEY, HEADER_MODEL, HEADER_PROVIDER, ProviderDef, providerById } from '../src/ai/providers';
+import { canTryNextModel, friendlyAiError, geminiModelChain, listGeminiModels, parseLooseJson } from '../src/ai/resilience';
 
 const env = (key: string, fallback = '') => process.env[key]?.trim() || fallback;
 const envInt = (key: string, fallback: number) => Number.parseInt(env(key), 10) || fallback;
@@ -85,16 +86,13 @@ const cacheSet = (key: string, response: any) => {
   while (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value as string);
 };
 
-/** Strip code fences / stray prose around a JSON answer. */
+/** Strip code fences / stray prose around a JSON answer; a cut-off answer keeps its complete items. */
 const extractJson = (raw: string): string | null => {
-  const trimmed = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
-  for (const candidate of [trimmed, trimmed.slice(trimmed.search(/[[{]/), Math.max(trimmed.lastIndexOf('}'), trimmed.lastIndexOf(']')) + 1)]) {
-    try {
-      JSON.parse(candidate);
-      return candidate;
-    } catch {}
+  try {
+    return JSON.stringify(parseLooseJson(raw));
+  } catch {
+    return null;
   }
-  return null;
 };
 
 // ---------- Groq fallback ----------
@@ -163,7 +161,7 @@ const userScope = new AsyncLocalStorage<UserProvider>();
 /** Express middleware: run the rest of the request with the visitor's provider, if they sent one. */
 export const userProviderScope = (req: Request, _res: Response, next: NextFunction) => {
   const def = providerById(req.get(HEADER_PROVIDER) || undefined);
-  const key = (req.get(HEADER_KEY) || '').trim();
+  const key = (req.get(HEADER_KEY) || '').replace(/[\s"'`]/g, '');
   if (!def || def.deviceOnly || !key || key.length > 512) return next();
   const model = (req.get(HEADER_MODEL) || '').trim().slice(0, 128) || def.defaultModel;
   userScope.run({ def, key, model }, next);
@@ -220,14 +218,39 @@ const callUserProvider = async (user: UserProvider, request: any, wantsJson: boo
   }
 
   if (def.kind === 'gemini') {
-    const response: any = await Promise.race([
-      new GoogleGenAI({ apiKey: key }).models.generateContent({ ...request, model }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), TIMEOUT_MS)),
-    ]);
-    if (!wantsJson) return response;
-    const json = extractJson(response.text ?? '');
-    if (!json) throw new Error('returned invalid JSON');
-    return { text: json, candidates: response.candidates };
+    const client = new GoogleGenAI({ apiKey: key });
+    const call = async (candidate: string) => {
+      const response: any = await Promise.race([
+        client.models.generateContent({ ...request, model: candidate }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), TIMEOUT_MS)),
+      ]);
+      if (!wantsJson) return response;
+      const json = extractJson(response.text ?? '');
+      if (!json) throw new Error('returned invalid JSON');
+      return { text: json, candidates: response.candidates };
+    };
+    // A retired, over-quota or overloaded model is skipped for the next one on the same key
+    const tried = new Set<string>();
+    let lastError: unknown;
+    const attempt = async (candidate: string) => {
+      tried.add(candidate);
+      try {
+        return await call(candidate);
+      } catch (err) {
+        if (candidate === model || !lastError) lastError = err;
+        if (!canTryNextModel(err)) throw lastError;
+        return null;
+      }
+    };
+    for (const candidate of geminiModelChain(model)) {
+      const response = await attempt(candidate);
+      if (response) return response;
+    }
+    for (const candidate of (await listGeminiModels(def.baseUrl, key)).filter((m) => !tried.has(m)).slice(0, 2)) {
+      const response = await attempt(candidate);
+      if (response) return response;
+    }
+    throw lastError;
   }
 
   const parts = flattenParts(request.contents);
@@ -304,7 +327,7 @@ const generateContent = async (request: any) => {
       return response;
     } catch (err: any) {
       // Never echo the key back; provider messages can quote it
-      user.error = String(err?.message || err).split(user.key).join('***').slice(0, 200);
+      user.error = friendlyAiError(err, user.model).split(user.key).join('***').slice(0, 240);
       if (!hasKey() && !groqKey()) throw err;
     }
   }

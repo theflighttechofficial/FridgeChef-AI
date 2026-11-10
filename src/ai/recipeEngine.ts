@@ -10,6 +10,9 @@ import { FilterOptions, Ingredient, Recipe } from '../types';
 import { activeProvider, getAiSettings, hasServer } from './settings';
 import { directAnalyzeFridge, directGenerateRecipes } from './directLlm';
 import { getAccount } from '../auth/account';
+import { getAssumedBasics, getMissingBasics } from '../state/basics';
+import { basicLabel } from '../ml/basics';
+import { elaborateRecipe } from '../ml/elaborate';
 
 export type RecipeSource = 'ai' | 'local-model';
 
@@ -30,12 +33,16 @@ const normalizeSteps = (steps: any[] | undefined) =>
       timerSeconds: Number(st.timerSeconds) || undefined,
       keyIngredients: Array.isArray(st.keyIngredients) ? st.keyIngredients : [],
       chefTip: st.chefTip,
+      title: typeof st.title === 'string' ? st.title : undefined,
+      details: asStrings(st.details).slice(0, 6),
+      cue: typeof st.cue === 'string' ? st.cue : undefined,
+      heat: ['Off', 'Low', 'Medium-low', 'Medium', 'Medium-high', 'High'].includes(st.heat) ? st.heat : undefined,
     }));
 
 const asStrings = (x: unknown) => (Array.isArray(x) ? x.filter((v): v is string => typeof v === 'string') : []);
 
 /** Turn one AI recipe payload into a Recipe the UI can render safely. */
-export const formatAiRecipe = (rec: any, idx: number, prefix: string, fallbackIngredients: string[] = []): Recipe => ({
+export const formatAiRecipe = (rec: any, idx: number, prefix: string, fallbackIngredients: string[] = []): Recipe => withDetail({
   id: `${prefix}-${Date.now()}-${idx}`,
   title: String(rec?.title || '').trim(),
   description: String(rec?.description || ''),
@@ -56,8 +63,24 @@ export const formatAiRecipe = (rec: any, idx: number, prefix: string, fallbackIn
   servings: Number(rec?.servings) || 2,
   chefTip: rec?.chefTip || undefined,
   steps: normalizeSteps(rec?.steps),
+  assumedIngredients: asStrings(rec?.assumedIngredients),
   source: 'ai',
 });
+
+// AI recipes that came back with short steps get the same detailed method as on-device ones
+const withDetail = (r: Recipe): Recipe =>
+  !r.steps.length || r.steps.some((s) => s.details?.length)
+    ? r
+    : {
+        ...r,
+        steps: elaborateRecipe({
+          title: r.title,
+          ingredients: [...r.matchedIngredients, ...r.missingIngredients],
+          assumed: r.assumedIngredients,
+          steps: r.steps,
+          chefTip: r.chefTip,
+        }),
+      };
 
 const usable = (recipes: Recipe[]) => recipes.filter((r) => r.title && r.steps.length);
 
@@ -74,7 +97,7 @@ const fallbackMessage = (res: Response) => {
 // brings different recipes instead of the same top picks
 const history = { key: '', round: 0, ids: new Set<string>(), titles: [] as string[] };
 const historyFor = (ingredients: Ingredient[], filters?: Partial<FilterOptions>) => {
-  const key = JSON.stringify([ingredients.map((i) => i.name.toLowerCase()).sort(), filters?.dietary, filters?.cuisine, filters?.difficulty, filters?.maxPrepTime]);
+  const key = JSON.stringify([ingredients.map((i) => i.name.toLowerCase()).sort(), filters?.dietary, filters?.cuisine, filters?.difficulty, filters?.maxPrepTime, getMissingBasics()]);
   if (key !== history.key) Object.assign(history, { key, round: 0, ids: new Set<string>(), titles: [] });
   return history;
 };
@@ -89,7 +112,16 @@ export const localRecipes = async (ingredients: Ingredient[], filters?: Partial<
   const h = historyFor(ingredients, filters);
   // First suggestion for a pantry is the best fit; later rounds explore other good matches
   const preferredRegions = getAccount()?.regions || [];
-  const recipes = recommend(ingredients, { filters, limit, exclude: h.ids, explore: h.round ? 1 : 0, round: h.round, preferredRegions }).map((r) => r.recipe);
+  const recipes = recommend(ingredients, {
+    filters,
+    limit,
+    exclude: h.ids,
+    explore: h.round ? 1 : 0,
+    round: h.round,
+    preferredRegions,
+    assumed: getAssumedBasics(),
+    missingBasics: getMissingBasics(),
+  }).map((r) => r.recipe);
   remember(recipes);
   return recipes;
 };
@@ -108,6 +140,9 @@ export const generateRecipes = async (ingredients: Ingredient[], filters: Filter
     cuisine: filters.cuisine === 'All' ? undefined : filters.cuisine,
     // Recipes already suggested for this pantry, so the AI comes back with new ones
     avoidTitles: historyFor(ingredients, filters).titles,
+    // Basics the AI may assume are at home, and ones the person said they are out of
+    kitchenBasics: getAssumedBasics().map(basicLabel),
+    missingBasics: getMissingBasics().map(basicLabel),
   };
   const provider = activeProvider(settings);
   let notice: string | undefined;
@@ -145,7 +180,7 @@ export const generateRecipes = async (ingredients: Ingredient[], filters: Filter
         return { recipes, source: 'ai' };
       }
     } catch (err: any) {
-      notice = `${provider.def.label} didn't answer (${String(err?.message || err).slice(0, 120)}).`;
+      notice = `${provider.def.label}: ${String(err?.message || err).slice(0, 160)}`;
     }
   }
 

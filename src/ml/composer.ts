@@ -8,6 +8,7 @@
  *   3. That cuisine family's flavour base (aromatics, spices, sauces) and step template turn the
  *      pantry items into a recipe. Base items the pantry lacks become the shopping list.
  */
+import { basicLabel } from './basics';
 import { Recipe } from '../types';
 import model from './model.json';
 import { BY_NAME } from './normalize';
@@ -225,6 +226,7 @@ export interface ComposeOptions {
   cuisine?: string; // a cuisine or region from the filters, or 'All'
   limit?: number;
   variant?: number; // rotates cuisine, main ingredient and technique for "New ideas"
+  assumed?: Set<string>; // kitchen basics taken as being at home (canonical names)
 }
 
 const rotate = <T>(arr: T[], by: number) => (arr.length ? [...arr.slice(by % arr.length), ...arr.slice(0, by % arr.length)] : arr);
@@ -233,7 +235,7 @@ const rotate = <T>(arr: T[], by: number) => (arr.length ? [...arr.slice(by % arr
  * Compose up to `limit` recipes from the pantry. `pantry` maps canonical names to the person's
  * own wording (from canonicalPantry).
  */
-export const composeRecipes = (pantry: Map<string, string>, { dietary = [], cuisine, limit = 2, variant = 0 }: ComposeOptions = {}): Recipe[] => {
+export const composeRecipes = (pantry: Map<string, string>, { dietary = [], cuisine, limit = 2, variant = 0, assumed = new Set() }: ComposeOptions = {}): Recipe[] => {
   const usable = [...pantry.keys()].filter((p) => !BY_NAME.get(p)?.staple && dietAllows(p, dietary));
   if (!usable.length) return [];
 
@@ -258,13 +260,15 @@ export const composeRecipes = (pantry: Map<string, string>, { dietary = [], cuis
       const body = [main, carb, ...vegs].filter((x): x is string => !!x && dietAllows(x, dietary));
       const baseItems = style.base.filter((b) => dietAllows(b, dietary));
       const have = baseItems.filter((b) => pantry.has(b));
-      const missing = baseItems.filter((b) => !pantry.has(b)).slice(0, 3);
+      const fromBasics = baseItems.filter((b) => !pantry.has(b) && assumed.has(b));
+      const missing = baseItems.filter((b) => !pantry.has(b) && !assumed.has(b)).slice(0, 3);
       const all = [...new Set([...body, ...have])];
 
       const mainLabel = main && technique !== 'eggs' ? name(main) : '';
       const vegLabel = list(vegs.map(name)) || (technique === 'veg' ? list(usable.slice(0, 3).map(name)) : '');
-      const baseLabel = list(have.slice(0, 3).map((b) => b)) || 'onion and garlic';
-      const heading = [mainLabel, ...vegs.map(name)].filter(Boolean).slice(0, 2).join(' & ');
+      const baseLabel = list([...have, ...fromBasics].slice(0, 3)) || 'onion and garlic';
+      // Titles use the clean ingredient name ("Lentils"), not the fridge label ("Yellow Toor Dal / Lentils")
+      const heading = [main && technique !== 'eggs' ? main : '', ...vegs].filter(Boolean).slice(0, 2).join(' & ');
       const [prep, cook] = TIME[technique];
       const proteinCount = body.filter((b) => PROTEIN_GROUPS.has(groupOf(b)) || b === 'egg').length;
 
@@ -279,8 +283,9 @@ export const composeRecipes = (pantry: Map<string, string>, { dietary = [], cuis
         dietaryTags: tagsFor(all),
         cuisine: chosen,
         region: REGION_OF[chosen],
-        matchedIngredients: all.map(name),
+        matchedIngredients: [...new Set(all.map(name))],
         missingIngredients: missing.map(title),
+        assumedIngredients: fromBasics.map(basicLabel),
         macros: { protein: `${12 + proteinCount * 14}g`, carbs: `${carb ? 55 : 18}g`, fat: `${14 + proteinCount * 4}g` },
         servings: 2,
         chefTip: missing.length

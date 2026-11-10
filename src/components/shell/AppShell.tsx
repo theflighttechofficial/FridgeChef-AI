@@ -74,7 +74,10 @@ const TopAppBar: React.FC<{
           </motion.h1>
         </AnimatePresence>
         <div className="flex items-center gap-1 text-on-surface-variant">
-          <VoiceNavigationController activeTab={activeTab} setActiveTab={setActiveTab} />
+          {/* Voice navigation lives on larger screens; phones keep the bar to two actions */}
+          <div className="hidden md:block">
+            <VoiceNavigationController activeTab={activeTab} setActiveTab={setActiveTab} />
+          </div>
           <button onClick={onOpenTools} className="w-12 h-12 grid place-items-center rounded-full state-layer" aria-label="All tools" title="All tools">
             <LayoutGrid className="w-6 h-6" />
           </button>
@@ -204,11 +207,14 @@ const NavigationRail: React.FC<{
 
 const SnapFab: React.FC<{ onSnap: () => void; hidden: boolean }> = ({ onSnap, hidden }) => {
   const [extended, setExtended] = useState(true);
+  // Only once the hero's own "Snap fridge" button has scrolled away
+  const [pastHero, setPastHero] = useState(false);
   useEffect(() => {
     let last = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
-      if (Math.abs(y - last) > 8) setExtended(y < last || y < 80);
+      setPastHero(y > 320);
+      if (Math.abs(y - last) > 8) setExtended(y < last);
       last = y;
     };
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -217,7 +223,7 @@ const SnapFab: React.FC<{ onSnap: () => void; hidden: boolean }> = ({ onSnap, hi
 
   return (
     <AnimatePresence>
-      {!hidden && (
+      {!hidden && pastHero && (
         <motion.button
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -389,7 +395,7 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, sho
       <NavigationRail items={destinations} activeTab={activeTab} onSelect={select} onSnap={snap} onOpenTools={() => setToolsOpen(true)} />
       <TopAppBar activeTab={activeTab} setActiveTab={select} onOpenTools={() => setToolsOpen(true)} />
       <div className="pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>
-      <SnapFab onSnap={snap} hidden={activeTab === 'settings' || toolsOpen} />
+      <SnapFab onSnap={snap} hidden={activeTab !== 'scan' || toolsOpen} />
       <NavigationBar items={destinations} activeTab={activeTab} onSelect={select} />
       <ToolsSheet open={toolsOpen} onClose={closeTools} tools={tools} />
     </div>
