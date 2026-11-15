@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 and newer: the account vault goes into Google backup and device-to-device transfer -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="sharedpref" path="FridgeChefVault.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="FridgeChefVault.xml" />
+    </device-transfer>
+</data-extraction-rules>

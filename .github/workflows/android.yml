@@ -48,6 +48,8 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
+        env:
+          FRIDGECHEF_VERSION_CODE: ${{ github.run_number }}
         run: ./gradlew assembleDebug --no-daemon
 
       - uses: actions/upload-artifact@v5

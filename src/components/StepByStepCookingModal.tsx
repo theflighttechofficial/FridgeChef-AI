@@ -6,6 +6,9 @@ import { speechEngine } from '../utils/speechUtils';
 import { elaborateRecipe } from '../ml/elaborate';
 import { reportMissingBasic } from '../state/basics';
 import { showToast } from '../utils/toast';
+import { Celebrate } from './Celebrate';
+import { recordTaste } from '../ml/tasteModel';
+import { haptic } from '../utils/haptics';
 
 interface CustomTimer {
   id: string;
@@ -78,6 +81,15 @@ export const StepByStepCookingModal: React.FC<StepByStepCookingModalProps> = ({ 
   }, [recipe]);
 
   const [index, setIndex] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const finish = () => {
+    haptic('success');
+    setFinished(true);
+  };
+  const rate = (liked: boolean) => {
+    recordTaste(recipe, liked ? 1 : 0);
+    onClose();
+  };
   const [dir, setDir] = useState(1);
   const [handsFree, setHandsFree] = useState(false);
   const [showSteps, setShowSteps] = useState(false);
@@ -356,7 +368,7 @@ export const StepByStepCookingModal: React.FC<StepByStepCookingModalProps> = ({ 
           <ChevronLeft className="w-5 h-5" /> Back
         </button>
         <button
-          onClick={() => (last ? onClose() : go(index + 1))}
+          onClick={() => (last ? finish() : go(index + 1))}
           className="flex-1 h-14 rounded-full bg-primary text-on-primary font-semibold inline-flex items-center justify-center gap-1"
         >
           {last ? (
@@ -370,6 +382,48 @@ export const StepByStepCookingModal: React.FC<StepByStepCookingModalProps> = ({ 
           )}
         </button>
       </footer>
+
+      {/* Finished: celebrate, and learn whether this dish was a hit */}
+      <AnimatePresence>
+        {finished && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-20 bg-surface/95 backdrop-blur-md grid place-items-center p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cook-done-title"
+          >
+            <Celebrate />
+            <motion.div
+              initial={{ scale: 0.8, y: 24, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+              className="w-full max-w-sm text-center space-y-5"
+            >
+              <motion.p aria-hidden="true" className="text-7xl" animate={{ rotate: [0, -10, 10, -6, 0] }} transition={{ duration: 0.8, delay: 0.2 }}>
+                {recipe.emoji || '🍽️'}
+              </motion.p>
+              <div className="space-y-1">
+                <h2 id="cook-done-title" className="text-3xl font-semibold tracking-tight">Nicely done!</h2>
+                <p className="text-on-surface-variant">You cooked {recipe.title}. How was it?</p>
+              </div>
+              <div className="grid gap-3">
+                <button onClick={() => rate(true)} className="h-14 rounded-full bg-primary text-on-primary font-semibold">
+                  Loved it, more like this
+                </button>
+                <button onClick={() => rate(false)} className="h-14 rounded-full border border-outline-variant font-semibold state-layer">
+                  Not my favourite
+                </button>
+                <button onClick={onClose} className="h-12 rounded-full text-primary font-semibold state-layer">
+                  Skip
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* All steps sheet */}
       <AnimatePresence>

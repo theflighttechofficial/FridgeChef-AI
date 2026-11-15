@@ -19,6 +19,7 @@ import { cuisineMatches } from './ml/data/schema';
 import { FridgeScanner } from './components/FridgeScanner';
 import { SidebarFilter } from './components/SidebarFilter';
 import { RecipeCard } from './components/RecipeCard';
+import { HomeGreeting } from './components/HomeGreeting';
 
 
 
@@ -92,6 +93,14 @@ const EventCateringPlannerModal = lazy(() => import('./components/EventCateringP
 const PantryFinancialIntelligenceModal = lazy(() => import('./components/PantryFinancialIntelligenceModal').then((m) => ({ default: m.PantryFinancialIntelligenceModal })));
 const SettingsPage = lazy(() => import('./components/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const AutonomousCulinaryAgentModal = lazy(() => import('./components/AutonomousCulinaryAgentModal').then((m) => ({ default: m.AutonomousCulinaryAgentModal })));
+
+// Tabs slide in from the side they sit on in the navigation bar
+const TAB_ORDER: AppTab[] = ['scan', 'recipes', 'saved', 'shopping', 'molecular', 'settings'];
+const tabVariants: Variants = {
+  enter: (dir: number) => ({ opacity: 0, x: 36 * dir, scale: 0.985 }),
+  center: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 360, damping: 34, mass: 0.9 } },
+  exit: (dir: number) => ({ opacity: 0, x: -24 * dir, transition: { duration: 0.14, ease: [0.3, 0, 1, 1] } }),
+};
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -221,7 +230,24 @@ export default function App() {
     setShowIntro(false);
   }, []);
 
-  const [activeTab, setActiveTab] = useState<AppTab>('scan');
+  const [activeTab, setActiveTabRaw] = useState<AppTab>('scan');
+  const [tabDir, setTabDir] = useState(1);
+  const setActiveTab = useCallback((tab: AppTab) => {
+    setActiveTabRaw((prev) => {
+      if (prev !== tab) setTabDir(TAB_ORDER.indexOf(tab) >= TAB_ORDER.indexOf(prev) ? 1 : -1);
+      return tab;
+    });
+  }, []);
+
+  // Tell someone whose account came back after a reinstall that their data is in place
+  useEffect(() => {
+    try {
+      const name = sessionStorage.getItem('fridgechef.restoredFor');
+      if (name === null) return;
+      sessionStorage.removeItem('fridgechef.restoredFor');
+      showToast(`Welcome back${name ? `, ${name.split(' ')[0]}` : ''}! This phone was recognised, so your account and data are restored.`, 'info');
+    } catch {}
+  }, []);
 
   // Per-view title/description + anonymous page view (only sent with consent)
   useEffect(() => {
@@ -381,13 +407,16 @@ export default function App() {
   // Dietary needs chosen while creating the account become the default filter
   const { account } = useAccount();
   const accountCreatedAt = account?.createdAt;
+  // Also changes when the taste questions are answered or updated in Settings
+  const accountDiet = (account?.dietary || []).join('|');
   useEffect(() => {
     if (!accountCreatedAt) return;
     setFilters((prev) => ({ ...prev, dietary: getAccount()?.dietary || prev.dietary }));
     // The household was set up before anyone signed in; give it the new person's name and tastes
     setMemoryProfile((prev) => (prev.members.length === 1 && prev.members[0].id === 'self' && prev.members[0].name === 'You' ? blankHousehold(getAccount()) : prev));
-  }, [accountCreatedAt, setMemoryProfile]);
-  const resetFilters = useCallback(() => setFilters(DEFAULT_FILTERS), []);
+  }, [accountCreatedAt, accountDiet, setMemoryProfile]);
+  // Clearing the filters keeps the diet from the person's profile: that is a need, not a filter
+  const resetFilters = useCallback(() => setFilters({ ...DEFAULT_FILTERS, dietary: getAccount()?.dietary || [] }), []);
 
   // Handle Preset Fridge Selection
   // A sample fridge also gets matching recipes right away from the on-device model (instant, offline)
@@ -683,17 +712,20 @@ export default function App() {
         )}
         </>)}
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" custom={tabDir} initial={false}>
           {/* Tab 1: Fridge Scanner */}
           {activeTab === 'scan' && (
             <motion.div
               key="tab-scan"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
+              custom={tabDir}
+              variants={tabVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
               className="space-y-6"
             >
+              <HomeGreeting savedCount={savedRecipes.length} onOpenSaved={() => setActiveTab('saved')} onOpenRecipes={() => setActiveTab('recipes')} />
+
               {/* Primary Fridge Scanner: Snap Your Open Fridge. Let AI cook the perfect meal. */}
               <FridgeScanner
                 presetFridges={presetFridges}
@@ -726,10 +758,11 @@ export default function App() {
         {(activeTab === 'recipes' || activeTab === 'saved') && (
           <motion.div
             key="tab-recipes"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
+            custom={tabDir}
+            variants={tabVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
             className="space-y-6"
           >
             {/* Header: what this list is, where it came from, regenerate */}
@@ -874,10 +907,11 @@ export default function App() {
         {activeTab === 'molecular' && (
           <motion.div
             key="tab-molecular"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
+            custom={tabDir}
+            variants={tabVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
             className="space-y-6"
           >
             <Suspense fallback={<SectionFallback />}>
@@ -901,10 +935,11 @@ export default function App() {
         {activeTab === 'shopping' && (
           <motion.div
             key="tab-shopping"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
+            custom={tabDir}
+            variants={tabVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
             className="space-y-6"
           >
             <Suspense fallback={<SectionFallback />}>
@@ -923,10 +958,11 @@ export default function App() {
         {activeTab === 'settings' && (
           <motion.div
             key="tab-settings"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
+            custom={tabDir}
+            variants={tabVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
           >
             <Suspense fallback={<SectionFallback />}>
               <SettingsPage onTryLocalModel={() => handleGenerateRecipesFromIngredients(true)} />

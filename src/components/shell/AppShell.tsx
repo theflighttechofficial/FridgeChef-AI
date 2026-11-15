@@ -10,6 +10,7 @@ import { VoiceNavigationController } from '../VoiceNavigationController';
 import { AppTab } from '../../types';
 import { ToolItem } from './tools';
 import { initials, useAccount } from '../../auth/account';
+import { haptic as tap } from '../../utils/haptics';
 
 interface Destination {
   tab: AppTab;
@@ -27,11 +28,7 @@ export const TAB_TITLES: Record<AppTab, string> = {
   settings: 'Settings',
 };
 
-const haptic = () => {
-  try {
-    navigator.vibrate?.(8);
-  } catch {}
-};
+const haptic = () => tap('light');
 
 // ---------- Top app bar ----------
 
@@ -51,7 +48,7 @@ const TopAppBar: React.FC<{
 
   return (
     <header
-      className={`sticky top-0 z-40 pt-safe transition-colors duration-300 ${scrolled ? 'bg-surface-high' : 'bg-surface'}`}
+      className={`sticky top-0 z-40 pt-safe transition-[background-color,box-shadow] duration-300 ${scrolled ? 'bar-glass shadow-lg shadow-black/20' : 'bg-transparent'}`}
     >
       <div className="h-16 flex items-center gap-2 px-2 sm:px-4 md:px-6">
         <button
@@ -108,7 +105,7 @@ const TopAppBar: React.FC<{
 // ---------- Bottom navigation bar (phones) ----------
 
 const NavigationBar: React.FC<{ items: Destination[]; activeTab: AppTab; onSelect: (t: AppTab) => void }> = ({ items, activeTab, onSelect }) => (
-  <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-surface-container pb-safe" aria-label="Main">
+  <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bar-glass border-t border-outline-variant/30 pb-safe" aria-label="Main">
     <div className="h-20 grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
       {items.map(({ tab, label, icon: Icon, badge }) => {
         const active = activeTab === tab;
@@ -130,7 +127,9 @@ const NavigationBar: React.FC<{ items: Destination[]; activeTab: AppTab; onSelec
                   transition={{ type: 'spring', stiffness: 500, damping: 38 }}
                 />
               )}
-              <Icon className={`relative w-6 h-6 transition-colors ${active ? 'text-on-secondary-container' : 'text-on-surface-variant'}`} />
+              <motion.span className="relative grid place-items-center" animate={active ? { scale: [1, 1.22, 1], y: [0, -2, 0] } : { scale: 1, y: 0 }} transition={{ duration: 0.36, ease: [0.2, 0, 0, 1] }}>
+                <Icon className={`w-6 h-6 transition-colors ${active ? 'text-on-secondary-container' : 'text-on-surface-variant'}`} />
+              </motion.span>
               {!!badge && (
                 <span className="absolute top-0 right-3 min-w-4 h-4 px-1 rounded-full bg-rose-400 text-rose-950 text-[11px] font-bold grid place-items-center">
                   {badge > 99 ? '99+' : badge}
@@ -391,7 +390,8 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, sho
   ];
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface md:pl-24">
+    <div className="relative isolate min-h-screen bg-surface text-on-surface md:pl-24">
+      <div className="app-aurora" aria-hidden="true" />
       <NavigationRail items={destinations} activeTab={activeTab} onSelect={select} onSnap={snap} onOpenTools={() => setToolsOpen(true)} />
       <TopAppBar activeTab={activeTab} setActiveTab={select} onOpenTools={() => setToolsOpen(true)} />
       <div className="pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>

@@ -8,6 +8,9 @@ import { getTasteState, resetTaste, subscribeTaste, topTastes } from '../ml/tast
 import model from '../ml/model.json';
 import { KitchenBasicsCard } from './KitchenBasicsCard';
 import { deleteAccount, initials, signOut, updateProfile, useAccount } from '../auth/account';
+import { TasteQuiz } from './onboarding/TasteQuiz';
+import { AVOIDS, LOVES, SPICE, useTasteProfile } from '../state/tasteProfile';
+import { vaultSavedAt } from '../native/deviceVault';
 
 const Card: React.FC<{ icon: React.ComponentType<{ className?: string }>; title: string; subtitle?: string; children: React.ReactNode }> = ({ icon: Icon, title, subtitle, children }) => (
   <section className="rounded-[1.75rem] bg-surface-container p-5 sm:p-6 space-y-5">
@@ -40,7 +43,17 @@ const AccountCard: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(account?.name || '');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [quizOpen, setQuizOpen] = useState(false);
+  const profile = useTasteProfile();
   if (!account) return null;
+  const savedAt = vaultSavedAt();
+  const tasteChips = profile
+    ? [
+        `${SPICE.find((x) => x.id === profile.spice)?.emoji} ${SPICE.find((x) => x.id === profile.spice)?.label} heat`,
+        ...LOVES.filter((l) => profile.loves.includes(l.id)).map((l) => `${l.emoji} ${l.label}`),
+        ...AVOIDS.filter((a) => profile.avoids.includes(a.id)).map((a) => `No ${a.label.toLowerCase()}`),
+      ].slice(0, 8)
+    : [];
   const joined = new Date(account.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
   return (
     <section className="rounded-[1.75rem] bg-primary-container text-on-primary-container p-5 sm:p-6 space-y-4">
@@ -82,12 +95,29 @@ const AccountCard: React.FC = () => {
           ))}
         </div>
       )}
+      {!!tasteChips.length && (
+        <div className="flex flex-wrap gap-2">
+          {tasteChips.map((t) => (
+            <span key={t} className="h-7 px-3 rounded-lg bg-surface/30 text-xs font-medium inline-flex items-center">
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
+      <p className="text-xs opacity-80">
+        {savedAt
+          ? `This phone is recognised. Account and data were last backed up on the device ${new Date(savedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}; after a reinstall you are signed back in with everything in place.`
+          : 'Your account stays signed in on this device until you sign out.'}
+      </p>
       <div className="flex flex-wrap gap-2">
         {!editing && (
           <button onClick={() => setEditing(true)} className="h-10 px-4 rounded-full bg-surface/30 text-sm font-semibold state-layer">
             Edit name
           </button>
         )}
+        <button onClick={() => setQuizOpen(true)} className="h-10 px-4 rounded-full bg-primary text-on-primary text-sm font-semibold">
+          {profile ? 'Update my taste' : 'Answer taste questions'}
+        </button>
         <button onClick={signOut} className="h-10 px-4 rounded-full bg-surface/30 text-sm font-semibold state-layer">
           Sign out
         </button>
@@ -108,6 +138,7 @@ const AccountCard: React.FC = () => {
           </div>
         </div>
       )}
+      {quizOpen && <TasteQuiz editing onDone={() => setQuizOpen(false)} />}
     </section>
   );
 };

@@ -101,6 +101,34 @@ navigation rail on tablets and desktop, an extended "Snap fridge" FAB, a searcha
 large rounded shapes and Google Sans Flex. Every colour comes from tonal palettes derived from one
 seed hue (`src/index.css`, `src/theme/dynamicColor.ts`), so Settings → Colours re-tints the whole app.
 
+### Account that stays with the phone
+
+The account lives only on the device. Signing in once keeps the person signed in.
+
+- **Updates keep everything.** Every debug APK is signed with the same key
+  (`android/app/fridgechef-debug.keystore`) and carries a rising version code, so a new build
+  installs over the old one without removing the account or its data. If the installed app came
+  from a build made before this key existed, remove it once; later updates install in place.
+- **Reinstall on the same phone signs back in.** The Android app keeps a copy of the account and
+  its data (pantry, saved recipes, shopping list, taste answers, history, AI key) in the app's
+  preferences (`src/native/deviceVault.ts`), which Android includes in its backup. On a fresh
+  install the copy is put back before the app starts; when the phone's ID matches, the person is
+  signed in at once. On a different phone the data comes back but the password is asked for.
+  This needs Android backup switched on for the phone (Settings → Google → Backup), and Android
+  makes backups about once a day, so data from the last few hours before an uninstall may be
+  missing. The fridge photo is not part of the copy; the ingredient list is.
+- **Website:** data stays in the browser's storage for that site, and the app asks the browser
+  to keep it when storage runs low.
+- The debug signing key is public. Use a private key for a Play Store release.
+
+### Taste questions
+
+After the account is created the app asks eight short questions: diet, favourite cuisines, how
+spicy, foods the person loves, foods to skip, cooking skill and time, goals, and a stack of real
+dishes to like or pass. The answers (`src/state/tasteProfile.ts`) change how every recipe is
+scored on the device, are sent to cloud AI as one sentence, and can be changed any time in
+Settings → Update my taste.
+
 ## 🔑 Bring your own AI key
 
 Settings → **Your AI provider** accepts a key for Google Gemini, OpenAI, Anthropic Claude, Groq,
@@ -125,12 +153,13 @@ Pick a model, then press **Test connection**.
   measure), each cooking step adds how to do it, the heat to use and how to tell it's done, and a final step
   covers tasting, garnish and serving.
 
-- **Recipes**: 712 recipes across 82 cuisines in 10 regions (`src/ml/data/`):
+- **Recipes**: 811 recipes across 82 cuisines in 10 regions (`src/ml/data/`):
   - **Indian, 25 regional cuisines**: Punjabi, North Indian, Mughlai, Awadhi, Kashmiri, Rajasthani, Gujarati,
     Maharashtrian, Goan, Mangalorean, Sindhi, Parsi, Bengali, Odia, Bihari, Northeast Indian, Hyderabadi, Andhra,
     Tamil, Chettinad, Kerala, Karnataka, Indo-Chinese, street food and sweets (`indian.ts`, `more-indian.ts`).
   - **World**: South Asian (Pakistani, Sri Lankan, Nepali, Tibetan, Afghan), East Asian, Southeast Asian,
     Middle Eastern, African, European, the Americas and Oceania (`world.ts`, `more-asia.ts`, `more-world.ts`, `recipes.ts`).
+  - **Everyday home cooking**: breakfasts, quick lunches, simple dinners, snacks, sweets and drinks (`everyday.ts`).
 - **Ingredients**: 217 canonical ingredients with Hindi, regional and international aliases (`ingredients.ts`).
   Free-text pantry names such as "Lean Ground Beef (90/10)" or "Green Chillies" are mapped onto them by
   `src/ml/normalize.ts`.

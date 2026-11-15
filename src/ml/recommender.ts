@@ -13,6 +13,8 @@ import { tasteScore } from './tasteModel';
 import { composeRecipes, predictRegions } from './composer';
 import { basicLabel } from './basics';
 import { elaborateRecipe } from './elaborate';
+import { BY_NAME } from './normalize';
+import { TasteProfile, profileScore } from '../state/tasteProfile';
 
 const SUBSTITUTE_THRESHOLD = 0.85;
 const TASTE_WEIGHT = 1.2;
@@ -40,6 +42,8 @@ export const similarity: Similarity = (a, b) => {
   for (let k = 0; k < va.length; k++) s += va[k] * vb[k];
   return s;
 };
+
+const groupOf = (name: string) => BY_NAME.get(name)?.group;
 
 const title = (s: string) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -76,6 +80,8 @@ export interface RecommendOptions {
   // Kitchen basics assumed to be at home (canonical names), and ones the person said they lack
   assumed?: string[];
   missingBasics?: string[];
+  // Answers to the taste questions asked at the start
+  profile?: TasteProfile | null;
 }
 
 export interface Recommendation {
@@ -132,7 +138,7 @@ const toRecipe = (r: CorpusRecipe, pantry: Map<string, string>, assumed: Set<str
 /** Rank the bundled recipes for this pantry. */
 export const recommend = (
   ingredients: Ingredient[],
-  { filters = {}, limit = 6, exclude, explore = 0, round = 0, preferredRegions = [], assumed = [], missingBasics = [] }: RecommendOptions = {}
+  { filters = {}, limit = 6, exclude, explore = 0, round = 0, preferredRegions = [], assumed = [], missingBasics = [], profile = null }: RecommendOptions = {}
 ): Recommendation[] => {
   const pantry = canonicalPantry(ingredients.map((i) => i.name));
   const owned = new Set(pantry.keys());
@@ -144,6 +150,9 @@ export const recommend = (
   const dietary = filters.dietary || [];
 
   const regionFit = predictRegions([...owned]);
+  // "Stick to favourites" leans harder on the cuisines picked at setup; "Surprise me" barely at all
+  const regionPull = profile?.adventure === 'familiar' ? 2 : profile?.adventure === 'explorer' ? 0.3 : 1;
+  const exploreBoost = profile?.adventure === 'explorer' ? 1.4 : profile?.adventure === 'familiar' ? 0.6 : 1;
   const coverage = new Map<string, number>();
   const scored = RECIPES.filter((r) => satisfiesDiet(r.tags, dietary))
     .filter((r) => !filters.difficulty || filters.difficulty === 'All' || r.difficulty === filters.difficulty)
@@ -154,7 +163,12 @@ export const recommend = (
       const recipe = toRecipe(r, pantry, assumedSet, lacking);
       coverage.set(recipe.id, feats[0]);
       score += TASTE_WEIGHT * tasteScore(recipe);
-      if (preferredRegions.includes(r.region)) score += PREFERRED_REGION_BONUS;
+      if (preferredRegions.includes(r.region)) score += PREFERRED_REGION_BONUS * regionPull;
+      score += profileScore(
+        { ingredients: r.ingredients, tags: r.tags, difficulty: r.difficulty, minutes: r.prepTimeMinutes + r.cookTimeMinutes, calories: r.calories, protein: r.macros[0], cuisine: r.cuisine },
+        profile,
+        groupOf
+      );
       if (expiring.size) score += (EXPIRING_WEIGHT * r.ingredients.filter((i) => expiring.has(i)).length) / expiring.size;
       const maxTime = filters.maxPrepTime;
       if (maxTime && maxTime < 60 && r.prepTimeMinutes + r.cookTimeMinutes > maxTime) score -= OVER_TIME_PENALTY;
@@ -181,7 +195,7 @@ export const recommend = (
     );
     let idx = adjusted.indexOf(Math.max(...adjusted));
     if (explore > 0) {
-      const t = EXPLORE_TEMPERATURE * explore;
+      const t = EXPLORE_TEMPERATURE * explore * exploreBoost;
       const max = adjusted[idx];
       const weights = adjusted.map((a) => Math.exp((a - max) / t));
       let r = Math.random() * weights.reduce((x, y) => x + y, 0);
