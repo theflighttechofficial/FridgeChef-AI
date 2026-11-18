@@ -5,152 +5,20 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, ExternalLink, Eye, EyeOff, KeyRound, Lock, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, ExternalLink, KeyRound, Lock, ShieldCheck, Sparkles } from 'lucide-react';
 import { LogoMark } from '../Logo';
 import { SEEDS, setSeed, useSeed } from '../../theme/dynamicColor';
-import { REGIONS } from '../../ml/data/schema';
 import { createAccount, deleteAccount, initials, signIn, useAccount } from '../../auth/account';
 import { PROVIDERS } from '../../ai/providers';
 import { activeProvider, getAiSettings, updateAiSettings, useAiSettings } from '../../ai/settings';
 import { userKey } from '../../state/userData';
+import { Chip, PasswordField, PrimaryButton, Screen, TextField, haptic, slide, strength } from './parts';
+import { TasteQuiz, quizPending } from './TasteQuiz';
 
-const DIETS = ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Keto', 'Low-Carb', 'Nut-Free', 'Paleo'];
-const REGION_CHOICES = Object.keys(REGIONS).filter((r) => r !== 'Fusion');
-
-const haptic = (ms = 8) => {
-  try {
-    navigator.vibrate?.(ms);
-  } catch {}
-};
-
-// ---------- Building blocks ----------
-
-const TextField: React.FC<{
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  autoComplete?: string;
-  error?: string;
-  supporting?: string;
-  autoFocus?: boolean;
-  trailing?: React.ReactNode;
-  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
-}> = ({ label, value, onChange, type = 'text', autoComplete, error, supporting, autoFocus, trailing, inputMode }) => {
-  const id = useRef(`f-${Math.random().toString(36).slice(2, 8)}`).current;
-  return (
-    <div>
-      <div
-        className={`relative rounded-t-2xl bg-surface-highest/70 border-b-2 transition-colors ${
-          error ? 'border-rose-300' : 'border-on-surface-variant/50 focus-within:border-primary'
-        }`}
-      >
-        <input
-          id={id}
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          autoComplete={autoComplete}
-          autoFocus={autoFocus}
-          inputMode={inputMode}
-          placeholder=" "
-          spellCheck={false}
-          className="peer w-full h-16 px-4 pt-5 pr-14 bg-transparent outline-none text-base text-on-surface"
-        />
-        <label
-          htmlFor={id}
-          className={`absolute left-4 top-1/2 -translate-y-1/2 text-base text-on-surface-variant pointer-events-none transition-all duration-200
-            peer-focus:top-4 peer-focus:text-xs peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-xs
-            ${error ? 'peer-focus:text-rose-300' : 'peer-focus:text-primary'}`}
-        >
-          {label}
-        </label>
-        {trailing && <div className="absolute right-2 top-1/2 -translate-y-1/2">{trailing}</div>}
-      </div>
-      <p className={`px-4 pt-1 text-xs min-h-5 ${error ? 'text-rose-300' : 'text-on-surface-variant'}`}>{error || supporting}</p>
-    </div>
-  );
-};
-
-const PasswordField: React.FC<Omit<React.ComponentProps<typeof TextField>, 'type' | 'trailing'>> = (props) => {
-  const [show, setShow] = useState(false);
-  return (
-    <TextField
-      {...props}
-      type={show ? 'text' : 'password'}
-      trailing={
-        <button
-          type="button"
-          onClick={() => setShow((s) => !s)}
-          className="w-12 h-12 grid place-items-center rounded-full state-layer text-on-surface-variant"
-          aria-label={show ? 'Hide password' : 'Show password'}
-        >
-          {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-        </button>
-      }
-    />
-  );
-};
-
-const Chip: React.FC<{ selected: boolean; onClick: () => void; children: React.ReactNode }> = ({ selected, onClick, children }) => (
-  <button
-    type="button"
-    onClick={() => {
-      haptic(5);
-      onClick();
-    }}
-    aria-pressed={selected}
-    className={`h-10 px-4 rounded-xl text-sm font-medium inline-flex items-center gap-2 border transition-colors ${
-      selected ? 'bg-secondary-container text-on-secondary-container border-transparent' : 'border-outline-variant text-on-surface-variant state-layer'
-    }`}
-  >
-    {selected && <Check className="w-4 h-4" />}
-    {children}
-  </button>
-);
-
-const PrimaryButton: React.FC<{ children: React.ReactNode; disabled?: boolean; busy?: boolean; type?: 'button' | 'submit'; onClick?: () => void }> = ({
-  children,
-  disabled,
-  busy,
-  type = 'submit',
-  onClick,
-}) => (
-  <button
-    type={type}
-    onClick={onClick}
-    disabled={disabled || busy}
-    className="w-full h-14 rounded-full bg-primary text-on-primary text-base font-semibold shadow-lg shadow-black/30 disabled:opacity-40 flex items-center justify-center gap-2"
-  >
-    {busy ? <span className="w-5 h-5 rounded-full border-2 border-on-primary/30 border-t-on-primary animate-spin" /> : children}
-  </button>
-);
-
-const strength = (pw: string) => {
-  let s = 0;
-  if (pw.length >= 6) s++;
-  if (pw.length >= 10) s++;
-  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) s++;
-  if (/\d/.test(pw) && /[^A-Za-z0-9]/.test(pw)) s++;
-  return s;
-};
-
-const slide = {
-  enter: (dir: number) => ({ x: dir > 0 ? 80 : -80, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -80 : 80, opacity: 0 }),
-};
-
-const Screen: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="fixed inset-0 z-[150] bg-surface text-on-surface pt-safe pb-safe overflow-hidden">
-    {/* Phone-width column, centred on tablets and desktops */}
-    <div className="relative h-full w-full max-w-md mx-auto flex flex-col">{children}</div>
-  </div>
-);
 
 // ---------- Create account ----------
 
-const STEPS = 4; // name, password, colour, food
+const STEPS = 3; // name, password, colour (the taste questions follow)
 
 const CreateAccount: React.FC = () => {
   const seed = useSeed();
@@ -160,8 +28,6 @@ const CreateAccount: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [dietary, setDietary] = useState<string[]>([]);
-  const [regions, setRegions] = useState<string[]>([]);
   const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -185,16 +51,15 @@ const CreateAccount: React.FC = () => {
     setTouched(true);
     if (step === 0 && (errors.name || errors.email)) return;
     if (step === 1 && (errors.password || errors.confirm)) return;
-    if (step === 3) {
+    if (step === 2) {
       setBusy(true);
-      await createAccount({ name: name.trim(), email: email.trim(), seedId: seed.id, dietary, regions }, password).catch(() => {});
+      await createAccount({ name: name.trim(), email: email.trim(), seedId: seed.id, dietary: [], regions: [] }, password).catch(() => {});
       setBusy(false);
       return;
     }
     go(step + 1);
   };
 
-  const toggle = (list: string[], set: (v: string[]) => void, v: string) => set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const level = strength(password);
 
   if (step === -1) {
@@ -220,7 +85,7 @@ const CreateAccount: React.FC = () => {
           </motion.div>
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }} className="relative space-y-3">
             <h1 className="text-4xl font-semibold tracking-tight leading-tight">Cook with what you already have</h1>
-            <p className="text-on-surface-variant text-base">Set up FridgeChef-AI in under a minute. Your account lives only on this phone.</p>
+            <p className="text-on-surface-variant text-base">A quick setup and a few questions about your taste. Your account lives only on this device.</p>
           </motion.div>
         </div>
         <div className="px-6 pb-6 space-y-3 relative">
@@ -239,7 +104,6 @@ const CreateAccount: React.FC = () => {
     ['What should we call you?', 'This is how FridgeChef greets you.'],
     ['Create a password', 'You will use it to sign back in on this device.'],
     ['Pick your colour', 'The whole app tints to match. You can change it later.'],
-    ['What do you like to eat?', 'We will tune recipe ideas to fit. Skip anything that does not apply.'],
   ];
 
   return (
@@ -272,7 +136,7 @@ const CreateAccount: React.FC = () => {
               className="pt-4 pb-8 space-y-6"
             >
               <div className="space-y-2">
-                <p className="text-sm font-medium text-primary">Step {step + 1} of 4</p>
+                <p className="text-sm font-medium text-primary">Step {step + 1} of {STEPS}</p>
                 <h1 className="text-[2rem] leading-tight font-semibold tracking-tight">{titles[step][0]}</h1>
                 <p className="text-on-surface-variant">{titles[step][1]}</p>
               </div>
@@ -348,35 +212,11 @@ const CreateAccount: React.FC = () => {
                 </div>
               )}
 
-              {step === 3 && (
-                <div className="space-y-6">
-                  <section className="space-y-3">
-                    <h2 className="text-sm font-semibold text-on-surface-variant">Dietary needs</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {DIETS.map((d) => (
-                        <Chip key={d} selected={dietary.includes(d)} onClick={() => toggle(dietary, setDietary, d)}>
-                          {d}
-                        </Chip>
-                      ))}
-                    </div>
-                  </section>
-                  <section className="space-y-3">
-                    <h2 className="text-sm font-semibold text-on-surface-variant">Cuisines you love</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {REGION_CHOICES.map((r) => (
-                        <Chip key={r} selected={regions.includes(r)} onClick={() => toggle(regions, setRegions, r)}>
-                          {r}
-                        </Chip>
-                      ))}
-                    </div>
-                  </section>
-                </div>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>
         <div className="px-6 pb-6 pt-2">
-          <PrimaryButton busy={busy}>{step === 3 ? 'Create account' : 'Continue'}</PrimaryButton>
+          <PrimaryButton busy={busy}>{step === 2 ? 'Create account' : 'Continue'}</PrimaryButton>
         </div>
       </form>
     </Screen>
@@ -579,6 +419,7 @@ export const AuthGate: React.FC<{ children: React.ReactNode; paused?: boolean }>
   const ai = useAiSettings();
   const [celebrate, setCelebrate] = useState(false);
   const [askAi, setAskAi] = useState(() => !promptSeen());
+  const [askTaste, setAskTaste] = useState(() => quizPending());
   const wasNew = useRef(!account);
 
   // Brief welcome after creating an account
@@ -589,7 +430,11 @@ export const AuthGate: React.FC<{ children: React.ReactNode; paused?: boolean }>
       const t = setTimeout(() => setCelebrate(false), 1600);
       return () => clearTimeout(t);
     }
-    if (!account) wasNew.current = true;
+    if (!account) {
+      wasNew.current = true;
+      setAskTaste(true);
+      setAskAi(true);
+    }
   }, [account, signedIn]);
 
   // Wait while the first-launch intro is on screen
@@ -600,7 +445,14 @@ export const AuthGate: React.FC<{ children: React.ReactNode; paused?: boolean }>
     <>
       {children}
       <AnimatePresence>
-        {askAi && !celebrate && !activeProvider(ai) && (
+        {askTaste && !celebrate && (
+          <motion.div key="taste-quiz" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+            <TasteQuiz onDone={() => setAskTaste(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {askAi && !askTaste && !celebrate && !activeProvider(ai) && (
           <motion.div key="connect-ai" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <ConnectAi onDone={() => setAskAi(false)} />
           </motion.div>
@@ -620,7 +472,7 @@ export const AuthGate: React.FC<{ children: React.ReactNode; paused?: boolean }>
                 {initials(account.name)}
               </span>
               <h1 className="text-3xl font-semibold">You're all set, {account.name.split(' ')[0]}!</h1>
-              <p className="opacity-80">Let's see what's in your fridge.</p>
+              <p className="opacity-80">A few questions about your taste, then we cook.</p>
             </motion.div>
           </motion.div>
         )}

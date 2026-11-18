@@ -1,28 +1,19 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
-import App from './App.tsx';
+/**
+ * Entry point. In the Android app a copy of the account that survived a reinstall is put back
+ * first, because the rest of the app reads its saved state as soon as it loads.
+ */
 import './index.css';
-import { installApiClient } from './ai/apiClient';
-import { initDynamicColor } from './theme/dynamicColor';
-import { migrateLegacyUserData } from './state/userData';
 
-migrateLegacyUserData();
-installApiClient();
-initDynamicColor();
-if ((window as any).Capacitor) import('./native/android').then((m) => m.initAndroid());
+const start = async () => {
+  if ((window as any).Capacitor?.isNativePlatform?.()) {
+    const vault = await import('./native/deviceVault');
+    await vault.restoreVault();
+    vault.startVaultMirror();
+  } else {
+    // Ask the browser not to clear this site's data when storage runs low
+    navigator.storage?.persist?.().catch(() => {});
+  }
+  await import('./boot');
+};
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
-
-// Keep the launch screen up until its animation has played, then fade it out
-const splash = document.getElementById('boot-splash');
-if (splash && splash.style.display === 'flex') {
-  const shownFor = Date.now() - ((window as any).__bootSplashAt || Date.now());
-  setTimeout(() => {
-    splash.style.opacity = '0';
-    setTimeout(() => splash.remove(), 400);
-  }, Math.max(0, 2100 - shownFor));
-}
+void start();

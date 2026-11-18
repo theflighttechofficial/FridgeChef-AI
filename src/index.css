@@ -356,3 +356,81 @@ a[href]:active, [role='button']:active { transform: scale(0.97); }
 }
 
 html { scroll-behavior: smooth; }
+
+/* ---------- Polish layer ---------- */
+
+/* Material ripple (utils/ripple.ts) */
+.ripple-host {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: opacity 400ms ease-out;
+}
+.ripple-host.ripple-out { opacity: 0; }
+.ripple-ink {
+  position: absolute;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.14;
+  transform: scale(0);
+  animation: ripple-grow 480ms var(--ease-emphasized) forwards;
+}
+@keyframes ripple-grow { to { transform: scale(1); } }
+
+/* Soft colour glow behind the app that follows the chosen theme colour */
+.app-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.app-aurora::before,
+.app-aurora::after {
+  content: '';
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.16;
+  will-change: transform;
+}
+.app-aurora::before {
+  top: -30vmax;
+  right: -25vmax;
+  background: oklch(62% 0.14 var(--seed-hue));
+  animation: aurora-a 26s ease-in-out infinite alternate;
+}
+.app-aurora::after {
+  bottom: -35vmax;
+  left: -30vmax;
+  background: oklch(58% 0.12 calc(var(--seed-hue) + 60));
+  animation: aurora-b 32s ease-in-out infinite alternate;
+}
+@keyframes aurora-a { to { transform: translate(-12vmax, 10vmax) scale(1.15); } }
+@keyframes aurora-b { to { transform: translate(14vmax, -8vmax) scale(1.1); } }
+
+/* Waving hand in the greeting */
+@keyframes wave {
+  0%, 60%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(16deg); }
+  20%, 40% { transform: rotate(-8deg); }
+}
+.animate-wave { animation: wave 2.4s ease-in-out 0.4s 2; }
+
+/* Frosted top bar once the page scrolls under it */
+.bar-glass {
+  background: color-mix(in oklab, var(--md-surface-container-high) 78%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+}
+
+/* Smooth momentum scrolling inside sheets and dialogs */
+.overflow-y-auto { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-aurora::before, .app-aurora::after { animation: none; }
+}

@@ -5,7 +5,20 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    // '/' for the server and the Android app; '/FridgeChef-AI/' for the GitHub Pages demo
+    base: process.env.VITE_BASE || '/',
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        // The server fills in %SITE_URL% per request; a static build has to do it here
+        name: 'static-site-url',
+        transformIndexHtml(html: string) {
+          const site = process.env.VITE_SITE_URL;
+          return site ? html.replaceAll('%SITE_URL%', site.replace(/\/+$/, '')) : html;
+        },
+      },
+    ],
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, '.'),

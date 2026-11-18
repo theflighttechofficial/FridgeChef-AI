@@ -1,0 +1,57 @@
+name: Live demo (GitHub Pages)
+
+# Publishes the website build to https://theflighttechofficial.github.io/FridgeChef-AI/
+# One-time setup: Settings > Pages > Build and deployment > Source: GitHub Actions.
+# The demo has no FridgeChef server behind it: recipes come from the on-device model,
+# and cloud AI works when a visitor adds their own API key in Settings.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build static site
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+          VITE_STATIC_SITE: 'true'
+          VITE_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+        run: npx vite build
+
+      # Unknown paths get the app's own "page not found" screen
+      - run: cp dist/index.html dist/404.html
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

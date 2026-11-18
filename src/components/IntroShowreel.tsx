@@ -107,7 +107,7 @@ export const IntroShowreel: React.FC<IntroShowreelProps> = ({ onContinue }) => {
                 )}
                 <iframe
                   ref={iframeRef}
-                  src="/showreel.html"
+                  src={`${import.meta.env.BASE_URL}showreel.html`}
                   title="FridgeChef product walkthrough"
                   onLoad={() => setReelLoaded(true)}
                   className="absolute inset-0 w-full h-full border-0"

@@ -263,6 +263,7 @@ app.post('/api/generate-recipes', async (req, res) => {
       avoidTitles,
       kitchenBasics,
       missingBasics,
+      tasteProfile,
     } = req.body;
     const list = (x: unknown) => (Array.isArray(x) ? x.slice(0, 30).map((v) => String(v).slice(0, 40)).join(', ') : '');
     const ai = getGeminiClient();
@@ -278,6 +279,7 @@ User Preferences & Restrictions:
 - Difficulty Preference: ${difficulty || 'Any'}
 - Cuisine Style: ${cuisine || 'Any'}
 - Meal Type: ${mealType || 'Any'}
+${typeof tasteProfile === 'string' && tasteProfile.trim() ? `- About the person (fit the recipes to this): ${tasteProfile.replace(/[\r\n]+/g, ' ').slice(0, 500)}` : ''}
 
 FORMAL REGIONAL TAXONOMY LAYER:
 ${regionalTaxonomy && Array.isArray(regionalTaxonomy) ? `Required Taxonomy Buckets:\n${regionalTaxonomy.map(t => `- ${t}`).join('\n')}` : ''}
