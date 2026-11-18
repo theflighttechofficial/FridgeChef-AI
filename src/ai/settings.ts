@@ -83,5 +83,8 @@ export const apiBase = () => {
   return configured.replace(/\/+$/, '');
 };
 
-/** Whether /api calls can reach a server at all (always on the web). */
-export const hasServer = () => !isNativeApp() || !!apiBase();
+// Static builds (the GitHub Pages demo) have no FridgeChef server behind them
+const STATIC_SITE = import.meta.env?.VITE_STATIC_SITE === 'true';
+
+/** Whether /api calls can reach a server at all (always on the web, except the static demo). */
+export const hasServer = () => (!isNativeApp() && !STATIC_SITE) || !!apiBase();

@@ -192,7 +192,7 @@ export const NotFoundPage: React.FC = () => (
       The page you asked for does not exist or has moved. Check the address, or head back to the app.
     </p>
     <div className="mt-10 flex flex-wrap gap-4">
-      <a href="/" className="px-6 py-3.5 rounded-[3px] bg-[#FF5A3C] text-[#1A0A05] font-semibold hover:bg-[#ff7357]">
+      <a href={import.meta.env.BASE_URL} className="px-6 py-3.5 rounded-[3px] bg-[#FF5A3C] text-[#1A0A05] font-semibold hover:bg-[#ff7357]">
         Go to FridgeChef
       </a>
       <a href="#/contact" className="px-6 py-3.5 rounded-[3px] border border-[#F5F1E8]/20 hover:border-[#F5F1E8]/50">

@@ -1,47 +1,104 @@
-# 🍳 FridgeChef AI — Smart Fridge & Autonomous Culinary Assistant
+<p align="center"><img src="public/favicon.svg" alt="" width="88"></p>
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React 19](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
-[![Vite 8](https://img.shields.io/badge/Vite_8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Google Gemini API](https://img.shields.io/badge/Google_Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
-[![Express 4](https://img.shields.io/badge/Express_4-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![Framer Motion](https://img.shields.io/badge/Framer_Motion_13-E91E63?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion/)
+<h1 align="center">FridgeChef-AI</h1>
 
-> **Snap a photo of your fridge, audit ingredients in real-time, generate zero-waste Michelin-grade recipes, cook hands-free with voice guidance, and experience an autonomous culinary operating system with a native iOS & Android mobile interface.**
+<p align="center"><b>Snap your fridge, get a dinner you will like, and cook it step by step.<br>811 recipes work offline on Android and the web; add your own AI key for more.</b></p>
 
----
+<p align="center">
+  <a href="https://theflighttechofficial.github.io/FridgeChef-AI/"><b>▶ Try it live</b></a> &nbsp;·&nbsp;
+  <a href="https://github.com/theflighttechofficial/FridgeChef-AI/releases/latest"><b>⬇ Download the Android APK</b></a> &nbsp;·&nbsp;
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
 
-## 📸 Screenshots
+<p align="center">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-2ea44f"></a>
+  <a href="https://github.com/theflighttechofficial/FridgeChef-AI/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/theflighttechofficial/FridgeChef-AI"></a>
+  <a href="https://github.com/theflighttechofficial/FridgeChef-AI/actions/workflows/android.yml"><img alt="Android build" src="https://github.com/theflighttechofficial/FridgeChef-AI/actions/workflows/android.yml/badge.svg"></a>
+</p>
 
 <table>
   <tr>
-    <td align="center" width="33%"><img src="docs/screenshots/01-welcome.jpg" alt="Welcome screen" width="240"><br><sub><b>Welcome</b>: on-device account, nothing leaves the phone</sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/02-colour.jpg" alt="Pick your colour step" width="240"><br><sub><b>Material You setup</b>: the colour you pick tints the whole app</sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/03-connect-ai.jpg" alt="Connect your AI screen" width="240"><br><sub><b>Connect your AI</b>: one-time prompt to add your own API key</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="docs/screenshots/04-fridge.jpg" alt="My fridge tab" width="240"><br><sub><b>My fridge</b>: snap a photo or pick a sample fridge</sub></td>
-    <td align="center"><img src="docs/screenshots/05-recipes.jpg" alt="Recipes tab" width="240"><br><sub><b>Cook tonight</b>: recipes from the on-device model</sub></td>
-    <td align="center"><img src="docs/screenshots/06-cooking.jpg" alt="Step-by-step cooking mode" width="240"><br><sub><b>Cooking mode</b>: hands-free steps with timers</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="docs/screenshots/07-tools.jpg" alt="All tools sheet" width="240"><br><sub><b>All tools</b>: searchable sheet of AI agents and planners</sub></td>
-    <td align="center"><img src="docs/screenshots/08-nutrition.jpg" alt="Personal nutrition dashboard" width="240"><br><sub><b>Nutrition</b>: built from meals you actually cooked</sub></td>
-    <td align="center"><img src="docs/screenshots/09-settings.jpg" alt="Settings screen" width="240"><br><sub><b>Settings</b>: account, recipe engine and AI provider</sub></td>
+    <td align="center" width="34%"><img src="docs/demo.gif" alt="Demo: taste questions, recipes from a sample fridge, cooking mode" width="250"></td>
+    <td align="center" width="33%"><img src="docs/screenshots/recipes.jpg" alt="Recipes picked for the fridge" width="250"></td>
+    <td align="center" width="33%"><img src="docs/screenshots/cooking.jpg" alt="Step-by-step cooking mode" width="250"></td>
   </tr>
 </table>
 
-<p align="center"><img src="docs/screenshots/10-desktop.jpg" alt="Recipes on desktop with navigation rail" width="900"><br><sub><b>Website on desktop</b>: navigation rail, filters and recipe cards</sub></p>
+## Quick start
+
+1. **Open the app.** Use the [live demo](https://theflighttechofficial.github.io/FridgeChef-AI/) in any browser, or install the
+   [APK](https://github.com/theflighttechofficial/FridgeChef-AI/releases/latest) on an Android phone.
+2. **Answer eight taste questions** (diet, cuisines, heat, foods you love or skip), or skip them.
+3. **Snap your fridge or pick a sample fridge**, then tap **Suggest recipes** and **Cook step by step**.
+
+No account server and no API key needed: the account, your data and the recipe model live on your
+device. Add a Gemini, OpenAI, Claude or other key in Settings to read fridge photos and get AI-written recipes.
+
+**Run it yourself**
+
+```bash
+git clone https://github.com/theflighttechofficial/FridgeChef-AI.git
+cd FridgeChef-AI
+npm install
+npm run dev          # http://localhost:3000
+```
+
+or with Docker:
+
+```bash
+docker build -t fridgechef .
+docker run -p 3000:3000 fridgechef
+```
+
+## What it does
+
+- **Recipes from what you have.** An on-device model ranks 811 recipes from 82 Indian and world
+  cuisines against your ingredients in a few milliseconds, offline. Pantries it covers poorly get
+  recipes composed from exactly what is there.
+- **Learns your taste.** Answers to the taste questions, plus every recipe you save, cook and rate,
+  change the ranking. Avoided ingredients sink to the bottom; the diet you set is always respected.
+- **Assumes kitchen basics.** Salt, oil, common spices, onion, garlic and the like count as being
+  at home; report any you are out of.
+- **Beginner-friendly cooking mode.** Every step says how to do it, the heat level and how to tell
+  when it is done, with timers and a list of what to buy.
+- **Your AI, your key.** Gemini, OpenAI, Claude, Groq, OpenRouter, Mistral, DeepSeek, Grok or any
+  OpenAI-compatible endpoint. Keys stay on the device. If a model is retired or over quota, the
+  next one on the same key answers.
+- **Account that stays with the phone.** Updates install over the old app, and a reinstall on the
+  same phone signs you back in with your data (needs Android backup switched on).
+- **More tools** (Lab tab and tools sheet): substitutions, meal planner, nutrition from meals you
+  cooked, shopping list, receipt to pantry, food-safety checks and more. Several of these need a
+  cloud AI key.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="docs/screenshots/welcome.jpg" alt="Welcome screen" width="200"><br><sub>Welcome</sub></td>
+    <td align="center" width="25%"><img src="docs/screenshots/taste-spice.jpg" alt="Taste question: how spicy" width="200"><br><sub>Taste questions</sub></td>
+    <td align="center" width="25%"><img src="docs/screenshots/taste-dishes.jpg" alt="Like or pass on real dishes" width="200"><br><sub>Like or pass on dishes</sub></td>
+    <td align="center" width="25%"><img src="docs/screenshots/home.jpg" alt="Fridge tab with greeting and stats" width="200"><br><sub>My fridge</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/done.jpg" alt="Finished dish celebration" width="200"><br><sub>Finished a dish</sub></td>
+    <td align="center"><img src="docs/screenshots/settings.jpg" alt="Settings with taste profile" width="200"><br><sub>Settings</sub></td>
+    <td align="center"><img src="docs/screenshots/tools.jpg" alt="All tools sheet" width="200"><br><sub>All tools</sub></td>
+    <td align="center"><img src="docs/screenshots/nutrition.jpg" alt="Nutrition dashboard" width="200"><br><sub>Nutrition</sub></td>
+  </tr>
+</table>
+
+<p align="center"><img src="docs/screenshots/desktop.jpg" alt="Website on desktop with navigation rail" width="900"><br><sub>Website on desktop</sub></p>
 
 ---
 
 ## 📑 Table of Contents
 
-- [📸 Screenshots](#-screenshots)
+- [Quick start](#quick-start)
+- [What it does](#what-it-does)
+- [Screenshots](#screenshots)
 - [Overview](#-overview)
 - [Architecture & Tech Stack](#-architecture--tech-stack)
-- [⭐ Flagship AI & Culinary Innovations](#-flagship-ai--culinary-innovations)
+- [⭐ Full feature list](#-full-feature-list)
   - [1. 🧠 FridgeChef Memory Engine](#1--fridgechef-memory-engine)
   - [2. 📸 Receipt → Pantry AI](#2--receipt--pantry-ai)
   - [3. 🧊 Fridge Digital Twin](#3--fridge-digital-twin)
@@ -70,7 +127,7 @@
 - [Complete Feature & Component Inventory](#-complete-feature--component-inventory)
   - [1. AI Vision & Fridge Scanner](#1-ai-vision--fridge-scanner)
   - [2. Native Android & Material 3 Experience](#2-native-android--material-3-experience)
-  - [3. Recipe Engine & Zero-Waste Arbitrage](#3-recipe-engine--zero-waste-arbitrage)
+  - [3. Recipe Engine & Filtering](#3-recipe-engine--filtering)
   - [4. Hands-Free Voice Cooking & Step-by-Step Guidance](#4-hands-free-voice-cooking--step-by-step-guidance)
   - [5. Pantry Health & Expiration Management](#5-pantry-health--expiration-management)
   - [6. 7-Day Meal Planner & Sommelier Pairings](#6-7-day-meal-planner--sommelier-pairings)
@@ -182,9 +239,13 @@ Pick a model, then press **Test connection**.
 
 ## 🌟 Overview
 
-**FridgeChef AI** transforms everyday household ingredients into gourmet, chef-designed meals. By integrating **Google Gemini** multi-modal vision with client-side sensory science tools, the application eliminates household food waste, optimizes grocery spend, and guides home cooks step-by-step with interactive voice-assisted guidance.
+FridgeChef turns what is already in your fridge into a meal. It reads a fridge photo with a cloud
+vision model (your own key) or takes a typed list, ranks recipes with an on-device model, and walks
+you through cooking with timers and spoken steps. One React codebase runs as a website and, through
+Capacitor, as an Android app with Material 3 design, haptics and spring animations.
 
-Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an **iOS Dynamic Island**, **Android Material You Speed-Dial FAB**, **tactile haptic feedback**, and fluid spring physics animations across all user actions.
+The long feature list below describes every screen in the app. Features marked as needing AI use
+your own key; without one they show offline sample results.
 
 ---
 
@@ -203,7 +264,7 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 
 ---
 
-## ⭐ Flagship AI & Culinary Innovations
+## ⭐ Full feature list
 
 ### 1. 🧠 FridgeChef Memory Engine
 - **Persistent Personal Culinary Model**: Maintains a persistent memory profile for the entire household rather than operating as a stateless bot.
@@ -332,7 +393,7 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
   - Gas/VOC odor sensors (*12 ppm pure air*) & Ethylene gas ripening levels
 - **Interactive Anomaly Engine**:
   > *"⚠️ Temperature anomaly: Fridge temperature increased from 3.8°C → 8.1°C for 27 minutes. Refrigerator door left unlatched."*
-  - Synchronized with the **iOS Dynamic Island** pill and Android speed dial FAB with one-tap diagnostics.
+  - One-tap diagnostics from the tools sheet.
 
 ### 14. ⚖️ Food Safety Intelligence
 - **Deterministic HACCP & Hygiene Engine**:
@@ -438,43 +499,43 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 - **Android back button** closes the tools sheet, then returns to the Fridge tab, then leaves the app.
 - **Tactile Haptic Feedback**: `navigator.vibrate()` integrated into button clicks, tab navigation, recipe favoriting, and voice command triggers.
 
-### 3. Recipe Engine & Zero-Waste Arbitrage
+### 3. Recipe Engine & Filtering
 - **Zero-Waste Match Algorithm**: Displays matching percentages (*e.g., 92% Match*) and highlights matched vs missing ingredients.
-- **Advanced Multi-Facet Filtering ([SidebarFilter.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/SidebarFilter.tsx))**: Filter by meal type, prep time duration, difficulty level, cuisine style, and cooking appliance (*Air Fryer, Sous Vide, Instant Pot, Claypot, Wok, Oven*).
-- **Hexagonal Nutritional Radar Chart ([D3RadarChart.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/D3RadarChart.tsx))**: Visualizes macronutrient and micronutrient balance across 6 axes: *Protein, Fats, Carbs, Fiber, Vitamins, and Minerals*.
-- **Sub-Recipe Breakdown ([SubRecipeModal.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/SubRecipeModal.tsx))**: Separates recipes into independently timed sub-components.
-- **Batch Cooking & Tupperware Scaler ([MealPrepBatchModal.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/MealPrepBatchModal.tsx))**: Re-calculates portions (1x, 2x, 4x, 8x), container requirements, and freezer burn shelf-life limits.
+- **Advanced Multi-Facet Filtering ([SidebarFilter.tsx](src/components/SidebarFilter.tsx))**: Filter by meal type, prep time duration, difficulty level, cuisine style, and cooking appliance (*Air Fryer, Sous Vide, Instant Pot, Claypot, Wok, Oven*).
+- **Hexagonal Nutritional Radar Chart ([D3RadarChart.tsx](src/components/D3RadarChart.tsx))**: Visualizes macronutrient and micronutrient balance across 6 axes: *Protein, Fats, Carbs, Fiber, Vitamins, and Minerals*.
+- **Sub-Recipe Breakdown ([SubRecipeModal.tsx](src/components/SubRecipeModal.tsx))**: Separates recipes into independently timed sub-components.
+- **Batch Cooking & Tupperware Scaler ([MealPrepBatchModal.tsx](src/components/MealPrepBatchModal.tsx))**: Re-calculates portions (1x, 2x, 4x, 8x), container requirements, and freezer burn shelf-life limits.
 
 ### 4. Hands-Free Voice Cooking & Step-by-Step Guidance
-- **Full-Screen Interactive Cooking Modal ([StepByStepCookingModal.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/StepByStepCookingModal.tsx))**: Designed for kitchen hands with large touch targets and high-contrast typography.
+- **Full-Screen Interactive Cooking Modal ([StepByStepCookingModal.tsx](src/components/StepByStepCookingModal.tsx))**: Designed for kitchen hands with large touch targets and high-contrast typography.
 - **Voice Read-Aloud (TTS)**: Web Speech API & Gemini TTS voice engine.
-- **Siri-Style Voice Waveform Pulse ([VoiceInteractionHapticPulse.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/VoiceInteractionHapticPulse.tsx))**: Animated waveform bars and pulsing ambient rings indicate active voice narration.
+- **Siri-Style Voice Waveform Pulse ([VoiceInteractionHapticPulse.tsx](src/components/VoiceInteractionHapticPulse.tsx))**: Animated waveform bars and pulsing ambient rings indicate active voice narration.
 - **Multi-Timer Command Center**: Run step-specific timers alongside persistent kitchen multi-timers.
 
 ### 5. Pantry Health & Expiration Management
-- **Pantry Health Notification System ([PantryHealthNotificationBanner.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/PantryHealthNotificationBanner.tsx))**: Scans fridge database for items expiring within 48-72 hours with Web Notification API push alerts.
-- **Spoilage Simulator ([ExpirationSimulatorWidget.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/ExpirationSimulatorWidget.tsx))**: 1-to-30 day decay timeline slider.
-- **Pantry Emergency Mode ([PantryEmergencyMode.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/PantryEmergencyMode.tsx))**: 1-click rescue mode prioritizing zero-waste recipes using expiring ingredients.
-- **Smart Tupperware Tracker ([TupperwareTrackerWidget.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/TupperwareTrackerWidget.tsx))**: Logs leftover container locations, freeze dates, and defrost recommendations.
-- **Household Chore Leaderboard ([HouseholdChoreLeaderboardWidget.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/HouseholdChoreLeaderboardWidget.tsx))**: Gamified points system awarding household members +25 pts for completing fridge audits.
+- **Pantry Health Notification System ([PantryHealthNotificationBanner.tsx](src/components/PantryHealthNotificationBanner.tsx))**: Scans fridge database for items expiring within 48-72 hours with Web Notification API push alerts.
+- **Spoilage Simulator ([ExpirationSimulatorWidget.tsx](src/components/ExpirationSimulatorWidget.tsx))**: 1-to-30 day decay timeline slider.
+- **Pantry Emergency Mode ([PantryEmergencyMode.tsx](src/components/PantryEmergencyMode.tsx))**: 1-click rescue mode prioritizing zero-waste recipes using expiring ingredients.
+- **Smart Tupperware Tracker ([TupperwareTrackerWidget.tsx](src/components/TupperwareTrackerWidget.tsx))**: Logs leftover container locations, freeze dates, and defrost recommendations.
+- **Household Chore Leaderboard ([HouseholdChoreLeaderboardWidget.tsx](src/components/HouseholdChoreLeaderboardWidget.tsx))**: Gamified points system awarding household members +25 pts for completing fridge audits.
 
 ### 6. 7-Day Meal Planner & Sommelier Pairings
-- **Zero-Waste 7-Day AI Meal Planner ([WeeklyMealPlannerWidget.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/WeeklyMealPlannerWidget.tsx))**: Full Monday–Sunday schedule with 1-click shopping export.
-- **Gourmet Beverage & Sommelier Pairing ([GourmetSommelierWidget.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/GourmetSommelierWidget.tsx))**: Sommelier-curated fine wines, craft beers, and zero-proof mocktails.
+- **Zero-Waste 7-Day AI Meal Planner ([WeeklyMealPlannerWidget.tsx](src/components/WeeklyMealPlannerWidget.tsx))**: Full Monday–Sunday schedule with 1-click shopping export.
+- **Gourmet Beverage & Sommelier Pairing ([GourmetSommelierWidget.tsx](src/components/GourmetSommelierWidget.tsx))**: Sommelier-curated fine wines, craft beers, and zero-proof mocktails.
 
 ### 7. Advanced Culinary & Sensory Science Labs
-- **Molecular & Physics Lab ([MolecularLabTab.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/MolecularLabTab.tsx))**: Emulsion stability indexes, Maillard reaction browning temperature predictors, and acidity/pH pairing.
-- **Acoustic Sensory Lab ([AcousticSensoryLab.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/AcousticSensoryLab.tsx))**: Sound profile analysis measuring crunch frequencies and sizzle dynamics.
-- **Neuro-Gastronomy Mood Engine ([NeuroGastronomyModal.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/NeuroGastronomyModal.tsx))**: Formulates recipes tailored to stimulate neurotransmitters (*Dopamine, Serotonin, Melatonin, Endorphins*).
-- **AR Plating Guide ([ARPlatingGuideModal.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/ARPlatingGuideModal.tsx))**: Interactive visual plating guides incorporating the Golden Ratio and sauce arc blueprints.
-- **Iron Chef Challenge ([IronChefGameModal.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/IronChefGameModal.tsx))**: Mystery ingredient cooking game with countdown timers.
-- **Kitchen Soundscape Player ([KitchenSoundscapePlayer.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/KitchenSoundscapePlayer.tsx))**: Ambient audio environments (*Café De Paris, Kyoto Tea Garden, Tuscan Villa*).
-- **Energy Appliance Router ([EnergyApplianceRouter.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/EnergyApplianceRouter.tsx))**: Appliance wattage and energy routing calculations.
+- **Molecular & Physics Lab ([MolecularLabTab.tsx](src/components/MolecularLabTab.tsx))**: Emulsion stability indexes, Maillard reaction browning temperature predictors, and acidity/pH pairing.
+- **Acoustic Sensory Lab ([AcousticSensoryLab.tsx](src/components/AcousticSensoryLab.tsx))**: Sound profile analysis measuring crunch frequencies and sizzle dynamics.
+- **Neuro-Gastronomy Mood Engine ([NeuroGastronomyModal.tsx](src/components/NeuroGastronomyModal.tsx))**: Formulates recipes tailored to stimulate neurotransmitters (*Dopamine, Serotonin, Melatonin, Endorphins*).
+- **AR Plating Guide ([ARPlatingGuideModal.tsx](src/components/ARPlatingGuideModal.tsx))**: Interactive visual plating guides incorporating the Golden Ratio and sauce arc blueprints.
+- **Iron Chef Challenge ([IronChefGameModal.tsx](src/components/IronChefGameModal.tsx))**: Mystery ingredient cooking game with countdown timers.
+- **Kitchen Soundscape Player ([KitchenSoundscapePlayer.tsx](src/components/KitchenSoundscapePlayer.tsx))**: Ambient audio environments (*Café De Paris, Kyoto Tea Garden, Tuscan Villa*).
+- **Energy Appliance Router ([EnergyApplianceRouter.tsx](src/components/EnergyApplianceRouter.tsx))**: Appliance wattage and energy routing calculations.
 
 ### 8. Smart Shopping List & Household Sync
-- **Interactive Checklist ([ShoppingListTab.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/ShoppingListTab.tsx))**: Grouped by supermarket aisles with instant check-off toggles.
-- **Family Pantry Sync ([FamilyPantrySyncWidget.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/FamilyPantrySyncWidget.tsx))**: QR Code generator and multi-device cloud synchronization mock-ups.
-- **Ecology & Waste Arbitrage Tracker ([EcologyArbitrageWidget.tsx](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/src/components/EcologyArbitrageWidget.tsx))**: Real-time meters for CO₂ offset, food mass saved, and grocery cost savings.
+- **Interactive Checklist ([ShoppingListTab.tsx](src/components/ShoppingListTab.tsx))**: Grouped by supermarket aisles with instant check-off toggles.
+- **Family Pantry Sync ([FamilyPantrySyncWidget.tsx](src/components/FamilyPantrySyncWidget.tsx))**: QR Code generator and multi-device cloud synchronization mock-ups.
+- **Ecology & Waste Arbitrage Tracker ([EcologyArbitrageWidget.tsx](src/components/EcologyArbitrageWidget.tsx))**: Real-time meters for CO₂ offset, food mass saved, and grocery cost savings.
 
 ---
 
@@ -572,7 +633,7 @@ Built with a **mobile-first, native OS philosophy**, FridgeChef AI features an *
 
 ## 🔌 Backend API Endpoints
 
-The full-stack server ([server.ts](file:///c:/Users/DELL/Downloads/fridgechef-ai-smart-fridge-culinary-assistant/server.ts)) exposes the following endpoints:
+The full-stack server ([server.ts](server.ts)) exposes the following endpoints:
 
 | Endpoint | Method | Description |
 |---|---|---|
@@ -601,9 +662,9 @@ The full-stack server ([server.ts](file:///c:/Users/DELL/Downloads/fridgechef-ai
 ## 💻 Getting Started & Local Development
 
 ### Prerequisites
-- **Node.js**: `v18.0.0` or higher
+- **Node.js**: `v22` or higher
 - **Package Manager**: `npm` (included with Node.js) or `bun`
-- **Gemini API Key**: Obtain a key from [Google AI Studio](https://aistudio.google.com/)
+- **Gemini API key** (optional): from [Google AI Studio](https://aistudio.google.com/). The app works without one.
 
 ### Installation Steps
 
@@ -640,7 +701,7 @@ The full-stack server ([server.ts](file:///c:/Users/DELL/Downloads/fridgechef-ai
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `GEMINI_API_KEY` | **Yes** | — | Google Gemini API key used for vision analysis, recipe synthesis, OCR, and TTS. |
+| `GEMINI_API_KEY` | No | — | Server-side Gemini key for vision, recipes, OCR and TTS. Without it, visitors can add their own key in Settings, and the server returns offline sample data. |
 | `APP_URL` | No | `http://localhost:3000` | Host URL for self-referential links and API callbacks. |
 | `DATA_DIR` | No | `data` | Directory where server stores contact messages and analytics logs. |
 | `GROQ_API_KEY` | No | — | Optional fallback LLM provider if Gemini API is rate-limited. |
@@ -669,6 +730,22 @@ npm run start
 ```
 The Express server serves static assets from `dist/` while providing all `/api/*` endpoints on port 3000.
 
+### Docker
+```bash
+docker build -t fridgechef .
+docker run -p 3000:3000 -e GEMINI_API_KEY=your_key fridgechef   # the key is optional
+```
+
+### Live demo (GitHub Pages)
+`.github/workflows/pages.yml` publishes a static build to
+[theflighttechofficial.github.io/FridgeChef-AI](https://theflighttechofficial.github.io/FridgeChef-AI/) on every push to `main`. It has no server
+behind it: recipes come from the on-device model, and cloud AI works with a visitor's own key.
+One-time setup: **Settings → Pages → Source: GitHub Actions**.
+
+### Releases
+Push a tag such as `v1.2.0` and the Android workflow publishes a GitHub release with
+`FridgeChef-1.2.0.apk` and that version's section of [CHANGELOG.md](CHANGELOG.md) as the notes.
+
 ### Code Verification & Linting
 Run TypeScript type-checking:
 ```bash
@@ -679,4 +756,4 @@ npm run lint
 
 ## 📄 License
 
-Distributed under the **MIT License**. See `LICENSE` for more information.
+Distributed under the **MIT License**. See [LICENSE](LICENSE).

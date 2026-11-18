@@ -126,7 +126,10 @@ const itemVariants: Variants = {
 type SiteRoute = 'app' | 'terms' | 'privacy' | 'contact' | 'thanks' | 'notfound';
 
 const readRoute = (): SiteRoute => {
-  if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return 'notfound';
+  // The app can live under a sub-path (the GitHub Pages demo is served from /FridgeChef-AI/)
+  const base = import.meta.env.BASE_URL;
+  const path = window.location.pathname;
+  if (path !== base && path !== `${base}index.html`) return 'notfound';
   const h = window.location.hash;
   if (!h || h === '#' || h === '#/') return 'app';
   const known: Record<string, SiteRoute> = {

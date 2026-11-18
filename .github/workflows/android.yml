@@ -11,6 +11,9 @@ on:
         description: 'FridgeChef server URL baked into the app (optional)'
         required: false
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -57,8 +60,25 @@ jobs:
           name: fridgechef-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Attach APK to release
+      # Tagging vX.Y.Z publishes a GitHub release with the APK and that version's CHANGELOG section
+      - name: Prepare release files
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "FridgeChef-${version}.apk"
+          awk -v v="$version" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/ { exit }
+            found && /^\[[0-9.]+\]:/ { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          printf '\n### Install\nDownload `FridgeChef-%s.apk` below and open it on your Android phone (allow installs from your browser when asked).\n' "$version" >> release-notes.md
+          cat release-notes.md
+
+      - name: Publish release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+          name: FridgeChef ${{ github.ref_name }}
+          body_path: release-notes.md
+          files: FridgeChef-*.apk
