@@ -3,6 +3,20 @@
 All notable changes to FridgeChef. Versions match the git tags; each tagged release on GitHub
 carries the Android APK.
 
+## [1.2.0] - 2026-11-18
+
+### Added
+- "Indian food first" switch on the Fridge tab. When it is on, about three quarters of the
+  suggestions are Indian dishes that suit your ingredients, listed first, followed by a few from
+  other cuisines. Cloud AI gets the same instruction. A cuisine chosen in the filters still wins.
+- 116 regional Indian dishes from every region (970 recipes in total, 429 Indian, counting the Tamil dishes below). Every one of the 25 Indian
+  cuisines now has at least ten dishes, with the biggest additions for Awadhi, Mughlai, Kashmiri,
+  Bihari, Odia, Northeast Indian, Rajasthani, Sindhi, Parsi, Mangalorean, Chettinad, Andhra,
+  Hyderabadi, Goan and Karnataka cooking.
+- 43 Tamil dishes (63 Tamil in total): kuzhambus and rasams, poriyals and kootus, tiffin such as
+  rava dosa, adai and kozhukattai, Ambur and Dindigul biryani, Madurai mutton chukka and kari dosai,
+  murukku, thattai, sakkarai pongal, adhirasam, jigarthanda and filter coffee. On-device model retrained.
+
 ## [1.1.0] - 2026-11-18
 
 ### Added
@@ -48,5 +62,6 @@ First release of the redesigned app.
 - Gemini errors with a valid key: the app now falls back to another model on the same key,
   no longer cuts answers off, and shows plain-language errors.
 
+[1.2.0]: https://github.com/theflighttechofficial/FridgeChef-AI/releases/tag/v1.2.0
 [1.1.0]: https://github.com/theflighttechofficial/FridgeChef-AI/releases/tag/v1.1.0
 [1.0.0]: https://github.com/theflighttechofficial/FridgeChef-AI/tree/52cbf7234ca95dfe6256e887928b995f815a14ef

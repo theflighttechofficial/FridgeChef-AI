@@ -7,6 +7,7 @@
 import { FilterOptions, Ingredient, Recipe } from '../types';
 import model from './model.json';
 import { corpus, CorpusRecipe } from './data/recipes';
+import { REGION_OF } from './data/schema';
 import { canonicalPantry } from './normalize';
 import { recipeFeatures, roleOf, Similarity } from './features';
 import { tasteScore } from './tasteModel';
@@ -23,6 +24,8 @@ const OVER_TIME_PENALTY = 1.5;
 const SAME_CUISINE_PENALTY = 0.35;
 const SAME_HERO_PENALTY = 0.5;
 const PREFERRED_REGION_BONUS = 0.6;
+const INDIAN_FOCUS_BONUS = 1.2;
+const INDIAN_SHARE = 0.75;
 const EXPLORE_TEMPERATURE = 0.8;
 // Below this share of a recipe's main ingredients, composed recipes lead the list
 const WEAK_MATCH = 0.5;
@@ -82,6 +85,8 @@ export interface RecommendOptions {
   missingBasics?: string[];
   // Answers to the taste questions asked at the start
   profile?: TasteProfile | null;
+  // "Indian food first": about three quarters Indian dishes, listed first, then other cuisines
+  indianFocus?: boolean;
 }
 
 export interface Recommendation {
@@ -138,7 +143,7 @@ const toRecipe = (r: CorpusRecipe, pantry: Map<string, string>, assumed: Set<str
 /** Rank the bundled recipes for this pantry. */
 export const recommend = (
   ingredients: Ingredient[],
-  { filters = {}, limit = 6, exclude, explore = 0, round = 0, preferredRegions = [], assumed = [], missingBasics = [], profile = null }: RecommendOptions = {}
+  { filters = {}, limit = 6, exclude, explore = 0, round = 0, preferredRegions = [], assumed = [], missingBasics = [], profile = null, indianFocus = false }: RecommendOptions = {}
 ): Recommendation[] => {
   const pantry = canonicalPantry(ingredients.map((i) => i.name));
   const owned = new Set(pantry.keys());
@@ -150,6 +155,8 @@ export const recommend = (
   const dietary = filters.dietary || [];
 
   const regionFit = predictRegions([...owned]);
+  // A cuisine chosen in the filters wins over the switch
+  const focusIndian = indianFocus && (!filters.cuisine || filters.cuisine === 'All');
   // "Stick to favourites" leans harder on the cuisines picked at setup; "Surprise me" barely at all
   const regionPull = profile?.adventure === 'familiar' ? 2 : profile?.adventure === 'explorer' ? 0.3 : 1;
   const exploreBoost = profile?.adventure === 'explorer' ? 1.4 : profile?.adventure === 'familiar' ? 0.6 : 1;
@@ -164,6 +171,7 @@ export const recommend = (
       coverage.set(recipe.id, feats[0]);
       score += TASTE_WEIGHT * tasteScore(recipe);
       if (preferredRegions.includes(r.region)) score += PREFERRED_REGION_BONUS * regionPull;
+      if (focusIndian && r.region === 'Indian') score += INDIAN_FOCUS_BONUS;
       score += profileScore(
         { ingredients: r.ingredients, tags: r.tags, difficulty: r.difficulty, minutes: r.prepTimeMinutes + r.cookTimeMinutes, calories: r.calories, protein: r.macros[0], cuisine: r.cuisine },
         profile,
@@ -185,10 +193,25 @@ export const recommend = (
   // so repeated "New ideas" taps surface different good matches.
   const heroOf = (r: Recipe) => r.matchedIngredients[0] || r.title;
   const picked: Recommendation[] = [];
-  const pool = candidates.slice(0, Math.max(limit * (explore > 0 ? 8 : 4), limit));
+  const depth = Math.max(limit * (explore > 0 ? 8 : 4), limit);
+  const isIndian = (c: Recommendation) => c.recipe.region === 'Indian';
+  // With the switch on, the pool holds the best Indian and the best other dishes separately, so a
+  // pantry that suits another cuisine still gets its Indian share, and vice versa
+  const pool = focusIndian
+    ? [
+        ...candidates.filter(isIndian).slice(0, depth),
+        // The few other-cuisine dishes should still use something from the pantry
+        ...candidates.filter((c) => !isIndian(c) && c.recipe.matchedIngredients.length > 0).slice(0, Math.ceil(depth / 2)),
+      ]
+    : candidates.slice(0, depth);
+  // Slots, counting the composed recipe that takes the last one, kept for Indian dishes
+  const indianSlots = focusIndian ? Math.round(limit * INDIAN_SHARE) : 0;
   while (picked.length < limit && pool.length) {
+    const wantIndian = picked.filter(isIndian).length < indianSlots;
+    const eligible = focusIndian && pool.some((c) => isIndian(c) === wantIndian) ? (c: Recommendation) => isIndian(c) === wantIndian : () => true;
     const adjusted = pool.map(
       (c) =>
+        (eligible(c) ? 0 : -Infinity) +
         c.score -
         SAME_CUISINE_PENALTY * picked.filter((p) => p.recipe.cuisine === c.recipe.cuisine).length -
         SAME_HERO_PENALTY * picked.filter((p) => heroOf(p.recipe) === heroOf(c.recipe)).length
@@ -208,11 +231,28 @@ export const recommend = (
   // Pantries the corpus covers poorly still get recipes built from exactly what is there
   const best = Math.max(0, ...picked.map((p) => coverage.get(p.recipe.id) || 0));
   const weak = best < WEAK_MATCH;
-  const composed = composeRecipes(pantry, { dietary, cuisine: filters.cuisine, limit: weak ? 2 : 1, variant: round, assumed: assumedSet }).map((recipe) => ({
+  const composed = composeRecipes(pantry, { dietary, cuisine: focusIndian && !weak ? 'Indian' : filters.cuisine, limit: weak ? 2 : 1, variant: round, assumed: assumedSet }).map((recipe) => ({
     recipe,
     score: weak ? Infinity : -Infinity,
   }));
-  const list = !composed.length ? picked : weak ? [...composed, ...picked].slice(0, limit) : [...picked.slice(0, limit - 1), ...composed.slice(0, 1)];
+  let list = !composed.length ? picked : weak ? [...composed, ...picked].slice(0, limit) : [...picked.slice(0, limit - 1), ...composed.slice(0, 1)];
+  if (focusIndian) {
+    // Keep "a few others" even when a composed recipe took a slot, then list the Indian dishes first
+    const indianOf = (c: Recommendation) => c.recipe.region === 'Indian' || REGION_OF[c.recipe.cuisine] === 'Indian';
+    const wantOthers = Math.max(1, limit - Math.round(limit * INDIAN_SHARE));
+    const shown = new Set(list.map((c) => c.recipe.id));
+    // Recipes built from exactly this pantry are the best fit; never drop those
+    const composedIds = new Set(composed.map((c) => c.recipe.id));
+    const others = candidates.filter((c) => !indianOf(c) && !shown.has(c.recipe.id));
+    // Prefer other-cuisine dishes that use at least one thing from the pantry
+    const spare = [...others.filter((c) => c.recipe.matchedIngredients.length > 0), ...others.filter((c) => !c.recipe.matchedIngredients.length)];
+    while (list.filter((c) => !indianOf(c)).length < wantOthers && spare.length) {
+      const drop = list.map((c, i) => [c, i] as const).reverse().find(([c]) => indianOf(c) && !composedIds.has(c.recipe.id));
+      if (!drop) break;
+      list = [...list.slice(0, drop[1]), ...list.slice(drop[1] + 1), spare.shift()!];
+    }
+    list = [...list.filter(indianOf), ...list.filter((c) => !indianOf(c))];
+  }
   // Detailed, beginner-friendly method only for the recipes actually shown
   return list.map(({ recipe, score }) => ({ recipe: withMethod(recipe), score }));
 };

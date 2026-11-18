@@ -162,10 +162,11 @@ export const directGenerateRecipes = async (body: {
   kitchenBasics?: string[];
   missingBasics?: string[];
   tasteProfile?: string;
+  cuisineFocus?: 'indian';
 }) => {
   const prompt = `You are a professional chef. Suggest 6 varied, realistic recipes that mainly use these available ingredients: ${body.ingredients.join(', ')}.
 Make them genuinely different from each other: different cuisines, cooking methods (curry, stir-fry, roast, salad, soup, grill, bake) and main ingredients.${body.avoidTitles?.length ? `\nDo not suggest these again: ${body.avoidTitles.join('; ')}.` : ''}
-${body.kitchenBasics?.length ? `Assume the kitchen also has these basics and use them freely: ${body.kitchenBasics.join(', ')}.\n` : ''}${body.missingBasics?.length ? `The user is out of: ${body.missingBasics.join(', ')}. Do not rely on them.\n` : ''}${body.tasteProfile ? `About the person: ${body.tasteProfile}. Fit the recipes to this.\n` : ''}Dietary needs: ${body.dietary?.length ? body.dietary.join(', ') : 'none'}. Max total time: ${body.maxPrepTime ? `${body.maxPrepTime} minutes` : 'any'}. Difficulty: ${body.difficulty || 'any'}. Cuisine: ${body.cuisine || 'any, mix cuisines'}.
+${body.kitchenBasics?.length ? `Assume the kitchen also has these basics and use them freely: ${body.kitchenBasics.join(', ')}.\n` : ''}${body.missingBasics?.length ? `The user is out of: ${body.missingBasics.join(', ')}. Do not rely on them.\n` : ''}${body.cuisineFocus === 'indian' ? `Make about three quarters of the recipes Indian dishes (any region: north, south, east, west or northeast) that suit these ingredients, and the rest from other cuisines. List the Indian ones first.\n` : ''}${body.tasteProfile ? `About the person: ${body.tasteProfile}. Fit the recipes to this.\n` : ''}Dietary needs: ${body.dietary?.length ? body.dietary.join(', ') : 'none'}. Max total time: ${body.maxPrepTime ? `${body.maxPrepTime} minutes` : 'any'}. Difficulty: ${body.difficulty || 'any'}. Cuisine: ${body.cuisine || 'any, mix cuisines'}.
 Return JSON { "recipes": [...] }. ${RECIPE_SHAPE}`;
   return parseJsonReply<{ recipes: any[] }>(await directComplete({ prompt, json: true }));
 };

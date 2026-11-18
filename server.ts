@@ -264,6 +264,7 @@ app.post('/api/generate-recipes', async (req, res) => {
       kitchenBasics,
       missingBasics,
       tasteProfile,
+      cuisineFocus,
     } = req.body;
     const list = (x: unknown) => (Array.isArray(x) ? x.slice(0, 30).map((v) => String(v).slice(0, 40)).join(', ') : '');
     const ai = getGeminiClient();
@@ -279,6 +280,7 @@ User Preferences & Restrictions:
 - Difficulty Preference: ${difficulty || 'Any'}
 - Cuisine Style: ${cuisine || 'Any'}
 - Meal Type: ${mealType || 'Any'}
+${cuisineFocus === 'indian' ? '- Cuisine focus: make about three quarters of the recipes Indian dishes from any region (north, south, east, west, northeast) that suit the ingredients, the rest from other cuisines, Indian ones listed first. This overrides the balancing rule below.' : ''}
 ${typeof tasteProfile === 'string' && tasteProfile.trim() ? `- About the person (fit the recipes to this): ${tasteProfile.replace(/[\r\n]+/g, ' ').slice(0, 500)}` : ''}
 
 FORMAL REGIONAL TAXONOMY LAYER:

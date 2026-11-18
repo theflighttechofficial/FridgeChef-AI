@@ -20,6 +20,10 @@ import { FridgeScanner } from './components/FridgeScanner';
 import { SidebarFilter } from './components/SidebarFilter';
 import { RecipeCard } from './components/RecipeCard';
 import { HomeGreeting } from './components/HomeGreeting';
+import { IndianFocusToggle } from './components/IndianFocusToggle';
+import { setIndianFocus, useIndianFocus } from './state/indianFocus';
+import { regionOfCuisine } from './ml/data/schema';
+import { haptic } from './utils/haptics';
 
 
 
@@ -498,6 +502,27 @@ export default function App() {
     }
   };
 
+  // "Indian food first": flip the switch and refresh the list in place, without leaving the Fridge tab
+  const indianFocus = useIndianFocus();
+  const toggleIndianFocus = async (on: boolean) => {
+    setIndianFocus(on);
+    haptic(on ? 'medium' : 'light');
+    if (!currentIngredients.length || recipeSource === 'sample') {
+      showToast(on ? 'Indian dishes will come first.' : 'Showing dishes from every cuisine.', 'info');
+      return;
+    }
+    try {
+      const result = recipeSource === 'ai' ? await generateRecipes(currentIngredients, filters) : { recipes: await localRecipes(currentIngredients, filters), source: 'local-model' as const };
+      if (result.recipes.length) {
+        setRecipes(result.recipes);
+        setRecipeSource(result.source);
+      }
+      showToast(on ? 'Recipes updated: Indian dishes first.' : 'Recipes updated: every cuisine.', 'info');
+    } catch {
+      showToast('Saved. Tap New ideas to refresh the recipes.', 'info');
+    }
+  };
+
   // Add Missing Ingredients to Shopping List
   const handleAddMissingToShoppingList = useStableCallback((recipe: Recipe) => {
     if (recipe.missingIngredients.length === 0 || addedShoppingRecipeIds.includes(recipe.id)) return;
@@ -601,8 +626,14 @@ export default function App() {
         if (selectedMoodMode === 'Gourmet') return (b.difficulty === 'Easy' ? 0 : 1) - (a.difficulty === 'Easy' ? 0 : 1);
         if (selectedMoodMode === 'Hosting') return (b.servings || 2) - (a.servings || 2);
         return 0;
+      })
+      // "Indian food first" keeps Indian dishes at the top whatever the sort (a stable sort keeps the order within each group)
+      .sort((a, b) => {
+        if (!indianFocus || activeTab !== 'recipes' || filters.cuisine !== 'All') return 0;
+        const indian = (r: Recipe) => (r.region || regionOfCuisine(r.cuisine)) === 'Indian';
+        return Number(indian(b)) - Number(indian(a));
       });
-  }, [recipes, savedRecipes, activeTab, filters, selectedMoodMode]);
+  }, [recipes, savedRecipes, activeTab, filters, selectedMoodMode, indianFocus]);
 
   // The time chips and the filter's max-time slider are the same setting
   const selectTimeBudget = (budget: CookingTimeBudget) => {
@@ -728,6 +759,7 @@ export default function App() {
               className="space-y-6"
             >
               <HomeGreeting savedCount={savedRecipes.length} onOpenSaved={() => setActiveTab('saved')} onOpenRecipes={() => setActiveTab('recipes')} />
+              <IndianFocusToggle on={indianFocus} onChange={toggleIndianFocus} />
 
               {/* Primary Fridge Scanner: Snap Your Open Fridge. Let AI cook the perfect meal. */}
               <FridgeScanner
