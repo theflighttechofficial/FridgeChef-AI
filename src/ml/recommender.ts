@@ -198,7 +198,11 @@ export const recommend = (
   // With the switch on, the pool holds the best Indian and the best other dishes separately, so a
   // pantry that suits another cuisine still gets its Indian share, and vice versa
   const pool = focusIndian
-    ? [...candidates.filter(isIndian).slice(0, depth), ...candidates.filter((c) => !isIndian(c)).slice(0, Math.ceil(depth / 2))]
+    ? [
+        ...candidates.filter(isIndian).slice(0, depth),
+        // The few other-cuisine dishes should still use something from the pantry
+        ...candidates.filter((c) => !isIndian(c) && c.recipe.matchedIngredients.length > 0).slice(0, Math.ceil(depth / 2)),
+      ]
     : candidates.slice(0, depth);
   // Slots, counting the composed recipe that takes the last one, kept for Indian dishes
   const indianSlots = focusIndian ? Math.round(limit * INDIAN_SHARE) : 0;
@@ -239,7 +243,9 @@ export const recommend = (
     const shown = new Set(list.map((c) => c.recipe.id));
     // Recipes built from exactly this pantry are the best fit; never drop those
     const composedIds = new Set(composed.map((c) => c.recipe.id));
-    const spare = candidates.filter((c) => !indianOf(c) && !shown.has(c.recipe.id));
+    const others = candidates.filter((c) => !indianOf(c) && !shown.has(c.recipe.id));
+    // Prefer other-cuisine dishes that use at least one thing from the pantry
+    const spare = [...others.filter((c) => c.recipe.matchedIngredients.length > 0), ...others.filter((c) => !c.recipe.matchedIngredients.length)];
     while (list.filter((c) => !indianOf(c)).length < wantOthers && spare.length) {
       const drop = list.map((c, i) => [c, i] as const).reverse().find(([c]) => indianOf(c) && !composedIds.has(c.recipe.id));
       if (!drop) break;

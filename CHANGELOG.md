@@ -9,10 +9,13 @@ carries the Android APK.
 - "Indian food first" switch on the Fridge tab. When it is on, about three quarters of the
   suggestions are Indian dishes that suit your ingredients, listed first, followed by a few from
   other cuisines. Cloud AI gets the same instruction. A cuisine chosen in the filters still wins.
-- 116 regional Indian dishes (927 recipes in total, 386 Indian). Every one of the 25 Indian
+- 116 regional Indian dishes from every region (970 recipes in total, 429 Indian, counting the Tamil dishes below). Every one of the 25 Indian
   cuisines now has at least ten dishes, with the biggest additions for Awadhi, Mughlai, Kashmiri,
   Bihari, Odia, Northeast Indian, Rajasthani, Sindhi, Parsi, Mangalorean, Chettinad, Andhra,
-  Hyderabadi, Goan and Karnataka cooking. On-device model retrained.
+  Hyderabadi, Goan and Karnataka cooking.
+- 43 Tamil dishes (63 Tamil in total): kuzhambus and rasams, poriyals and kootus, tiffin such as
+  rava dosa, adai and kozhukattai, Ambur and Dindigul biryani, Madurai mutton chukka and kari dosai,
+  murukku, thattai, sakkarai pongal, adhirasam, jigarthanda and filter coffee. On-device model retrained.
 
 ## [1.1.0] - 2026-11-18
 
