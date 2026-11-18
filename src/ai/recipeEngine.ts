@@ -13,6 +13,7 @@ import { getAccount } from '../auth/account';
 import { getAssumedBasics, getMissingBasics } from '../state/basics';
 import { basicLabel } from '../ml/basics';
 import { describeTasteProfile, getTasteProfile } from '../state/tasteProfile';
+import { getIndianFocus } from '../state/indianFocus';
 import { elaborateRecipe } from '../ml/elaborate';
 
 export type RecipeSource = 'ai' | 'local-model';
@@ -98,7 +99,7 @@ const fallbackMessage = (res: Response) => {
 // brings different recipes instead of the same top picks
 const history = { key: '', round: 0, ids: new Set<string>(), titles: [] as string[] };
 const historyFor = (ingredients: Ingredient[], filters?: Partial<FilterOptions>) => {
-  const key = JSON.stringify([getTasteProfile()?.completedAt, ingredients.map((i) => i.name.toLowerCase()).sort(), filters?.dietary, filters?.cuisine, filters?.difficulty, filters?.maxPrepTime, getMissingBasics()]);
+  const key = JSON.stringify([getIndianFocus(), getTasteProfile()?.completedAt, ingredients.map((i) => i.name.toLowerCase()).sort(), filters?.dietary, filters?.cuisine, filters?.difficulty, filters?.maxPrepTime, getMissingBasics()]);
   if (key !== history.key) Object.assign(history, { key, round: 0, ids: new Set<string>(), titles: [] });
   return history;
 };
@@ -121,6 +122,7 @@ export const localRecipes = async (ingredients: Ingredient[], filters?: Partial<
     round: h.round,
     preferredRegions,
     profile: getTasteProfile(),
+    indianFocus: getIndianFocus(),
     assumed: getAssumedBasics(),
     missingBasics: getMissingBasics(),
   }).map((r) => r.recipe);
@@ -147,6 +149,8 @@ export const generateRecipes = async (ingredients: Ingredient[], filters: Filter
     missingBasics: getMissingBasics().map(basicLabel),
     // Answers to the taste questions, as one sentence
     tasteProfile: describeTasteProfile(getTasteProfile(), getAccount()?.regions) || undefined,
+    // "Indian food first" switch on the Fridge tab
+    cuisineFocus: getIndianFocus() && filters.cuisine === 'All' ? ('indian' as const) : undefined,
   };
   const provider = activeProvider(settings);
   let notice: string | undefined;
