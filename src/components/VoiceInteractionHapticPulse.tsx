@@ -25,7 +25,7 @@ export const VoiceInteractionHapticPulse: React.FC<VoiceInteractionHapticPulsePr
       className="bg-slate-950/90 border border-emerald-500/40 rounded-2xl p-3 sm:p-4 shadow-2xl backdrop-blur-2xl flex items-center justify-between gap-3 relative overflow-hidden"
     >
       {/* Siri-style glowing animated background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-teal-500/20 to-purple-500/10 animate-pulse pointer-events-none" />
+      <div className="absolute inset-0 bg-surface-high pointer-events-none" />
 
       <div className="flex items-center gap-3 relative z-10">
         {/* Animated Visual Haptic Pulsing Orb */}
@@ -46,15 +46,15 @@ export const VoiceInteractionHapticPulse: React.FC<VoiceInteractionHapticPulsePr
             {mode === 'speaking' ? (
               <Volume2 className="w-4 h-4 animate-bounce" />
             ) : (
-              <Mic className="w-4 h-4 animate-pulse" />
+              <Mic className="w-4 h-4" />
             )}
           </div>
         </div>
 
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold text-white">{label}</span>
-            <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold border border-emerald-500/30">
+            <span className="text-xs font-semibold text-white">{label}</span>
+            <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
               iOS Siri-Style Haptics
             </span>
           </div>
@@ -73,7 +73,7 @@ export const VoiceInteractionHapticPulse: React.FC<VoiceInteractionHapticPulsePr
                   ease: 'easeInOut',
                   delay: idx * 0.08,
                 }}
-                className="w-1 bg-gradient-to-t from-emerald-500 to-teal-300 rounded-full"
+                className="w-1 bg-surface-high rounded-full"
               />
             ))}
           </div>

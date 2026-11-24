@@ -183,28 +183,25 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
   sendMessageRef.current = handleSendMessage;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh]"
+        className="tool-panel max-w-4xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-teal-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center">
-              <Mic className="w-5 h-5 text-emerald-400 animate-pulse" />
+              <Mic className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">Natural Conversational Kitchen Agent</h3>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-500/30">
-                  TWO-WAY SPOKEN DIALOGUE
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Voice kitchen</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                “Hey FridgeChef, what can I make?” → “Make it spicier.” → “Start cooking.” Live conversational agent.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                Talk to FridgeChef: ask what to make, change a recipe, or start cooking.
               </p>
             </div>
           </div>
@@ -217,14 +214,14 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
         {activeDraftRecipe && (
           <div className="px-6 py-3 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-3">
-              <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase">ACTIVE CONVERSATIONAL DISH:</span>
+              <span className="text-xs font-bold text-emerald-400">ACTIVE CONVERSATIONAL DISH:</span>
               <strong className="text-white">{activeDraftRecipe.title}</strong>
               <span className="text-slate-400">({activeDraftRecipe.cookTimeMinutes} min • {activeDraftRecipe.macros?.protein} protein • {activeDraftRecipe.spiceLevel})</span>
             </div>
 
             <button
               onClick={handleLaunchCooking}
-              className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+              className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
             >
               <Play className="w-3.5 h-3.5 fill-slate-950" />
               <span>Start Hands-Free Session</span>
@@ -246,7 +243,7 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
                     : 'bg-slate-950 text-slate-200 border border-slate-800 rounded-tl-none shadow-lg'
                 }`}
               >
-                <div className="flex items-center justify-between gap-3 text-[10px] opacity-75 font-mono">
+                <div className="flex items-center justify-between gap-3 text-xs opacity-75">
                   <span>{msg.role === 'user' ? 'You' : 'FridgeChef Agent'}</span>
                   <span>{msg.timestamp}</span>
                 </div>
@@ -261,7 +258,7 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" />
                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.2s]" />
                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.4s]" />
-                <span className="font-mono text-[11px] ml-1">FridgeChef is thinking...</span>
+                <span className="font-mono text-xs ml-1">FridgeChef is thinking...</span>
               </div>
             </div>
           )}
@@ -271,13 +268,13 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
 
         {/* Quick Suggestion Chips */}
         <div className="px-6 py-2 bg-slate-950/80 border-t border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
-          <span className="text-[10px] font-mono text-slate-400 uppercase font-bold shrink-0">Try Saying:</span>
+          <span className="text-xs text-slate-400 font-bold shrink-0">Try Saying:</span>
           {['“What can I make?”', '“Make it spicier”', '“Lower the calories”', '“Double the protein”', '“Start cooking”'].map(
             (phrase, i) => (
               <button
                 key={i}
                 onClick={() => handleSendMessage(phrase.replace(/[“”]/g, ''))}
-                className="px-3 py-1 bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white rounded-xl border border-slate-800 text-[11px] whitespace-nowrap transition-colors"
+                className="px-3 py-1 bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white rounded-xl border border-slate-800 text-xs whitespace-nowrap transition-colors"
               >
                 {phrase}
               </button>
@@ -291,7 +288,7 @@ export const NaturalConversationalKitchenModal: React.FC<NaturalConversationalKi
             onClick={toggleListening}
             className={`p-3 rounded-2xl transition-all shadow-md flex items-center justify-center shrink-0 ${
               isListening
-                ? 'bg-rose-500 text-white animate-pulse ring-4 ring-rose-500/30'
+                ? 'bg-rose-500 text-white ring-4 ring-rose-500/30'
                 : 'bg-slate-900 text-slate-300 hover:text-emerald-400 border border-slate-800 hover:border-emerald-500/40'
             }`}
             title={isListening ? 'Listening... click to stop' : 'Click to speak'}

@@ -38,27 +38,24 @@ export const PantryFinancialIntelligenceModal: React.FC<PantryFinancialIntellige
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-4xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-teal-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center">
               <Receipt className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">Pantry Financial Intelligence</h3>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-500/30">
-                  LAST 30 DAYS
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Pantry financials</h3>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
                 Where your grocery money goes, from the receipts you scanned.
               </p>
             </div>
@@ -79,18 +76,18 @@ export const PantryFinancialIntelligenceModal: React.FC<PantryFinancialIntellige
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: 'Spent (30 days)', value: `₹${audit.total.toLocaleString('en-IN')}`, tone: 'text-emerald-400' },
-                { label: 'Receipts', value: audit.recent.length, tone: 'text-cyan-400' },
-                { label: 'Stores', value: audit.stores, tone: 'text-purple-400' },
+                { label: 'Receipts', value: audit.recent.length, tone: 'text-emerald-400' },
+                { label: 'Stores', value: audit.stores, tone: 'text-teal-400' },
               ].map((c) => (
                 <div key={c.label} className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{c.label}</span>
-                  <strong className={`text-lg font-black font-mono mt-0.5 block ${c.tone}`}>{c.value}</strong>
+                  <span className="text-xs text-slate-400 font-bold block">{c.label}</span>
+                  <strong className={`text-lg font-semibold mt-0.5 block ${c.tone}`}>{c.value}</strong>
                 </div>
               ))}
             </div>
 
             <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
-              <span className="text-xs font-bold text-white uppercase tracking-wider block">Spending by category</span>
+              <span className="text-xs font-bold text-white block">Spending by category</span>
               {audit.categories.map((cat) => (
                 <div key={cat.label} className="space-y-1">
                   <div className="flex justify-between text-xs">
@@ -107,7 +104,7 @@ export const PantryFinancialIntelligenceModal: React.FC<PantryFinancialIntellige
             </div>
 
             <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs font-bold text-white uppercase tracking-wider block">What you buy most</span>
+              <span className="text-xs font-bold text-white block">What you buy most</span>
               {audit.frequent.map((item) => (
                 <div key={item.name} className="flex justify-between text-xs py-1.5 border-b border-slate-800/60 last:border-0">
                   <span className="text-slate-300">{item.name}</span>

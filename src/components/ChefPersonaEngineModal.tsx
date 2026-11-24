@@ -155,28 +155,25 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-5xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-amber-950/70 via-slate-900 to-orange-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center">
               <ChefHat className="w-5 h-5 animate-bounce" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">Chef Persona Engine</h3>
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold border border-amber-500/30">
-                  10 MASTER STYLES
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Chef personas</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                The same pantry ingredients produce radically different dishes when viewed through a master chef's eyes.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                See your ingredients cooked in the style of ten famous chefs.
               </p>
             </div>
           </div>
@@ -202,7 +199,7 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
                 >
                   <div>
                     <strong className="block text-xs font-bold leading-tight">{persona.name}</strong>
-                    <span className="text-[10px] text-slate-400 block line-clamp-1">{persona.subtitle}</span>
+                    <span className="text-xs text-slate-400 block line-clamp-1">{persona.subtitle}</span>
                   </div>
                 </button>
               );
@@ -213,17 +210,17 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
         {/* Main Content Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {/* Active Chef Banner */}
-          <div className="p-4 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between gap-4">
+          <div className="p-4 bg-surface-high rounded-2xl border border-slate-800 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div>
                 <h4 className="text-sm font-bold text-white">{currentMeta.name}</h4>
-                <p className="text-xs text-amber-300 italic font-serif">"{currentMeta.quote}"</p>
+                <p className="text-xs text-amber-300 font-serif">"{currentMeta.quote}"</p>
               </div>
             </div>
             <button
               onClick={() => handleSynthesize(selectedPersona)}
               disabled={isSynthesizing}
-              className="shrink-0 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5"
+              className="shrink-0 px-4 py-2 bg-surface-high text-slate-950 font-semibold text-xs rounded-xl shadow-md flex items-center gap-1.5"
             >
               <Zap className="w-3.5 h-3.5 fill-slate-950" />
               <span>{isSynthesizing ? 'Synthesizing...' : 'Re-Cook This Style'}</span>
@@ -243,36 +240,36 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
                 <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-3">
                   <div className="flex justify-between items-start gap-3">
                     <div>
-                      <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-amber-400">
                         CHEF CREATION
                       </span>
-                      <h3 className="text-lg sm:text-xl font-extrabold text-white mt-0.5">
+                      <h3 className="text-lg sm:text-xl font-semibold text-white mt-0.5">
                         {createdDish.dishTitle}
                       </h3>
                       <p className="text-xs text-slate-300 mt-1">{createdDish.tagline}</p>
                     </div>
-                    <span className="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-mono font-bold border border-amber-500/30">
+                    <span className="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
                       {createdDish.cookTimeMinutes} mins
                     </span>
                   </div>
 
-                  <p className="text-xs text-amber-200/90 italic bg-amber-950/30 p-3 rounded-xl border border-amber-900/40">
+                  <p className="text-xs text-amber-200/90 bg-amber-950/30 p-3 rounded-xl border border-amber-900/40">
                     "{createdDish.personaGreeting}"
                   </p>
 
                   {/* Macros & Nutritional Highlights */}
                   <div className="grid grid-cols-3 gap-3 pt-2">
                     <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block font-bold">PROTEIN</span>
-                      <strong className="text-xs text-emerald-400 font-mono mt-0.5 block">{createdDish.macros.protein}</strong>
+                      <span className="text-xs text-slate-400 block font-bold">PROTEIN</span>
+                      <strong className="text-xs text-emerald-400 mt-0.5 block">{createdDish.macros.protein}</strong>
                     </div>
                     <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block font-bold">CALORIES</span>
-                      <strong className="text-xs text-amber-400 font-mono mt-0.5 block">{createdDish.calories} kcal</strong>
+                      <span className="text-xs text-slate-400 block font-bold">CALORIES</span>
+                      <strong className="text-xs text-amber-400 mt-0.5 block">{createdDish.calories} kcal</strong>
                     </div>
                     <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block font-bold">PREP TIME</span>
-                      <strong className="text-xs text-cyan-400 font-mono mt-0.5 block">{createdDish.prepTimeMinutes} mins</strong>
+                      <span className="text-xs text-slate-400 block font-bold">PREP TIME</span>
+                      <strong className="text-xs text-emerald-400 mt-0.5 block">{createdDish.prepTimeMinutes} mins</strong>
                     </div>
                   </div>
                 </div>
@@ -280,19 +277,19 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
                 {/* Technique & Flavor Highlights */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">SIGNATURE TECHNIQUE</span>
+                    <span className="text-xs text-slate-400 font-bold">SIGNATURE TECHNIQUE</span>
                     <strong className="text-xs text-amber-300 block">{createdDish.signatureTechnique}</strong>
                   </div>
 
                   <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">FLAVOR PROFILE</span>
+                    <span className="text-xs text-slate-400 font-bold">FLAVOR PROFILE</span>
                     <p className="text-xs text-slate-300 leading-snug">{createdDish.flavorProfile}</p>
                   </div>
                 </div>
 
                 {/* Master Chef Tip */}
                 <div className="p-4 bg-amber-950/20 rounded-2xl border border-amber-500/30 space-y-1">
-                  <span className="text-[10px] font-mono text-amber-400 uppercase font-bold flex items-center gap-1.5">
+                  <span className="text-xs text-amber-400 font-bold flex items-center gap-1.5">
                     <ChefHat className="w-3.5 h-3.5" />
                     <span>MASTER CHEF SECRET TIP</span>
                   </span>
@@ -303,17 +300,17 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
               {/* Right Column: Step Sequence & 1-Click Launch */}
               <div className="bg-slate-950/90 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-4">
                 <div>
-                  <span className="text-xs font-bold text-white uppercase tracking-wider block mb-3">
+                  <span className="text-xs font-bold text-white block mb-3">
                     Culinary Instructions
                   </span>
                   <div className="space-y-2.5 max-h-72 overflow-y-auto">
                     {createdDish.steps.map((st) => (
                       <div key={st.stepNumber} className="p-3 bg-slate-900 rounded-xl border border-slate-800/80 text-xs space-y-1">
-                        <div className="flex justify-between items-center text-[10px] text-amber-400 font-mono font-bold">
+                        <div className="flex justify-between items-center text-xs text-amber-400 font-bold">
                           <span>STEP {st.stepNumber}</span>
                           {st.timerSeconds && <span>⏱{Math.round(st.timerSeconds / 60)} min</span>}
                         </div>
-                        <p className="text-slate-300 text-[11px] leading-relaxed">{st.instruction}</p>
+                        <p className="text-slate-300 text-xs leading-relaxed">{st.instruction}</p>
                       </div>
                     ))}
                   </div>
@@ -321,7 +318,7 @@ export const ChefPersonaEngineModal: React.FC<ChefPersonaEngineModalProps> = ({
 
                 <button
                   onClick={handleCookThis}
-                  className="w-full py-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2 active:scale-95"
+                  className="w-full py-3 bg-surface-high text-slate-950 font-semibold text-xs rounded-xl shadow-lg shadow-amber-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
                   <Play className="w-4 h-4 fill-slate-950" />
                   <span>Cook {createdDish.dishTitle}</span>

@@ -81,20 +81,9 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
   return (
     <div className="space-y-8 w-full">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-teal-950/40 to-slate-900 border border-teal-500/30 rounded-2xl p-6 sm:p-8 space-y-3 relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <Atom className="w-48 h-48 text-teal-400" />
-        </div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-semibold">
-          <Dna className="w-3.5 h-3.5" />
-          <span>Molecular & Physics-Based Culinary Intelligence</span>
-        </div>
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-white">
-          Culinary Physics & Volatile Organic Compound Lab
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
-          Leverage chemical scent-profile pairing, real-time infrared thermal imaging simulation, and molecular structural binding calculations for your ingredients.
-        </p>
+      <div className="space-y-1">
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-on-surface">Flavour science</h1>
+        <p className="text-sm text-on-surface-variant max-w-2xl">Surprising pairings, cooking temperatures and how ingredients bind, worked out from what is in your fridge.</p>
       </div>
 
       {/* Grid: 3 Core Molecular Modules */}
@@ -105,7 +94,7 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <Atom className="w-5 h-5 text-teal-400" />
-                <span>Scent-Profile Volatile Aroma Pairings</span>
+                <span>Surprising flavour pairings</span>
               </h2>
               <span className="text-xs font-bold text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-lg border border-teal-500/20">
                 VOC Gas Affinity AI
@@ -130,11 +119,11 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
                 >
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="text-teal-400 truncate">{ap.pair[0]} + {ap.pair[1]}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300">
                       {ap.affinityScore}% Match
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 line-clamp-1">{ap.suggestedDish}</p>
+                  <p className="text-xs text-slate-400 line-clamp-1">{ap.suggestedDish}</p>
                 </button>
               ))}
             </div>
@@ -143,31 +132,31 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
             <div className="bg-slate-950 border border-teal-500/30 p-5 rounded-2xl space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-teal-400 tracking-wider">
+                  <span className="text-xs font-bold text-teal-400">
                     Chemical Compound Synergy
                   </span>
-                  <h3 className="text-base font-extrabold text-white">
+                  <h3 className="text-base font-semibold text-white">
                     {selectedPairing.pair[0]} & {selectedPairing.pair[1]}
                   </h3>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-extrabold text-teal-400 font-mono">{selectedPairing.affinityScore}%</p>
-                  <p className="text-[9px] text-slate-500 font-semibold uppercase">Molecular Affinity</p>
+                  <p className="text-xl font-semibold text-teal-400">{selectedPairing.affinityScore}%</p>
+                  <p className="text-xs text-slate-500 font-semibold">Molecular Affinity</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs bg-slate-900/80 p-3 rounded-xl border border-slate-800">
                 <div>
-                  <span className="text-[10px] text-slate-500 font-semibold block">Key Volatile:</span>
+                  <span className="text-xs text-slate-500 font-semibold block">Key Volatile:</span>
                   <span className="font-bold text-slate-200">{selectedPairing.compound}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 font-semibold block">Compound Class:</span>
+                  <span className="text-xs text-slate-500 font-semibold block">Compound Class:</span>
                   <span className="font-bold text-slate-200">{selectedPairing.chemicalType}</span>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed italic">
+              <p className="text-xs text-slate-300 leading-relaxed">
                 "{selectedPairing.description}"
               </p>
 
@@ -186,7 +175,7 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
                 <Dna className="w-5 h-5 text-emerald-400" />
                 <span>Molecular Binding & Texture Substitutes</span>
               </h2>
-              <span className="text-xs text-slate-400 font-mono">Precision Gram Metrics</span>
+              <span className="text-xs text-slate-400">Precision Gram Metrics</span>
             </div>
 
             <div className="space-y-2">
@@ -215,8 +204,8 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span>{sub.name}</span>
                     </p>
-                    <p className="text-xs font-mono text-teal-400 font-bold">{sub.ratio}</p>
-                    <p className="text-[11px] text-slate-400">{sub.role}</p>
+                    <p className="text-xs text-teal-400 font-bold">{sub.ratio}</p>
+                    <p className="text-xs text-slate-400">{sub.role}</p>
                   </div>
                 </div>
               ))}
@@ -261,18 +250,18 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
 
                 {/* Simulated Steak / Protein Silhouette */}
                 <div className="relative z-10 w-36 h-28 bg-amber-950/80 border-2 border-amber-500/50 rounded-3xl flex flex-col items-center justify-center p-3 text-center shadow-2xl backdrop-blur-sm">
-                  <Flame className="w-8 h-8 text-amber-400 animate-pulse" />
-                  <span className="text-xs font-extrabold text-white mt-1">
+                  <Flame className="w-8 h-8 text-amber-400" />
+                  <span className="text-xs font-semibold text-white mt-1">
                     {thermalTemp < 125 ? 'Rare (120°F)' : thermalTemp < 140 ? 'Medium-Rare (135°F)' : 'Well Sear (160°F)'}
                   </span>
-                  <span className="text-[10px] text-amber-300 font-mono font-bold">
+                  <span className="text-xs text-amber-300 font-bold">
                     Core Temp: {thermalTemp}°F
                   </span>
                 </div>
               </div>
 
               {/* Thermal HUD Controls */}
-              <div className="absolute top-3 left-3 right-3 flex items-center justify-between text-[11px] font-mono font-bold bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800">
+              <div className="absolute top-3 left-3 right-3 flex items-center justify-between text-xs font-bold bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800">
                 <span className="text-emerald-400">SEAR ZONE ACTIVE</span>
                 <span className="text-amber-400">{searSide}</span>
               </div>
@@ -280,11 +269,11 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
               {/* Thermal Alert Banner */}
               <div className="absolute bottom-3 left-3 right-3 bg-slate-950/90 border border-amber-500/40 p-2.5 rounded-xl text-center space-y-1">
                 {thermalTemp >= 135 && thermalTemp <= 145 ? (
-                  <p className="text-xs font-extrabold text-emerald-400 flex items-center justify-center gap-1 animate-bounce">
+                  <p className="text-xs font-semibold text-emerald-400 flex items-center justify-center gap-1 animate-bounce">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Perfect Sear Reached! Flip Protein Now
                   </p>
                 ) : thermalTemp > 145 ? (
-                  <p className="text-xs font-extrabold text-rose-400">
+                  <p className="text-xs font-semibold text-rose-400">
                     High Heat Sear, Pull from skillet soon to rest
                   </p>
                 ) : (
@@ -299,7 +288,7 @@ export const MolecularLabTab: React.FC<MolecularLabTabProps> = ({ currentIngredi
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-400">Simulate Core Pan Temperature</span>
-                <span className="text-amber-400 font-extrabold font-mono">{thermalTemp}°F</span>
+                <span className="text-amber-400 font-semibold">{thermalTemp}°F</span>
               </div>
               <input
                 type="range"

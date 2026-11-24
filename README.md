@@ -2,7 +2,7 @@
 
 <h1 align="center">FridgeChef-AI</h1>
 
-<p align="center"><b>Snap your fridge, get a dinner you will like, and cook it step by step.<br>970 recipes work offline on Android and the web; add your own AI key for more.</b></p>
+<p align="center"><b>Snap your fridge, get a dinner you will like, and cook it step by step.<br>1970 recipes work offline on Android and the web; add your own AI key for more.</b></p>
 
 <p align="center">
   <a href="https://theflighttechofficial.github.io/FridgeChef-AI/"><b>▶ Try it live</b></a> &nbsp;·&nbsp;
@@ -52,7 +52,7 @@ docker run -p 3000:3000 fridgechef
 
 ## What it does
 
-- **Recipes from what you have.** An on-device model ranks 970 recipes from 82 Indian and world
+- **Recipes from what you have.** An on-device model ranks 1970 recipes from 82 Indian and world
   cuisines against your ingredients in a few milliseconds, offline. Pantries it covers poorly get
   recipes composed from exactly what is there.
 - **Indian food first.** One switch on the Fridge tab: about three quarters of the suggestions
@@ -213,11 +213,18 @@ Pick a model, then press **Test connection**.
   measure), each cooking step adds how to do it, the heat to use and how to tell it's done, and a final step
   covers tasting, garnish and serving.
 
-- **Recipes**: 970 recipes across 82 cuisines in 10 regions (`src/ml/data/`), 429 of them Indian:
+- **Recipes**: 1970 recipes across 82 cuisines in 10 regions (`src/ml/data/`), 1429 of them Indian:
   - **Indian, 25 regional cuisines**: Punjabi, North Indian, Mughlai, Awadhi, Kashmiri, Rajasthani, Gujarati,
     Maharashtrian, Goan, Mangalorean, Sindhi, Parsi, Bengali, Odia, Bihari, Northeast Indian, Hyderabadi, Andhra,
     Tamil, Chettinad, Kerala, Karnataka, Indo-Chinese, street food and sweets (`indian.ts`, `more-indian.ts`, `indian-south-west.ts`,
     `indian-north-east.ts`, `tamil.ts`). Every regional cuisine has at least ten dishes.
+  - **Dish families** (`families/`): 500 South Indian and 500 North Indian dishes built from the way
+    home cooking is organised: Tamil poriyal, kootu, sambar and kuzhambu; Kerala thoran, olan and
+    theeyal; Karnataka palya, huli and gojju; Andhra kura, vepudu, pulusu and pappu; North Indian
+    aloo X, ki sabzi, bharwan and do pyaza; protein styles such as kadai, handi, korma, lababdar and
+    rogan josh; dals, parathas, breads, kebabs, chaat, sweets and regional specials. Each method is
+    paired only with the vegetables or proteins it is really cooked with, and diet labels are worked
+    out from the ingredients.
   - **World**: South Asian (Pakistani, Sri Lankan, Nepali, Tibetan, Afghan), East Asian, Southeast Asian,
     Middle Eastern, African, European, the Americas and Oceania (`world.ts`, `more-asia.ts`, `more-world.ts`, `recipes.ts`).
   - **Everyday home cooking**: breakfasts, quick lunches, simple dinners, snacks, sweets and drinks (`everyday.ts`).

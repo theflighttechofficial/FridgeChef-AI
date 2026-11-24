@@ -82,30 +82,25 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
   const toBuyItems = (budgetPlan?.groceryBreakdown || []).filter((i) => i.source === 'To Buy');
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-4xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-teal-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center">
               <DollarSign className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">
-                  Grocery Price Intelligence & Budget Mode
-                </h3>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-500/30">
-                  MACRO-COST ARBITRAGE
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Budget mode</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                “Feed 4 people under ₹500.” AI engineers maximum protein & caloric density under strict price constraints.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                Set a budget and number of people, and get the most filling meals for the money.
               </p>
             </div>
           </div>
@@ -132,7 +127,7 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
                 type="number"
                 value={targetBudget}
                 onChange={(e) => setTargetBudget(parseInt(e.target.value) || 100)}
-                className="w-full bg-transparent px-3 py-2 text-xs font-mono font-bold text-white outline-none"
+                className="w-full bg-transparent px-3 py-2 text-xs font-bold text-white outline-none"
               />
             </div>
           </div>
@@ -147,7 +142,7 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
                 max={12}
                 value={partySize}
                 onChange={(e) => setPartySize(parseInt(e.target.value) || 1)}
-                className="w-full bg-transparent text-xs font-mono font-bold text-white outline-none"
+                className="w-full bg-transparent text-xs font-bold text-white outline-none"
               />
               <span className="text-slate-400">servings</span>
             </div>
@@ -157,7 +152,7 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
             <button
               onClick={handleComputeBudgetPlan}
               disabled={isLoading}
-              className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-surface-high text-slate-950 font-semibold text-xs rounded-xl shadow-lg shadow-emerald-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               <span>{isLoading ? 'Synthesizing Budget Plan...' : `Optimize for ${currency}${targetBudget} (${partySize} People)`}</span>
@@ -172,53 +167,53 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
           {/* Key 4 Metric Badges: Cost, Protein, Calories, and COST / 10g PROTEIN */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">TOTAL ESTIMATED COST</span>
-              <strong className="text-lg font-black text-emerald-400 font-mono mt-0.5 block">
+              <span className="text-xs text-slate-400 font-bold block">TOTAL ESTIMATED COST</span>
+              <strong className="text-lg font-semibold text-emerald-400 mt-0.5 block">
                 {budgetPlan.totalEstimatedCost}
               </strong>
-              <span className="text-[10px] text-slate-500">Under {currency}{targetBudget} limit</span>
+              <span className="text-xs text-slate-500">Under {currency}{targetBudget} limit</span>
             </div>
 
             <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">COST PER SERVING</span>
-              <strong className="text-lg font-black text-teal-400 font-mono mt-0.5 block">
+              <span className="text-xs text-slate-400 font-bold block">COST PER SERVING</span>
+              <strong className="text-lg font-semibold text-teal-400 mt-0.5 block">
                 {budgetPlan.costPerServing}
               </strong>
-              <span className="text-[10px] text-slate-500">Per person</span>
+              <span className="text-xs text-slate-500">Per person</span>
             </div>
 
             <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">PROTEIN / SERVING</span>
-              <strong className="text-lg font-black text-purple-400 font-mono mt-0.5 block">
+              <span className="text-xs text-slate-400 font-bold block">PROTEIN / SERVING</span>
+              <strong className="text-lg font-semibold text-teal-400 mt-0.5 block">
                 {budgetPlan.proteinPerServingGrams}g
               </strong>
-              <span className="text-[10px] text-slate-500">{budgetPlan.caloriesPerServing} kcal</span>
+              <span className="text-xs text-slate-500">{budgetPlan.caloriesPerServing} kcal</span>
             </div>
 
             {/* Crucial requested metric: Cost per 10g protein */}
-            <div className="p-4 bg-gradient-to-b from-emerald-950/40 to-slate-950 rounded-2xl border border-emerald-500/40 shadow-lg shadow-emerald-500/10">
-              <span className="text-[10px] text-emerald-300 font-bold uppercase block">
+            <div className="p-4 bg-surface-high rounded-2xl border border-emerald-500/40 shadow-lg shadow-emerald-500/10">
+              <span className="text-xs text-emerald-300 font-bold block">
                 COST / 10g PROTEIN 
               </span>
-              <strong className="text-lg font-black text-white font-mono mt-0.5 block">
+              <strong className="text-lg font-semibold text-white mt-0.5 block">
                 {budgetPlan.costPer10gProtein}
               </strong>
-              <span className="text-[10px] text-emerald-400 font-bold">Ultra-efficient ratio</span>
+              <span className="text-xs text-emerald-400 font-bold">Ultra-efficient ratio</span>
             </div>
           </div>
 
           {/* Dish Title & Strategy */}
           <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase">RECOMMENDED BUDGET DISH</span>
-            <h4 className="text-base font-extrabold text-white">{budgetPlan.recipeTitle}</h4>
+            <span className="text-xs font-bold text-emerald-400">RECOMMENDED BUDGET DISH</span>
+            <h4 className="text-base font-semibold text-white">{budgetPlan.recipeTitle}</h4>
             <p className="text-xs text-slate-300 mt-1">{budgetPlan.strategyHighlight}</p>
           </div>
 
           {/* Itemized Grocery Breakdown Table */}
           <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-800 text-xs font-bold text-white uppercase">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-800 text-xs font-bold text-white">
               <span>Itemized Grocery & Pantry Allocation</span>
-              <span className="text-[10px] text-slate-400 font-mono">PANTRY VS TO-BUY</span>
+              <span className="text-xs text-slate-400">PANTRY VS TO-BUY</span>
             </div>
 
             <div className="divide-y divide-slate-800/60 max-h-48 overflow-y-auto">
@@ -226,11 +221,11 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
                 <div key={idx} className="py-2 flex items-center justify-between text-xs">
                   <div>
                     <strong className="text-white">{item.item}</strong>
-                    <span className="text-[10px] text-slate-400 ml-2">({item.qty})</span>
+                    <span className="text-xs text-slate-400 ml-2">({item.qty})</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                      className={`px-2 py-0.5 rounded text-xs font-bold ${
                         item.source.includes('Free')
                           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                           : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
@@ -264,7 +259,7 @@ export const GroceryPriceIntelligenceModal: React.FC<GroceryPriceIntelligenceMod
 
           <button
             onClick={handleCook}
-            className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/25 hover:opacity-95 transition-all flex items-center gap-2"
+            className="px-6 py-2.5 bg-surface-high text-slate-950 font-semibold text-xs rounded-xl shadow-lg shadow-emerald-500/25 hover:opacity-95 transition-all flex items-center gap-2"
           >
             <Play className="w-4 h-4 fill-slate-950" />
             <span>Cook Budget Meal Plan</span>

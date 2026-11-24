@@ -41,28 +41,25 @@ export const ScientificValidationModal: React.FC<ScientificValidationModalProps>
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-3xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-teal-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">AI Recipe Scientific Validation</h3>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-500/30">
-                  AUTOMATED TRI-TIER AUDIT
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Science check</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                Rigorous rule-based verification: Culinary flavor compatibility, nutritional thermodynamics & HACCP safety.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                Checks a recipe for flavour balance, nutrition and food safety.
               </p>
             </div>
           </div>
@@ -74,17 +71,17 @@ export const ScientificValidationModal: React.FC<ScientificValidationModalProps>
         {/* Recipe Confidence Ribbon */}
         <div className="p-6 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between gap-4">
           <div>
-            <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase">VALIDATION REPORT FOR:</span>
-            <h4 className="text-base sm:text-lg font-black text-white mt-0.5">{recipe.title}</h4>
+            <span className="text-xs text-emerald-400 font-bold">VALIDATION REPORT FOR:</span>
+            <h4 className="text-base sm:text-lg font-semibold text-white mt-0.5">{recipe.title}</h4>
             <p className="text-xs text-slate-400">{recipe.cuisine} • {recipe.cookTimeMinutes} mins • {recipe.calories} kcal</p>
           </div>
 
           <div className="text-right shrink-0">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-black text-emerald-400 font-mono">{validation.overallConfidencePercent}%</span>
-              <span className="text-xs text-slate-500 font-mono">CONFIDENCE</span>
+              <span className="text-3xl font-semibold text-emerald-400">{validation.overallConfidencePercent}%</span>
+              <span className="text-xs text-slate-500">CONFIDENCE</span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-mono font-bold border border-emerald-500/20 uppercase">
+            <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-bold border border-emerald-500/20">
               {validation.validationAuditVerdict}
             </span>
           </div>
@@ -99,20 +96,20 @@ export const ScientificValidationModal: React.FC<ScientificValidationModalProps>
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>1. Culinary Flavor & Physics Validator</span>
               </span>
-              <span className="text-xs font-mono font-bold text-emerald-400">{validation.culinaryValidator.ingredientCompatibility}% Match</span>
+              <span className="text-xs font-bold text-emerald-400">{validation.culinaryValidator.ingredientCompatibility}% Match</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-[11px] font-mono pt-1">
+            <div className="grid grid-cols-3 gap-2 text-xs pt-1">
               <div className="p-2 bg-slate-900 rounded-xl border border-slate-800 text-center">
-                <span className="text-slate-400 text-[10px] block">Compatibility</span>
+                <span className="text-slate-400 text-xs block">Compatibility</span>
                 <strong className="text-white">{validation.culinaryValidator.ingredientCompatibility}%</strong>
               </div>
               <div className="p-2 bg-slate-900 rounded-xl border border-slate-800 text-center">
-                <span className="text-slate-400 text-[10px] block">Cooking Temp</span>
+                <span className="text-slate-400 text-xs block">Cooking Temp</span>
                 <strong className="text-amber-400">{validation.culinaryValidator.cookingTempCelsius}°C</strong>
               </div>
               <div className="p-2 bg-slate-900 rounded-xl border border-slate-800 text-center">
-                <span className="text-slate-400 text-[10px] block">Texture Score</span>
+                <span className="text-slate-400 text-xs block">Texture Score</span>
                 <strong className="text-teal-400">{validation.culinaryValidator.textureScore}%</strong>
               </div>
             </div>
@@ -124,10 +121,10 @@ export const ScientificValidationModal: React.FC<ScientificValidationModalProps>
           <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
             <div className="flex justify-between items-center pb-2 border-b border-slate-800">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>2. Nutritional Thermodynamics Validator</span>
               </span>
-              <span className="text-xs font-mono font-bold text-cyan-400">{validation.nutritionValidator.caloricAccuracy}% Precision</span>
+              <span className="text-xs font-bold text-emerald-400">{validation.nutritionValidator.caloricAccuracy}% Precision</span>
             </div>
 
             <p className="text-xs text-slate-300 leading-snug">{validation.nutritionValidator.verdict}</p>
@@ -137,13 +134,13 @@ export const ScientificValidationModal: React.FC<ScientificValidationModalProps>
           <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
             <div className="flex justify-between items-center pb-2 border-b border-slate-800">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-purple-400" />
+                <CheckCircle2 className="w-4 h-4 text-teal-400" />
                 <span>3. HACCP Safety & Hygiene Validator</span>
               </span>
-              <span className="text-xs font-mono font-bold text-purple-400">PASSED</span>
+              <span className="text-xs font-bold text-teal-400">PASSED</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
+            <div className="grid grid-cols-3 gap-2 text-xs">
               <div className="p-2 bg-slate-900 rounded-xl border border-slate-800 text-center text-emerald-300">
                 Internal Temp Safe
               </div>

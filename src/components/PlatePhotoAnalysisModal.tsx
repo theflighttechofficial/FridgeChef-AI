@@ -69,28 +69,25 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-4xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-amber-950/70 via-slate-900 to-rose-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center">
               <Camera className="w-5 h-5 text-amber-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">Plate Photo → Food & Plating Analysis</h3>
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold border border-amber-500/30">
-                  POST-COOKING VISION EVALUATION
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Plate vision</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                Snap your finished plate. AI estimates portions, macronutrients, color diversity & professional plating score.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                Snap your finished plate for a portion, nutrition and plating estimate.
               </p>
             </div>
           </div>
@@ -102,7 +99,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
         {/* Preset Sample Images Strip */}
         <div className="px-6 py-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Try Sample Plates:</span>
+            <span className="text-xs text-slate-400 font-bold">Try Sample Plates:</span>
             {SAMPLE_PLATE_PRESETS.map((p, i) => (
               <button
                 key={i}
@@ -110,7 +107,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
                   setSelectedImage(p.img);
                   triggerPlateAnalysis(p.img);
                 }}
-                className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-400 text-slate-300 text-[11px] font-bold transition-all"
+                className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-400 text-slate-300 text-xs font-bold transition-all"
               >
                 {p.name}
               </button>
@@ -149,7 +146,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
                     className="w-full h-full object-cover"
                   />
                 ) : selectedImage ? (
-                  <div className="w-full h-full grid place-items-center bg-gradient-to-br from-emerald-900 to-slate-900 text-6xl" role="img" aria-label="Plated dish">
+                  <div className="w-full h-full grid place-items-center bg-surface-high text-6xl" role="img" aria-label="Plated dish">
                     🍽️
                   </div>
                 ) : (
@@ -161,7 +158,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
 
                 {/* Score Pill in Corner */}
                 {analysisResult && (
-                  <div className="absolute top-3 right-3 px-3 py-1.5 rounded-2xl bg-slate-950/85 backdrop-blur-md border border-amber-400/40 text-amber-300 font-mono font-bold text-xs shadow-xl flex items-center gap-1.5">
+                  <div className="absolute top-3 right-3 px-3 py-1.5 rounded-2xl bg-slate-950/85 backdrop-blur-md border border-amber-400/40 text-amber-300 font-bold text-xs shadow-xl flex items-center gap-1.5">
                     <Award className="w-4 h-4 text-amber-400" />
                     <span>PLATE SCORE: {analysisResult.plateScores.overallScore}/100</span>
                   </div>
@@ -171,7 +168,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
               {analysisResult && (
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300">
                   <strong className="text-white block font-bold">{analysisResult.dishName}</strong>
-                  <span className="text-[11px] text-slate-400">{analysisResult.estimatedPortionSize}</span>
+                  <span className="text-xs text-slate-400">{analysisResult.estimatedPortionSize}</span>
                 </div>
               )}
             </div>
@@ -187,7 +184,7 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
               <div className="space-y-4">
                 {/* 4 Deep Scoring Dimensions */}
                 <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider block">
+                  <span className="text-xs font-bold text-white block">
                     Sensory & Plating Criteria
                   </span>
 
@@ -215,20 +212,20 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
                     <div>
                       <div className="flex justify-between text-xs mb-1 font-bold">
                         <span className="text-slate-300">Color Diversity</span>
-                        <span className="font-mono text-purple-400">{analysisResult.plateScores.colorDiversity}%</span>
+                        <span className="font-mono text-teal-400">{analysisResult.plateScores.colorDiversity}%</span>
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-purple-400 h-full rounded-full" style={{ width: `${analysisResult.plateScores.colorDiversity}%` }} />
+                        <div className="bg-teal-400 h-full rounded-full" style={{ width: `${analysisResult.plateScores.colorDiversity}%` }} />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between text-xs mb-1 font-bold">
                         <span className="text-slate-300">Plating Geometry & Negative Space</span>
-                        <span className="font-mono text-cyan-400">{analysisResult.plateScores.platingGeometry}%</span>
+                        <span className="font-mono text-emerald-400">{analysisResult.plateScores.platingGeometry}%</span>
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-cyan-400 h-full rounded-full" style={{ width: `${analysisResult.plateScores.platingGeometry}%` }} />
+                        <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${analysisResult.plateScores.platingGeometry}%` }} />
                       </div>
                     </div>
                   </div>
@@ -236,15 +233,15 @@ export const PlatePhotoAnalysisModal: React.FC<PlatePhotoAnalysisModalProps> = (
 
                 {/* Master Chef Critique */}
                 <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1.5">
-                  <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">MASTER CHEF CRITIQUE</span>
-                  <p className="text-xs text-slate-300 leading-relaxed italic">
+                  <span className="text-xs text-slate-400 font-bold">MASTER CHEF CRITIQUE</span>
+                  <p className="text-xs text-slate-300 leading-relaxed">
                     "{analysisResult.chefCritique}"
                   </p>
                 </div>
 
                 {/* Actionable Elevation Tip */}
                 <div className="p-4 bg-amber-950/20 rounded-2xl border border-amber-500/30 space-y-1">
-                  <span className="text-[10px] font-mono text-amber-400 uppercase font-bold flex items-center gap-1.5">
+                  <span className="text-xs text-amber-400 font-bold flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5" />
                     <span>ACTIONABLE PLATING ELEVATION TIP</span>
                   </span>

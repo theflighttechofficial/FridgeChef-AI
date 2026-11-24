@@ -52,7 +52,7 @@ export const PantryHealthNotificationBanner: React.FC<PantryHealthNotificationBa
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.98 }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-        className="w-full bg-gradient-to-r from-rose-950/90 via-slate-900/95 to-amber-950/90 border border-rose-500/30 rounded-2xl p-4 shadow-2xl backdrop-blur-xl relative overflow-hidden"
+        className="w-full bg-surface-high border border-rose-500/30 rounded-2xl p-4 shadow-2xl backdrop-blur-xl relative overflow-hidden"
       >
         {/* Glow ambient background ring */}
         <div className="absolute -right-8 -top-8 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />
@@ -60,15 +60,15 @@ export const PantryHealthNotificationBanner: React.FC<PantryHealthNotificationBa
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative z-10">
           <div className="flex items-start gap-3">
             <div className="p-2.5 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 shrink-0">
-              <ShieldAlert className="w-5 h-5 animate-pulse" />
+              <ShieldAlert className="w-5 h-5" />
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="text-sm font-extrabold text-white">
+                <h4 className="text-sm font-semibold text-white">
                   Pantry Health Alert: {expiringItems.length} Ingredient{expiringItems.length > 1 ? 's' : ''} Expiring Soon
                 </h4>
-                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[10px] font-extrabold border border-rose-500/30">
+                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-xs font-semibold border border-rose-500/30">
                   ACTION REQUIRED
                 </span>
               </div>
@@ -98,7 +98,7 @@ export const PantryHealthNotificationBanner: React.FC<PantryHealthNotificationBa
             {onStartCookingFromAlert && (
               <button
                 onClick={onStartCookingFromAlert}
-                className="px-3.5 py-1.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-extrabold text-xs rounded-xl hover:opacity-90 transition-all shadow-lg shadow-rose-500/25 flex items-center gap-1.5"
+                className="px-3.5 py-1.5 bg-surface-high text-white font-semibold text-xs rounded-xl hover:opacity-90 transition-all shadow-lg shadow-rose-500/25 flex items-center gap-1.5"
               >
                 <Zap className="w-3.5 h-3.5 fill-current" />
                 <span>Cook Recipes Now</span>

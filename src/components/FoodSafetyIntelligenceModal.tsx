@@ -104,28 +104,25 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
   const selectedItem = ingredients.find((i) => i.name === selectedIngredient);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-4xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-red-950/70 via-slate-900 to-amber-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 flex items-center justify-center">
               <ShieldAlert className="w-5 h-5 text-rose-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">Food Safety Intelligence</h3>
-                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-mono font-bold border border-rose-500/30">
-                  DETERMINISTIC HACCP PROTOCOLS
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Food safety</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                Rule-based culinary hygiene: Safe handling windows, cross-contamination barriers & internal cooking temperatures.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                Safe storage times, cooking temperatures and cross-contamination tips for each item.
               </p>
             </div>
           </div>
@@ -144,7 +141,7 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
           <>
         {/* Ingredient Quick Selector Horizontal Strip */}
         <div className="p-4 bg-slate-950/70 border-b border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="text-[10px] font-mono text-slate-400 uppercase font-bold shrink-0 mr-1">Select Item:</span>
+          <span className="text-xs text-slate-400 font-bold shrink-0 mr-1">Select Item:</span>
           {ingredients.slice(0, 10).map((ing) => {
             const isSelected = selectedIngredient === ing.name;
             return (
@@ -169,21 +166,21 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
           <div className="p-5 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-mono font-bold">{currentProfile.category}</span>
-                <h4 className="text-lg font-black text-white">{currentProfile.ingredientName}</h4>
+                <span className="text-xs text-slate-400 font-bold">{currentProfile.category}</span>
+                <h4 className="text-lg font-semibold text-white">{currentProfile.ingredientName}</h4>
               </div>
 
               <div className="flex items-center gap-2">
                 <span
-                  className={`px-3 py-1 rounded-xl text-xs font-mono font-bold border ${
+                  className={`px-3 py-1 rounded-xl text-xs font-bold border ${
                     currentProfile.safetyStatus === 'Cook Today'
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse'
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                       : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                   }`}
                 >
                   {currentProfile.safetyStatus.toUpperCase()}
                 </span>
-                {selectedItem?.freshness && <span className="text-xs text-slate-400 font-mono">Marked {selectedItem.freshness}</span>}
+                {selectedItem?.freshness && <span className="text-xs text-slate-400">Marked {selectedItem.freshness}</span>}
               </div>
             </div>
 
@@ -196,20 +193,20 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Safe Cook Internal Temp */}
             <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase font-mono font-bold flex items-center gap-1.5">
+              <span className="text-xs text-slate-400 font-bold flex items-center gap-1.5">
                 <Thermometer className="w-3.5 h-3.5 text-rose-400" />
                 <span>SAFE INTERNAL TEMP</span>
               </span>
-              <strong className="text-2xl font-black text-rose-400 font-mono block">
+              <strong className="text-2xl font-semibold text-rose-400 block">
                 {currentProfile.safeCookInternalTempCelsius}°C / {currentProfile.safeCookInternalTempFahrenheit}°F
               </strong>
-              <span className="text-[10px] text-slate-400">Verifiable with digital probe</span>
+              <span className="text-xs text-slate-400">Verifiable with digital probe</span>
             </div>
 
             {/* Shelf Location */}
             <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase font-mono font-bold flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-xs text-slate-400 font-bold flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-emerald-400" />
                 <span>SAFE MICROCLIMATE</span>
               </span>
               <strong className="text-xs text-white block mt-1 leading-snug">
@@ -219,21 +216,21 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
 
             {/* Refrigerated Lifespan */}
             <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase font-mono font-bold flex items-center gap-1.5">
+              <span className="text-xs text-slate-400 font-bold flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
                 <span>LIFESPAN WINDOW</span>
               </span>
-              <strong className="text-xl font-black text-amber-300 font-mono block">
+              <strong className="text-xl font-semibold text-amber-300 block">
                 Up to {currentProfile.maxRefrigeratedDays} days
               </strong>
-              <span className="text-[10px] text-slate-400">In the fridge once opened</span>
+              <span className="text-xs text-slate-400">In the fridge once opened</span>
             </div>
           </div>
 
           {/* Cross Contamination Warning */}
           {currentProfile.crossContaminationWarning && (
             <div className="p-4 bg-rose-950/30 rounded-2xl border border-rose-500/40 space-y-1.5">
-              <span className="text-xs font-bold text-rose-300 uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
                 <AlertTriangle className="w-4 h-4 text-rose-400" />
                 <span>Cross-Contamination Protocol</span>
               </span>
@@ -245,7 +242,7 @@ export const FoodSafetyIntelligenceModal: React.FC<FoodSafetyIntelligenceModalPr
 
           {/* Raw vs Cooked Separation Guidance */}
           <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1.5">
-            <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Raw / Cooked Physical Separation Rule</span>
             </span>

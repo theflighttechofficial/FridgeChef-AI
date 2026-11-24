@@ -68,15 +68,12 @@ export const AcousticSensoryLab: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
+          <div className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400">
             <Mic className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-base font-extrabold text-white">Sensory & Acoustic Food Intelligence</span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-bold">
-                ACOUSTIC FFT & VISION
-              </span>
+              <span className="text-base font-semibold text-white">Sensory & Acoustic Food Intelligence</span>
             </div>
             <p className="text-xs text-slate-400">
               Performs pitch-frequency pan sizzle analysis, knife chopping rhythm training, and micro-texture produce spoilage hour predictions.
@@ -89,23 +86,23 @@ export const AcousticSensoryLab: React.FC = () => {
         {/* Module 1: Sonic Doneness Pitch & Frequency Analyzer */}
         <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-4 shadow-lg">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Activity className="w-4 h-4 text-purple-400" />
+            <h3 className="text-xs font-bold text-white flex items-center gap-2">
+              <Activity className="w-4 h-4 text-teal-400" />
               <span>Sonic Sizzle Frequency</span>
             </h3>
-            <span className="text-[10px] font-mono text-purple-400 font-bold">FFT SPECTRUM</span>
+            <span className="text-xs text-teal-400 font-bold">FFT SPECTRUM</span>
           </div>
 
           <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3 text-center">
-            <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <div className="flex items-center justify-between text-xs text-slate-400">
               <span>Sizzle Frequency:</span>
-              <span className="text-purple-400 font-bold">{sizzleFreq} Hz</span>
+              <span className="text-teal-400 font-bold">{sizzleFreq} Hz</span>
             </div>
 
             {/* Simulated Frequency Spectrum Bar */}
             <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden p-0.5 border border-slate-800 flex items-center">
               <div
-                className="bg-gradient-to-r from-purple-500 via-amber-500 to-rose-500 h-full rounded-full transition-all duration-500"
+                className="bg-surface-high h-full rounded-full transition-all duration-500"
                 style={{ width: `${(sizzleFreq / 5000) * 100}%` }}
               />
             </div>
@@ -119,7 +116,7 @@ export const AcousticSensoryLab: React.FC = () => {
             onClick={toggleSonicListening}
             className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 ${
               isListeningSonic
-                ? 'bg-purple-500 text-slate-950 shadow-lg shadow-purple-500/20 animate-pulse'
+                ? 'bg-teal-500 text-slate-950 shadow-lg shadow-teal-500/20'
                 : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
             }`}
           >
@@ -131,25 +128,25 @@ export const AcousticSensoryLab: React.FC = () => {
         {/* Module 2: Smart Knife Cadence Trainer */}
         <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-4 shadow-lg">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-xs font-bold text-white flex items-center gap-2">
               <Volume2 className="w-4 h-4 text-emerald-400" />
               <span>Smart Knife Rhythm Guide</span>
             </h3>
-            <span className="text-[10px] font-mono text-emerald-400 font-bold">HAPTIC CPM</span>
+            <span className="text-xs text-emerald-400 font-bold">HAPTIC CPM</span>
           </div>
 
           <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
             <div className="flex justify-between text-xs">
               <span className="text-slate-400 font-semibold">Chopping Cadence:</span>
-              <span className="text-emerald-400 font-bold font-mono">{cadenceCPM} CPM</span>
+              <span className="text-emerald-400 font-bold">{cadenceCPM} CPM</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-slate-400 font-semibold">Rhythm Uniformity:</span>
-              <span className="text-teal-400 font-bold font-mono">{rhythmSafetyScore}%</span>
+              <span className="text-teal-400 font-bold">{rhythmSafetyScore}%</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-slate-400 font-semibold">Total Chops Detected:</span>
-              <span className="text-white font-bold font-mono">{chopCount}</span>
+              <span className="text-white font-bold">{chopCount}</span>
             </div>
           </div>
 
@@ -168,11 +165,11 @@ export const AcousticSensoryLab: React.FC = () => {
         {/* Module 3: Micro-Visual Spoilage Hour Predictor */}
         <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-4 shadow-lg">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-xs font-bold text-white flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-400" />
               <span>Produce Spoilage Hour Clock</span>
             </h3>
-            <span className="text-[10px] font-mono text-amber-400 font-bold">MICRO-TEXTURE</span>
+            <span className="text-xs text-amber-400 font-bold">MICRO-TEXTURE</span>
           </div>
 
           <div className="space-y-3">
@@ -190,9 +187,9 @@ export const AcousticSensoryLab: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <div className="flex justify-between text-[11px] text-slate-400">
+              <div className="flex justify-between text-xs text-slate-400">
                 <span>Micro-Browning / Softness:</span>
-                <span className="text-amber-400 font-bold font-mono">{browningPct}%</span>
+                <span className="text-amber-400 font-bold">{browningPct}%</span>
               </div>
               <input
                 type="range"
@@ -205,11 +202,11 @@ export const AcousticSensoryLab: React.FC = () => {
             </div>
 
             <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 text-center space-y-1">
-              <p className="text-[10px] text-slate-500 font-semibold uppercase">Estimated Freshness Window:</p>
-              <p className="text-xl font-extrabold text-amber-400 font-mono">
+              <p className="text-xs text-slate-500 font-semibold">Estimated Freshness Window:</p>
+              <p className="text-xl font-semibold text-amber-400">
                 {hoursLeft} Hours Remaining
               </p>
-              <p className="text-[10px] text-slate-400 italic">
+              <p className="text-xs text-slate-400">
                 {hoursLeft < 12 ? 'High Priority: Cook within today!' : 'Fresh & ready to use.'}
               </p>
             </div>

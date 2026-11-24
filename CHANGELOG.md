@@ -3,6 +3,21 @@
 All notable changes to FridgeChef. Versions match the git tags; each tagged release on GitHub
 carries the Android APK.
 
+## [1.3.0] - 2026-11-24
+
+### Added
+- 1000 new Indian dishes, split equally: 500 South Indian (Tamil, Kerala, Karnataka, Andhra,
+  Chettinad, Mangalorean, Hyderabadi) and 500 North Indian (Punjabi, North Indian, Mughlai, Awadhi,
+  Kashmiri, Rajasthani, Bihari, street food and sweets). 1970 recipes in total, 1429 Indian.
+  On-device model retrained.
+
+### Changed
+- Every tool in the tools sheet now matches the home and recipe pages: a full-screen page on
+  phones and a large rounded dialog on bigger screens, a clean top bar with the short tool name and
+  a plain one-line description, theme colours from your chosen Material You colour, and readable
+  type instead of tiny all-caps labels.
+- The Lab and Shopping tabs use the same page headers as the Recipes tab.
+
 ## [1.2.0] - 2026-11-18
 
 ### Added
@@ -62,6 +77,7 @@ First release of the redesigned app.
 - Gemini errors with a valid key: the app now falls back to another model on the same key,
   no longer cuts answers off, and shows plain-language errors.
 
+[1.3.0]: https://github.com/theflighttechofficial/FridgeChef-AI/releases/tag/v1.3.0
 [1.2.0]: https://github.com/theflighttechofficial/FridgeChef-AI/releases/tag/v1.2.0
 [1.1.0]: https://github.com/theflighttechofficial/FridgeChef-AI/releases/tag/v1.1.0
 [1.0.0]: https://github.com/theflighttechofficial/FridgeChef-AI/tree/52cbf7234ca95dfe6256e887928b995f815a14ef

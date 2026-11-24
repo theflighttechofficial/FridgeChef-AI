@@ -48,27 +48,24 @@ export const PersonalNutritionDashboardModal: React.FC<PersonalNutritionDashboar
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-4xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-teal-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center">
               <Activity className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">Personal Nutrition Dashboard</h3>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-500/30">
-                  METABOLIC PROFILE
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Nutrition</h3>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
                 Your last 7 days, from the meals you cooked.
               </p>
             </div>
@@ -87,7 +84,7 @@ export const PersonalNutritionDashboardModal: React.FC<PersonalNutritionDashboar
         ) : (
           <div className="p-6 overflow-y-auto space-y-6 flex-1">
             <div className="p-4 bg-amber-950/20 rounded-2xl border border-amber-500/30 space-y-1.5">
-              <div className="flex items-center gap-2 text-amber-300 text-sm font-extrabold">
+              <div className="flex items-center gap-2 text-amber-300 text-sm font-semibold">
                 <Heart className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>{diagnosis.headline}</span>
               </div>
@@ -96,20 +93,20 @@ export const PersonalNutritionDashboardModal: React.FC<PersonalNutritionDashboar
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Meals cooked (7 days)', value: week.meals.length, tone: 'text-cyan-400' },
+                { label: 'Meals cooked (7 days)', value: week.meals.length, tone: 'text-emerald-400' },
                 { label: 'Calories per day', value: week.calories, tone: 'text-amber-400' },
                 { label: 'Protein per day', value: `${week.protein}g`, tone: 'text-emerald-400' },
-                { label: 'Different ingredients', value: week.diversity, tone: 'text-purple-400' },
+                { label: 'Different ingredients', value: week.diversity, tone: 'text-teal-400' },
               ].map((c) => (
                 <div key={c.label} className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{c.label}</span>
-                  <strong className={`text-xl font-black font-mono mt-0.5 block ${c.tone}`}>{c.value}</strong>
+                  <span className="text-xs text-slate-400 font-bold block">{c.label}</span>
+                  <strong className={`text-xl font-semibold mt-0.5 block ${c.tone}`}>{c.value}</strong>
                 </div>
               ))}
             </div>
 
             <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
-              <span className="text-xs font-bold text-white uppercase tracking-wider block">Where your calories came from</span>
+              <span className="text-xs font-bold text-white block">Where your calories came from</span>
               {(
                 [
                   ['Protein', week.share.protein, `${week.protein}g/day`, 'bg-emerald-400'],
@@ -129,11 +126,11 @@ export const PersonalNutritionDashboardModal: React.FC<PersonalNutritionDashboar
                   </div>
                 </div>
               ))}
-              <p className="text-[10px] text-slate-500">Estimated from the recipes you cooked across {week.cuisines} cuisine{week.cuisines === 1 ? '' : 's'}.</p>
+              <p className="text-xs text-slate-500">Estimated from the recipes you cooked across {week.cuisines} cuisine{week.cuisines === 1 ? '' : 's'}.</p>
             </div>
 
             <div className="bg-slate-950 p-5 rounded-2xl border border-teal-500/30 space-y-2">
-              <span className="text-xs font-bold text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs font-bold text-teal-300 flex items-center gap-1.5">
                 <Salad className="w-3.5 h-3.5 text-teal-400" />
                 <span>Ideas to balance it out</span>
               </span>

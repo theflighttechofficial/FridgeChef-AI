@@ -148,13 +148,13 @@ export const D3RadarChart: React.FC<D3RadarChartProps> = ({ data, size = 220 }) 
       {/* Floating Interactive Tooltip */}
       {activePoint ? (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none bg-slate-900/95 border border-emerald-500/60 px-3 py-1.5 rounded-xl shadow-2xl backdrop-blur-md text-center z-10 animate-in fade-in zoom-in-95">
-          <p className="text-xs font-extrabold text-white">{activePoint.attribute}</p>
-          <p className="text-[11px] font-bold font-mono text-emerald-400">
+          <p className="text-xs font-semibold text-white">{activePoint.attribute}</p>
+          <p className="text-xs font-bold text-emerald-400">
             {activePoint.score}% Target ({activePoint.detail})
           </p>
         </div>
       ) : (
-        <p className="text-[10px] text-slate-500 font-semibold mt-1">
+        <p className="text-xs text-slate-500 font-semibold mt-1">
           Hover vertices for exact macro scores
         </p>
       )}

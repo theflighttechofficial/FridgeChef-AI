@@ -109,30 +109,25 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-4xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-rose-950/70 via-slate-900 to-amber-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-amber-400 animate-pulse" />
+              <Trophy className="w-5 h-5 text-amber-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">
-                  “Cook With What You Have” Challenge
-                </h3>
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold border border-amber-500/30">
-                  GAMIFIED PANTRY ARENA
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Pantry challenge</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                Turn random pantry items into a scored culinary showdown. Earn XP, maintain cooking streaks & unlock badges.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                Cook with random pantry items, earn points and keep your streak going.
               </p>
             </div>
           </div>
@@ -144,12 +139,12 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
         {/* Gamification Stats Strip */}
         <div className="px-6 py-3 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 font-bold font-mono">
-              <Flame className="w-4 h-4 text-orange-400" />
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 font-bold">
+              <Flame className="w-4 h-4 text-amber-400" />
               <span>{streak}-DAY STREAK</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-xl text-purple-300 font-bold font-mono">
-              <Award className="w-4 h-4 text-purple-400" />
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-teal-500/10 border border-teal-500/30 rounded-xl text-teal-300 font-bold">
+              <Award className="w-4 h-4 text-teal-400" />
               <span>LEVEL {Math.floor(log.length / 5) + 1} COOK</span>
             </div>
           </div>
@@ -168,13 +163,13 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
           {/* Step 1: Select 3-5 Pantry Ingredients */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span className="text-xs font-bold text-white flex items-center gap-2">
                 <span>Select 3–5 Ingredients from Your Fridge:</span>
-                <span className="text-[10px] text-amber-400 font-mono">
+                <span className="text-xs text-amber-400">
                   ({selectedIngredients.length} Selected)
                 </span>
               </span>
-              <span className="text-[11px] text-slate-400">Must pick at least 3</span>
+              <span className="text-xs text-slate-400">Must pick at least 3</span>
             </div>
 
             <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-3 bg-slate-950/60 rounded-2xl border border-slate-800">
@@ -202,7 +197,7 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
             <button
               onClick={handleRunChallenge}
               disabled={isJudging || selectedIngredients.length < 2}
-              className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/25 hover:opacity-95 transition-all flex items-center gap-2 active:scale-95"
+              className="px-6 py-2.5 bg-surface-high text-slate-950 font-semibold text-xs rounded-xl shadow-lg shadow-amber-500/25 hover:opacity-95 transition-all flex items-center gap-2 active:scale-95"
             >
               <Zap className="w-4 h-4 fill-slate-950" />
               <span>{isJudging ? 'AI Culinary Jury Scoring...' : 'Submit Challenge to AI Jury'}</span>
@@ -214,22 +209,22 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
             <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-3">
                 <div>
-                  <span className="text-[10px] text-amber-400 font-mono font-bold uppercase tracking-wider">
+                  <span className="text-xs text-amber-400 font-bold">
                     JURY JUDGMENT DISH
                   </span>
-                  <h4 className="text-base sm:text-lg font-extrabold text-white">
+                  <h4 className="text-base sm:text-lg font-semibold text-white">
                     {challengeResult.challengeDishTitle}
                   </h4>
-                  <p className="text-xs text-slate-300 mt-1 italic">
+                  <p className="text-xs text-slate-300 mt-1">
                     "{challengeResult.feedbackQuote}"
                   </p>
                 </div>
 
                 <div className="text-right shrink-0">
-                  <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-mono font-bold border border-amber-500/30">
+                  <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
                     +{challengeResult.xpEarned} XP AWARDED
                   </span>
-                  <span className="block text-[10px] text-purple-300 font-mono mt-1">
+                  <span className="block text-xs text-teal-300 mt-1">
                     Unlocked: {challengeResult.badgeUnlocked}
                   </span>
                 </div>
@@ -238,9 +233,9 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
               {/* 5 Deep Scoring Bars */}
               <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
                 <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                  <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-bold">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1 font-bold">
                     <span>UTILIZATION</span>
-                    <strong className="text-emerald-400 font-mono">{challengeResult.ingredientUtilization}%</strong>
+                    <strong className="text-emerald-400">{challengeResult.ingredientUtilization}%</strong>
                   </div>
                   <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                     <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${challengeResult.ingredientUtilization}%` }} />
@@ -248,19 +243,19 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
                 </div>
 
                 <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                  <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-bold">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1 font-bold">
                     <span>CREATIVITY</span>
-                    <strong className="text-purple-400 font-mono">{challengeResult.creativity}%</strong>
+                    <strong className="text-teal-400">{challengeResult.creativity}%</strong>
                   </div>
                   <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-purple-400 h-full rounded-full" style={{ width: `${challengeResult.creativity}%` }} />
+                    <div className="bg-teal-400 h-full rounded-full" style={{ width: `${challengeResult.creativity}%` }} />
                   </div>
                 </div>
 
                 <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                  <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-bold">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1 font-bold">
                     <span>NUTRITION</span>
-                    <strong className="text-teal-400 font-mono">{challengeResult.nutrition}%</strong>
+                    <strong className="text-teal-400">{challengeResult.nutrition}%</strong>
                   </div>
                   <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                     <div className="bg-teal-400 h-full rounded-full" style={{ width: `${challengeResult.nutrition}%` }} />
@@ -268,19 +263,19 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
                 </div>
 
                 <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                  <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-bold">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1 font-bold">
                     <span>WASTE REDUCED</span>
-                    <strong className="text-cyan-400 font-mono">{challengeResult.wasteReduction}%</strong>
+                    <strong className="text-emerald-400">{challengeResult.wasteReduction}%</strong>
                   </div>
                   <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-cyan-400 h-full rounded-full" style={{ width: `${challengeResult.wasteReduction}%` }} />
+                    <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${challengeResult.wasteReduction}%` }} />
                   </div>
                 </div>
 
                 <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                  <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-bold">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1 font-bold">
                     <span>DIFFICULTY</span>
-                    <strong className="text-amber-400 font-mono">{challengeResult.difficulty}%</strong>
+                    <strong className="text-amber-400">{challengeResult.difficulty}%</strong>
                   </div>
                   <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                     <div className="bg-amber-400 h-full rounded-full" style={{ width: `${challengeResult.difficulty}%` }} />
@@ -291,7 +286,7 @@ export const PantryChallengeModal: React.FC<PantryChallengeModalProps> = ({
               {/* 1-Click Cook Trigger */}
               <button
                 onClick={handleCookChallengeDish}
-                className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-surface-high text-slate-950 font-semibold text-xs rounded-xl shadow-lg shadow-emerald-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2"
               >
                 <Play className="w-4 h-4 fill-slate-950" />
                 <span>Cook This Challenge Meal (Hands-Free Step-by-Step)</span>

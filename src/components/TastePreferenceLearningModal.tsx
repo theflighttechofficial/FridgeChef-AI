@@ -54,20 +54,20 @@ export const TastePreferenceLearningModal: React.FC<TastePreferenceLearningModal
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-4xl"
       >
-        <div className="px-6 py-4 bg-gradient-to-r from-purple-950/70 via-slate-900 to-indigo-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 text-purple-300 flex items-center justify-center">
-              <Brain className="w-5 h-5 text-purple-400" />
+            <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-500/40 text-teal-300 flex items-center justify-center">
+              <Brain className="w-5 h-5 text-teal-400" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-extrabold text-white">Taste Profile</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-white">Taste Profile</h3>
               <p className="text-xs text-slate-400">Learned on this device from what you save, cook and rate.</p>
             </div>
           </div>
@@ -88,8 +88,8 @@ export const TastePreferenceLearningModal: React.FC<TastePreferenceLearningModal
               <div className="p-5 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <span className="text-[10px] font-mono text-purple-400 uppercase font-bold">Rate your last meal</span>
-                    <h4 className="text-base font-extrabold text-white mt-0.5">{recent.title}</h4>
+                    <span className="text-xs text-teal-400 font-bold">Rate your last meal</span>
+                    <h4 className="text-base font-semibold text-white mt-0.5">{recent.title}</h4>
                   </div>
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -103,7 +103,7 @@ export const TastePreferenceLearningModal: React.FC<TastePreferenceLearningModal
                   <button
                     onClick={handleCommitFeedback}
                     disabled={!rating}
-                    className="px-5 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5 disabled:opacity-40"
+                    className="px-5 py-2 bg-surface-high text-white font-semibold text-xs rounded-xl shadow-md flex items-center gap-1.5 disabled:opacity-40"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{isSaved ? 'Saved' : 'Save rating'}</span>
@@ -113,7 +113,7 @@ export const TastePreferenceLearningModal: React.FC<TastePreferenceLearningModal
             )}
 
             <div className="space-y-3">
-              <span className="text-xs font-bold text-white uppercase tracking-wider block">
+              <span className="text-xs font-bold text-white block">
                 What FridgeChef has learned ({taste.events} signal{taste.events === 1 ? '' : 's'})
               </span>
               {!learned.length ? (
@@ -121,14 +121,14 @@ export const TastePreferenceLearningModal: React.FC<TastePreferenceLearningModal
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2.5">
-                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
                       <TrendingUp className="w-3.5 h-3.5" />
                       <span>You lean towards</span>
                     </span>
                     {likes.length ? <Weights items={likes} tone="text-emerald-400" sign="+" /> : <p className="text-xs text-slate-500">Nothing yet.</p>}
                   </div>
                   <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2.5">
-                    <span className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1">
+                    <span className="text-xs font-bold text-rose-400 flex items-center gap-1">
                       <TrendingDown className="w-3.5 h-3.5" />
                       <span>You tend to skip</span>
                     </span>
