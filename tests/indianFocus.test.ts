@@ -45,3 +45,15 @@ test('corpus covers every Indian region with at least eight dishes', () => {
   assert.equal(Object.keys(counts).length, 25);
   for (const [cuisine, n] of Object.entries(counts)) assert.ok(n >= 8, `${cuisine} has only ${n}`);
 });
+
+test('dish families add exactly 500 South Indian and 500 North Indian dishes with unique titles', async () => {
+  const { SOUTH_NEW_ROWS, NORTH_NEW_ROWS } = await import('../src/ml/data/recipes');
+  assert.equal(SOUTH_NEW_ROWS.length, 500);
+  assert.equal(NORTH_NEW_ROWS.length, 500);
+  const SOUTH = new Set(['Tamil', 'Kerala', 'Karnataka', 'Andhra', 'Chettinad', 'Mangalorean', 'Hyderabadi']);
+  const NORTH = new Set(['Punjabi', 'North Indian', 'Mughlai', 'Awadhi', 'Kashmiri', 'Rajasthani', 'Bihari', 'Indian Street Food', 'Indian Sweets']);
+  for (const r of SOUTH_NEW_ROWS) assert.ok(SOUTH.has(r[1]), `${r[0]} is filed under ${r[1]}`);
+  for (const r of NORTH_NEW_ROWS) assert.ok(NORTH.has(r[1]), `${r[0]} is filed under ${r[1]}`);
+  const titles = corpus().map((r) => r.title.toLowerCase());
+  assert.equal(new Set(titles).size, titles.length, 'every title in the corpus is unique');
+});

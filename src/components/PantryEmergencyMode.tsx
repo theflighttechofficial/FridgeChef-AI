@@ -51,16 +51,16 @@ export const PantryEmergencyMode: React.FC<PantryEmergencyModeProps> = ({ onStar
   const [isActive, setIsActive] = useState(false);
 
   return (
-    <div className="bg-gradient-to-r from-rose-950/60 via-slate-900 to-amber-950/40 border border-rose-500/40 p-5 rounded-2xl shadow-xl space-y-4">
+    <div className="bg-surface-high border border-rose-500/40 p-5 rounded-2xl shadow-xl space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-rose-500/20 pb-3">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400">
-            <ShieldAlert className="w-5 h-5 animate-pulse" />
+            <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-base font-extrabold text-white">Reverse Pantry Emergency Filter</span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono font-bold">
+              <span className="text-base font-semibold text-white">Reverse Pantry Emergency Filter</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold">
                 BARE FRIDGE MODE
               </span>
             </div>
@@ -72,7 +72,7 @@ export const PantryEmergencyMode: React.FC<PantryEmergencyModeProps> = ({ onStar
 
         <button
           onClick={() => setIsActive(!isActive)}
-          className={`px-4 py-2 rounded-xl font-extrabold text-xs transition-all ${
+          className={`px-4 py-2 rounded-xl font-semibold text-xs transition-all ${
             isActive
               ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
               : 'bg-slate-950 text-rose-400 border border-rose-500/40 hover:bg-rose-500/10'
@@ -84,22 +84,22 @@ export const PantryEmergencyMode: React.FC<PantryEmergencyModeProps> = ({ onStar
 
       {isActive && (
         <div className="space-y-3 pt-2">
-          <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+          <h4 className="text-xs font-bold text-amber-400">
             Available Emergency Survival Recipes:
           </h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {SURVIVAL_MEALS.map((meal) => (
               <div key={meal.id} className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
-                <h5 className="text-sm font-extrabold text-white">{meal.title}</h5>
+                <h5 className="text-sm font-semibold text-white">{meal.title}</h5>
                 <p className="text-xs text-slate-400 leading-relaxed">{meal.description}</p>
                 <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                  <span className="text-xs text-emerald-400 font-bold">
                     {meal.prepTimeMinutes + meal.cookTimeMinutes} min total
                   </span>
                   <button
                     onClick={() => onStartCooking(meal)}
-                    className="px-3 py-1.5 bg-rose-500 text-slate-950 font-extrabold text-xs rounded-lg hover:bg-rose-400 transition-colors flex items-center gap-1"
+                    className="px-3 py-1.5 bg-rose-500 text-slate-950 font-semibold text-xs rounded-lg hover:bg-rose-400 transition-colors flex items-center gap-1"
                   >
                     <span>Cook Survival Meal</span>
                     <ArrowRight className="w-3.5 h-3.5" />

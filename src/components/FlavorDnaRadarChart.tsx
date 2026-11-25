@@ -51,7 +51,7 @@ export const FlavorDnaRadarChart: React.FC<FlavorDnaRadarChartProps> = ({
       </div>
 
       {/* Quick Palate Readout */}
-      <div className="flex flex-wrap justify-center gap-1.5 text-[10px] font-mono font-bold pt-1">
+      <div className="flex flex-wrap justify-center gap-1.5 text-xs font-bold pt-1">
         <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
           Salt: <span className="text-amber-400">{flavorDna.salt}%</span>
         </span>

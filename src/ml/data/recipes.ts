@@ -19,6 +19,10 @@ import { EVERYDAY_ROWS } from './everyday';
 import { INDIAN_SOUTH_WEST_ROWS } from './indian-south-west';
 import { INDIAN_NORTH_EAST_ROWS } from './indian-north-east';
 import { TAMIL_ROWS } from './tamil';
+import { SOUTH_FAMILY_ROWS } from './families/south';
+import { SOUTH_EXTRA_ROWS } from './families/south-extra';
+import { NORTH_FAMILY_ROWS } from './families/north';
+import { NORTH_EXTRA_ROWS } from './families/north-extra';
 
 export interface CorpusRecipe {
   id: string;
@@ -497,7 +501,27 @@ const CORE_ROWS: Row[] = [
     'Black salt (kala namak) gives an eggy flavour.'],
 ];
 
-const ROWS: Row[] = [...CORE_ROWS, ...INDIAN_ROWS, ...WORLD_ROWS, ...MORE_INDIAN_ROWS, ...MORE_ASIA_ROWS, ...MORE_WORLD_ROWS, ...EVERYDAY_ROWS, ...INDIAN_SOUTH_WEST_ROWS, ...INDIAN_NORTH_EAST_ROWS, ...TAMIL_ROWS];
+const BASE_ROWS: Row[] = [...CORE_ROWS, ...INDIAN_ROWS, ...WORLD_ROWS, ...MORE_INDIAN_ROWS, ...MORE_ASIA_ROWS, ...MORE_WORLD_ROWS, ...EVERYDAY_ROWS, ...INDIAN_SOUTH_WEST_ROWS, ...INDIAN_NORTH_EAST_ROWS, ...TAMIL_ROWS];
+
+// The dish families (families/*.ts) add 500 South Indian and 500 North Indian dishes. They make a
+// few more than that, so any that share a title with a hand-written dish are skipped first.
+export const FAMILY_SHARE = 500;
+const seenTitles = new Set(BASE_ROWS.map((r) => r[0].toLowerCase()));
+const fresh = (rows: Row[]) => {
+  const out: Row[] = [];
+  for (const r of rows) {
+    if (out.length === FAMILY_SHARE) break;
+    const key = r[0].toLowerCase();
+    if (seenTitles.has(key)) continue;
+    seenTitles.add(key);
+    out.push(r);
+  }
+  return out;
+};
+export const SOUTH_NEW_ROWS = fresh([...SOUTH_FAMILY_ROWS, ...SOUTH_EXTRA_ROWS]);
+export const NORTH_NEW_ROWS = fresh([...NORTH_FAMILY_ROWS, ...NORTH_EXTRA_ROWS]);
+
+const ROWS: Row[] = [...BASE_ROWS, ...SOUTH_NEW_ROWS, ...NORTH_NEW_ROWS];
 
 export const corpus = (): CorpusRecipe[] =>
   ROWS.map(([title, cuisine, description, tags, difficulty, prep, cook, kcal, servings, macros, emoji, ingredients, steps, chefTip]) => ({

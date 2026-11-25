@@ -105,7 +105,8 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
   };
 
   return (
-    <div className="w-full bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
+    // Inside the tools screen the frame comes from the screen itself; inline it is a card
+    <div className={onClose ? 'w-full p-4 sm:p-6 relative' : 'w-full bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden'}>
       {/* Glow */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -113,19 +114,14 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
       <div className="flex items-start justify-between pb-4 border-b border-slate-800 gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-2xl bg-teal-500/20 text-teal-300 border border-teal-500/30">
-            <FlaskConical className="w-6 h-6 animate-pulse" />
+            <FlaskConical className="w-6 h-6" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-base sm:text-lg font-extrabold text-white">
-                Ingredient Substitution Intelligence
-              </h3>
-              <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-mono font-bold border border-teal-500/30">
-                CULINARY CHEMISTRY GRAPH
-              </span>
+              <h3 className="text-xl font-semibold text-on-surface leading-tight">Substitutes</h3>
             </div>
-            <p className="text-xs text-slate-400">
-              Never halt cooking for a missing item. Molecular flavor & texture matching with live fridge inventory check.
+            <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+              Missing an ingredient? Find the closest swaps by flavour and texture, starting with what is in your fridge.
             </p>
           </div>
         </div>
@@ -140,7 +136,7 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
       {/* Quick Select Preset Buttons & Search Bar */}
       <div className="mt-4 space-y-3">
         <div className="flex flex-wrap gap-1.5 items-center">
-          <span className="text-[11px] font-bold text-slate-400 uppercase font-mono mr-1">Quick Select:</span>
+          <span className="text-xs font-bold text-slate-400 mr-1">Quick Select:</span>
           {popularStaples.map((staple) => (
             <button
               key={staple}
@@ -172,7 +168,7 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
           <button
             onClick={() => handleFetchSubstitutes(searchTarget)}
             disabled={isAnalyzing}
-            className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5"
+            className="px-4 py-2 bg-surface-high text-slate-950 font-semibold text-xs rounded-xl shadow-md flex items-center gap-1.5"
           >
             <Zap className="w-3.5 h-3.5 fill-slate-950" />
             <span>{isAnalyzing ? 'Analyzing...' : 'Find Substitutes'}</span>
@@ -183,11 +179,11 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
       {/* Target Ingredient Culinary Role Header */}
       <div className="mt-5 p-3.5 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between gap-3 text-xs">
         <div>
-          <span className="text-[10px] text-slate-400 block uppercase font-mono">TARGET INGREDIENT IN DISH</span>
+          <span className="text-xs text-slate-400 block">TARGET INGREDIENT IN DISH</span>
           <strong className="text-white text-sm font-bold">{substitutesData.targetIngredient}</strong>
         </div>
         <div className="text-right">
-          <span className="text-[10px] text-slate-400 block uppercase font-mono">CULINARY FUNCTION</span>
+          <span className="text-xs text-slate-400 block">CULINARY FUNCTION</span>
           <span className="text-teal-300 font-semibold">{substitutesData.culinaryRole}</span>
         </div>
       </div>
@@ -212,26 +208,26 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
                   <h4 className="text-sm font-bold text-white flex items-center gap-2">
                     <span>{sub.name}</span>
                     {isAvailable && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold border border-emerald-500/30">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
                         IN YOUR FRIDGE 
                       </span>
                     )}
                   </h4>
-                  <span className="text-[10px] text-slate-400 block mt-0.5">{sub.culinaryRole}</span>
+                  <span className="text-xs text-slate-400 block mt-0.5">{sub.culinaryRole}</span>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-xs font-mono font-bold text-teal-400 block">
+                  <span className="text-xs font-bold text-teal-400 block">
                     {sub.flavorSimilarityPercent}% Match
                   </span>
                 </div>
               </div>
 
               {/* Flavor vs Texture Similarity Bars */}
-              <div className="grid grid-cols-2 gap-3 my-3 text-[11px]">
+              <div className="grid grid-cols-2 gap-3 my-3 text-xs">
                 <div>
-                  <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1">
                     <span>Flavor Match</span>
-                    <strong className="text-teal-300 font-mono">{sub.flavorSimilarityPercent}%</strong>
+                    <strong className="text-teal-300">{sub.flavorSimilarityPercent}%</strong>
                   </div>
                   <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
                     <div
@@ -242,9 +238,9 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1">
                     <span>Texture Match</span>
-                    <strong className="text-amber-300 font-mono">{sub.textureSimilarityPercent}%</strong>
+                    <strong className="text-amber-300">{sub.textureSimilarityPercent}%</strong>
                   </div>
                   <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
                     <div
@@ -257,19 +253,19 @@ export const IngredientSubstitutionLab: React.FC<IngredientSubstitutionLabProps>
 
               {/* Conversion Ratio & Chef Note */}
               <div className="space-y-1.5 text-xs">
-                <div className="p-2 bg-slate-900/80 rounded-xl border border-slate-800/80 text-[11px]">
-                  <strong className="text-teal-300 font-mono">Ratio: </strong>
+                <div className="p-2 bg-slate-900/80 rounded-xl border border-slate-800/80 text-xs">
+                  <strong className="text-teal-300">Ratio: </strong>
                   <span className="text-slate-200">{sub.ratio}</span>
                 </div>
 
-                <p className="text-[11px] text-slate-400 leading-snug">
+                <p className="text-xs text-slate-400 leading-snug">
                   <strong className="text-slate-300">Chef's Technique: </strong>
                   {sub.chefTechniqueNote}
                 </p>
 
                 <div className="flex flex-wrap gap-1 pt-1">
                   {sub.dietaryTags.map((tag, tIdx) => (
-                    <span key={tIdx} className="px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 text-[9px] border border-slate-800">
+                    <span key={tIdx} className="px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 text-xs border border-slate-800">
                       {tag}
                     </span>
                   ))}

@@ -57,7 +57,7 @@ export const WeeklyMealPlannerWidget: React.FC<WeeklyMealPlannerWidgetProps> = (
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-white">7-Day Meal Planner</h3>
+            <h3 className="text-base font-semibold text-white">7-Day Meal Planner</h3>
             <p className="text-xs text-slate-400">Lunch and dinner for the week, built from your {currentIngredients.length} fridge items.</p>
           </div>
         </div>
@@ -73,7 +73,7 @@ export const WeeklyMealPlannerWidget: React.FC<WeeklyMealPlannerWidgetProps> = (
           {missing.length > 0 && (
             <button
               onClick={handleExportShopping}
-              className="px-3.5 py-2 bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-xl hover:bg-emerald-400 transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 bg-emerald-500 text-slate-950 font-semibold text-xs rounded-xl hover:bg-emerald-400 transition-colors flex items-center gap-1.5"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
               <span>{exported ? 'Added to list' : `Add ${missing.length} missing`}</span>
@@ -118,7 +118,7 @@ export const WeeklyMealPlannerWidget: React.FC<WeeklyMealPlannerWidgetProps> = (
                 onClick={() => onStartCooking?.(r)}
                 className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-left space-y-1 hover:border-emerald-500/50 transition-colors"
               >
-                <span className={`text-[10px] font-bold uppercase flex items-center gap-1 ${tone}`}>
+                <span className={`text-xs font-bold flex items-center gap-1 ${tone}`}>
                   <Clock className="w-3 h-3" /> {meal} · {r.prepTimeMinutes + r.cookTimeMinutes} min
                 </span>
                 <p className="font-bold text-slate-100 text-sm">
@@ -128,7 +128,7 @@ export const WeeklyMealPlannerWidget: React.FC<WeeklyMealPlannerWidgetProps> = (
                   {r.cuisine} · {r.calories} kcal{r.missingIngredients.length ? ` · needs ${r.missingIngredients.slice(0, 3).join(', ')}` : ''}
                 </p>
                 {onStartCooking && (
-                  <span className="text-[11px] text-emerald-400 font-bold flex items-center gap-1 pt-1">
+                  <span className="text-xs text-emerald-400 font-bold flex items-center gap-1 pt-1">
                     <ChefHat className="w-3 h-3" /> Cook this
                   </span>
                 )}

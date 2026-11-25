@@ -129,9 +129,9 @@ export const RecipeKnowledgeGraphModal: React.FC<RecipeKnowledgeGraphModalProps>
   const getCategoryColor = (cat: string) => {
     switch (cat) {
       case 'Ingredient': return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
-      case 'FlavorCompound': return 'bg-purple-500/20 text-purple-300 border-purple-500/40';
+      case 'FlavorCompound': return 'bg-teal-500/20 text-teal-300 border-teal-500/40';
       case 'CookingTechnique': return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
-      case 'Cuisine': return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40';
+      case 'Cuisine': return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
       case 'Recipe': return 'bg-rose-500/20 text-rose-300 border-rose-500/40';
       case 'Substitution': return 'bg-teal-500/20 text-teal-300 border-teal-500/40';
       default: return 'bg-slate-800 text-slate-300 border-slate-700';
@@ -139,28 +139,25 @@ export const RecipeKnowledgeGraphModal: React.FC<RecipeKnowledgeGraphModalProps>
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-5xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-purple-950/70 via-slate-900 to-indigo-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 text-purple-300 flex items-center justify-center">
-              <GitFork className="w-5 h-5 text-purple-400" />
+            <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-500/40 text-teal-300 flex items-center justify-center">
+              <GitFork className="w-5 h-5 text-teal-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">Culinary Recipe Knowledge Graph</h3>
-                <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-mono font-bold border border-purple-500/30">
-                  ONTOLOGY & FLAVOR CHEMISTRY
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Knowledge graph</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                Ingredients → Flavor Compounds → Techniques → Cuisines → Recipes → Substitutions.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                How ingredients, flavour compounds, techniques and cuisines connect.
               </p>
             </div>
           </div>
@@ -177,7 +174,7 @@ export const RecipeKnowledgeGraphModal: React.FC<RecipeKnowledgeGraphModalProps>
               onClick={() => setFilterCategory(cat)}
               className={`px-3 py-1 rounded-xl text-xs font-bold transition-all whitespace-nowrap border ${
                 filterCategory === cat
-                  ? 'bg-purple-500 text-white border-purple-400 shadow-md'
+                  ? 'bg-teal-500 text-white border-teal-400 shadow-md'
                   : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
               }`}
             >
@@ -191,8 +188,8 @@ export const RecipeKnowledgeGraphModal: React.FC<RecipeKnowledgeGraphModalProps>
           {/* Left Column: Interactive Knowledge Graph Nodes (2 cols) */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex justify-between items-center text-xs text-slate-400">
-              <span className="font-bold uppercase tracking-wider">Select Node to Trace Molecular Links:</span>
-              <span className="font-mono text-[11px]">{filteredNodes.length} Active Nodes</span>
+              <span className="font-bold">Select Node to Trace Molecular Links:</span>
+              <span className="font-mono text-xs">{filteredNodes.length} Active Nodes</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto p-2 bg-slate-950/60 rounded-2xl border border-slate-800">
@@ -204,17 +201,17 @@ export const RecipeKnowledgeGraphModal: React.FC<RecipeKnowledgeGraphModalProps>
                     onClick={() => setSelectedNodeId(node.id)}
                     className={`p-3.5 rounded-2xl border text-left transition-all space-y-1.5 ${
                       isSelected
-                        ? 'bg-purple-500/20 border-purple-400 text-white shadow-lg shadow-purple-500/10'
+                        ? 'bg-teal-500/20 border-teal-400 text-white shadow-lg shadow-teal-500/10'
                         : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'
                     }`}
                   >
                     <div className="flex justify-between items-start gap-2">
-                      <strong className="text-xs font-black block leading-tight">{node.label}</strong>
-                      <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border uppercase shrink-0 ${getCategoryColor(node.category)}`}>
+                      <strong className="text-xs font-semibold block leading-tight">{node.label}</strong>
+                      <span className={`text-xs px-1.5 py-0.5 rounded border shrink-0 ${getCategoryColor(node.category)}`}>
                         {node.category}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-snug">{node.description}</p>
+                    <p className="text-xs text-slate-400 line-clamp-2 leading-snug">{node.description}</p>
                   </button>
                 );
               })}
@@ -225,16 +222,16 @@ export const RecipeKnowledgeGraphModal: React.FC<RecipeKnowledgeGraphModalProps>
           <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex justify-between items-start">
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase font-bold ${getCategoryColor(activeNode.category)}`}>
+                <span className={`text-xs px-2 py-0.5 rounded border font-bold ${getCategoryColor(activeNode.category)}`}>
                   {activeNode.category}
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">ID: {activeNode.id}</span>
+                <span className="text-xs text-slate-500">ID: {activeNode.id}</span>
               </div>
 
               <div>
-                <h4 className="text-base font-black text-white">{activeNode.label}</h4>
+                <h4 className="text-base font-semibold text-white">{activeNode.label}</h4>
                 {activeNode.flavorProfile && (
-                  <span className="text-xs text-purple-300 font-mono block mt-0.5">
+                  <span className="text-xs text-teal-300 block mt-0.5">
                     Flavor Profile: {activeNode.flavorProfile}
                   </span>
                 )}
@@ -246,7 +243,7 @@ export const RecipeKnowledgeGraphModal: React.FC<RecipeKnowledgeGraphModalProps>
 
               {/* Related Connected Edges in Graph */}
               <div className="space-y-2 pt-2 border-t border-slate-800">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                <span className="text-xs font-bold text-slate-400 block">
                   Connected Graph Edges ({relatedEntities.length}):
                 </span>
 
@@ -255,13 +252,13 @@ export const RecipeKnowledgeGraphModal: React.FC<RecipeKnowledgeGraphModalProps>
                     <button
                       key={rel.id}
                       onClick={() => setSelectedNodeId(rel.id)}
-                      className="w-full p-2 bg-slate-900 hover:bg-slate-850 rounded-xl border border-slate-800 text-left text-xs text-slate-200 hover:text-purple-300 flex items-center justify-between transition-colors"
+                      className="w-full p-2 bg-slate-900 hover:bg-slate-850 rounded-xl border border-slate-800 text-left text-xs text-slate-200 hover:text-teal-300 flex items-center justify-between transition-colors"
                     >
                       <div className="flex items-center gap-1.5 truncate">
-                        <span className="text-purple-400">↳</span>
+                        <span className="text-teal-400">↳</span>
                         <span className="font-bold truncate">{rel.label}</span>
                       </div>
-                      <span className={`text-[8px] font-mono px-1 py-0.2 rounded border uppercase ${getCategoryColor(rel.category)}`}>
+                      <span className={`text-xs px-1 py-0.2 rounded border ${getCategoryColor(rel.category)}`}>
                         {rel.category}
                       </span>
                     </button>
@@ -276,7 +273,7 @@ export const RecipeKnowledgeGraphModal: React.FC<RecipeKnowledgeGraphModalProps>
                   onSelectRecipeNode(activeNode.label);
                   onClose();
                 }}
-                className="w-full py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-surface-high text-white font-semibold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5"
               >
                 <span>Find Recipes Linked to This Node</span>
               </button>

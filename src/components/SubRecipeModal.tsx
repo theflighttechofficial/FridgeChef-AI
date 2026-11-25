@@ -38,17 +38,17 @@ export const SubRecipeModal: React.FC<SubRecipeModalProps> = ({ missingIngredien
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col justify-between overflow-hidden text-slate-100">
+    <div className="fixed inset-0 z-50 tool-page">
       <header className="px-6 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
             <Zap className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
+            <span className="text-xs font-bold text-amber-400">
               Automated Sub-Recipe Creator
             </span>
-            <h2 className="text-base font-extrabold text-white">
+            <h2 className="text-base font-semibold text-white">
               Make {missingIngredient} from Scratch
             </h2>
           </div>
@@ -64,13 +64,13 @@ export const SubRecipeModal: React.FC<SubRecipeModalProps> = ({ missingIngredien
 
       <div className="flex-1 max-w-3xl mx-auto p-6 sm:p-8 flex flex-col justify-between overflow-y-auto space-y-6">
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
-          <h3 className="text-lg font-extrabold text-white flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Utensils className="w-5 h-5 text-amber-400" />
             <span>{subRecipe.title}</span>
           </h3>
 
           <div className="space-y-2 pt-2">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Required Pantry Items:</p>
+            <p className="text-xs font-bold text-slate-400">Required Pantry Items:</p>
             <div className="flex flex-wrap gap-2">
               {subRecipe.ingredients.map((ing, i) => (
                 <span key={i} className="px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-xs font-semibold text-amber-300">
@@ -81,7 +81,7 @@ export const SubRecipeModal: React.FC<SubRecipeModalProps> = ({ missingIngredien
           </div>
 
           <div className="space-y-3 pt-3 border-t border-slate-800">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Instructions:</p>
+            <p className="text-xs font-bold text-slate-400">Instructions:</p>
             {subRecipe.instructions.map((step, i) => (
               <div key={i} className="flex items-start gap-2 text-xs text-slate-200">
                 <span className="font-bold text-amber-400">{i + 1}.</span>

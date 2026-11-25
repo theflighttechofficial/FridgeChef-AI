@@ -18,23 +18,23 @@ export const HouseholdMemoryBanner: React.FC<HouseholdMemoryBannerProps> = ({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full bg-gradient-to-r from-purple-950/60 via-slate-900/90 to-indigo-950/60 border border-purple-500/30 rounded-2xl p-3 sm:p-4 shadow-xl backdrop-blur-xl relative overflow-hidden group cursor-pointer"
+      className="w-full bg-surface-high border border-teal-500/30 rounded-2xl p-3 sm:p-4 shadow-xl backdrop-blur-xl relative overflow-hidden group cursor-pointer"
       onClick={onOpenMemoryModal}
     >
-      <div className="absolute right-0 top-0 bottom-0 w-32 bg-purple-500/5 blur-xl pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-32 bg-teal-500/5 blur-xl pointer-events-none" />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
         <div className="flex items-start sm:items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">
-            <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 animate-pulse" />
+          <div className="p-2.5 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/40 shrink-0">
+            <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-teal-400" />
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold text-purple-300 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-teal-300">
                 Personal Culinary Model
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-mono font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-xs font-bold">
                 {memoryProfile.members.length} {memoryProfile.members.length === 1 ? 'PROFILE' : 'PROFILES'}
               </span>
             </div>
@@ -49,7 +49,7 @@ export const HouseholdMemoryBanner: React.FC<HouseholdMemoryBannerProps> = ({
             e.stopPropagation();
             onOpenMemoryModal();
           }}
-          className="self-end sm:self-center shrink-0 px-3.5 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
+          className="self-end sm:self-center shrink-0 px-3.5 py-1.5 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-teal-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
         >
           <span>Household Memory</span>
           <ChevronRight className="w-3.5 h-3.5" />

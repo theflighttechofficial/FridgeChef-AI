@@ -77,28 +77,25 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-4xl"
       >
         {/* Top Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-purple-950/70 via-slate-900 to-indigo-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 text-purple-300 flex items-center justify-center">
-              <Brain className="w-5 h-5 animate-pulse" />
+            <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-500/40 text-teal-300 flex items-center justify-center">
+              <Brain className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">FridgeChef Memory Engine</h3>
-                <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-mono font-bold border border-purple-500/30">
-                  PERSISTENT HOUSEHOLD MODEL
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Household memory</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                Transforms AI from a generic chatbot into your family's personal culinary model.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                Who you cook for, what they like and avoid, so every suggestion fits your family.
               </p>
             </div>
           </div>
@@ -111,17 +108,17 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
         </div>
 
         {/* Ambient AI Proactive Insight Callout */}
-        <div className="px-6 py-3.5 bg-purple-950/40 border-b border-purple-900/30 flex items-center justify-between gap-3">
+        <div className="px-6 py-3.5 bg-teal-950/40 border-b border-teal-900/30 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <Zap className="w-4 h-4 text-purple-400 shrink-0" />
-            <p className="text-xs sm:text-sm font-semibold text-purple-200 italic">
+            <Zap className="w-4 h-4 text-teal-400 shrink-0" />
+            <p className="text-xs sm:text-sm font-semibold text-teal-200">
               {liveInsight ? `"${liveInsight}"` : 'Add your household below, then tap Get insight for a tip based on your pantry.'}
             </p>
           </div>
           <button
             onClick={handleGenerateFreshInsight}
             disabled={isGeneratingInsight}
-            className="shrink-0 px-3 py-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5"
+            className="shrink-0 px-3 py-1 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-teal-300 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5"
           >
             <Zap className={`w-3.5 h-3.5 ${isGeneratingInsight ? 'animate-spin' : ''}`} />
             <span>{isGeneratingInsight ? 'Synthesizing...' : liveInsight ? 'Refresh insight' : 'Get insight'}</span>
@@ -134,7 +131,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
             onClick={() => setActiveTab('members')}
             className={`pb-2.5 text-xs font-bold transition-all border-b-2 flex items-center gap-1.5 ${
               activeTab === 'members'
-                ? 'border-purple-400 text-purple-300'
+                ? 'border-teal-400 text-teal-300'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -145,7 +142,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
             onClick={() => setActiveTab('preferences')}
             className={`pb-2.5 text-xs font-bold transition-all border-b-2 flex items-center gap-1.5 ${
               activeTab === 'preferences'
-                ? 'border-purple-400 text-purple-300'
+                ? 'border-teal-400 text-teal-300'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -156,7 +153,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
             onClick={() => setActiveTab('insights')}
             className={`pb-2.5 text-xs font-bold transition-all border-b-2 flex items-center gap-1.5 ${
               activeTab === 'insights'
-                ? 'border-purple-400 text-purple-300'
+                ? 'border-teal-400 text-teal-300'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -172,8 +169,8 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
               {/* Member Selector List */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Members</span>
-                  <span className="text-[10px] text-purple-400 font-mono">{profile.members.length} {profile.members.length === 1 ? 'PROFILE' : 'PROFILES'}</span>
+                  <span className="text-xs font-bold text-slate-400">Members</span>
+                  <span className="text-xs text-teal-400">{profile.members.length} {profile.members.length === 1 ? 'PROFILE' : 'PROFILES'}</span>
                 </div>
                 {profile.members.map((member) => (
                   <button
@@ -181,16 +178,16 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                     onClick={() => setSelectedMemberId(member.id)}
                     className={`w-full p-3 rounded-2xl border text-left transition-all flex items-center justify-between ${
                       selectedMemberId === member.id
-                        ? 'bg-purple-950/40 border-purple-500/50 text-white shadow-md'
+                        ? 'bg-teal-950/40 border-teal-500/50 text-white shadow-md'
                         : 'bg-slate-950/50 border-slate-800 text-slate-300 hover:border-slate-700'
                     }`}
                   >
                     <div>
                       <strong className="block text-xs font-bold">{member.name}</strong>
-                      <span className="text-[10px] text-slate-400">{member.role} • Spice lvl {member.spiceTolerance}/5</span>
+                      <span className="text-xs text-slate-400">{member.role} • Spice lvl {member.spiceTolerance}/5</span>
                     </div>
                     {member.allergens.length > 0 && (
-                      <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-mono border border-rose-500/30">
+                      <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 text-xs border border-rose-500/30">
                         {member.allergens.length} Alert
                       </span>
                     )}
@@ -201,9 +198,9 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                     value={newMember}
                     onChange={(e) => setNewMember(e.target.value)}
                     placeholder="Add a member"
-                    className="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-purple-500"
+                    className="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-teal-500"
                   />
-                  <button type="submit" className="px-3 py-2 rounded-xl bg-purple-500/20 text-purple-300 text-xs font-bold">Add</button>
+                  <button type="submit" className="px-3 py-2 rounded-xl bg-teal-500/20 text-teal-300 text-xs font-bold">Add</button>
                 </form>
               </div>
 
@@ -227,7 +224,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                         <Flame className="w-3.5 h-3.5 text-amber-400" />
                         <span>Spice Tolerance</span>
                       </label>
-                      <span className="text-xs font-mono font-bold text-amber-400">
+                      <span className="text-xs font-bold text-amber-400">
                         Level {activeMember.spiceTolerance} of 5 ({['Mild', 'Gentle', 'Medium', 'Hot', 'Explosive'][activeMember.spiceTolerance - 1]})
                       </span>
                     </div>
@@ -277,7 +274,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                     </label>
                     <div className="flex flex-wrap gap-1.5">
                       {activeMember.allergens.length === 0 ? (
-                        <span className="text-xs text-slate-500 italic">No allergens recorded</span>
+                        <span className="text-xs text-slate-500">No allergens recorded</span>
                       ) : (
                         activeMember.allergens.map((a, idx) => (
                           <span
@@ -300,12 +297,12 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
-                  <span className="text-xs font-bold text-purple-300 uppercase tracking-wider block">
+                  <span className="text-xs font-bold text-teal-300 block">
                     Favorite Cuisines
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {profile.favoriteCuisines.map((c, i) => (
-                      <span key={i} className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-xl text-xs font-bold border border-purple-500/30">
+                      <span key={i} className="px-3 py-1 bg-teal-500/20 text-teal-300 rounded-xl text-xs font-bold border border-teal-500/30">
                         {c}
                       </span>
                     ))}
@@ -313,7 +310,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
                 </div>
 
                 <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
-                  <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
+                  <span className="text-xs font-bold text-teal-300 block">
                     Preferred Cooking Appliances
                   </span>
                   <div className="flex flex-wrap gap-2">
@@ -328,22 +325,22 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
 
               {/* Typical Meal Times */}
               <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block flex items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-300 block flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-amber-400" />
                   <span>Typical Household Meal Times</span>
                 </span>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 block">Breakfast</span>
-                    <strong className="text-sm font-mono text-white">{profile.typicalMealTimes.breakfast}</strong>
+                    <span className="text-xs text-slate-400 block">Breakfast</span>
+                    <strong className="text-sm text-white">{profile.typicalMealTimes.breakfast}</strong>
                   </div>
                   <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 block">Lunch</span>
-                    <strong className="text-sm font-mono text-white">{profile.typicalMealTimes.lunch}</strong>
+                    <span className="text-xs text-slate-400 block">Lunch</span>
+                    <strong className="text-sm text-white">{profile.typicalMealTimes.lunch}</strong>
                   </div>
                   <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 block">Dinner</span>
-                    <strong className="text-sm font-mono text-white">{profile.typicalMealTimes.dinner}</strong>
+                    <span className="text-xs text-slate-400 block">Dinner</span>
+                    <strong className="text-sm text-white">{profile.typicalMealTimes.dinner}</strong>
                   </div>
                 </div>
               </div>
@@ -353,16 +350,16 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
           {/* Tab 3: Learned Memory Graph */}
           {activeTab === 'insights' && (
             <div className="space-y-4">
-              <div className="p-4 bg-purple-950/30 rounded-2xl border border-purple-500/30 space-y-3">
-                <span className="text-xs font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Brain className="w-4 h-4 text-purple-400" />
+              <div className="p-4 bg-teal-950/30 rounded-2xl border border-teal-500/30 space-y-3">
+                <span className="text-xs font-bold text-teal-300 flex items-center gap-1.5">
+                  <Brain className="w-4 h-4 text-teal-400" />
                   <span>Learned Behavioral Memory Graph</span>
                 </span>
                 <div className="space-y-2">
                   {!profile.learnedInsights.length && <p className="text-xs text-slate-400">No insights yet. Tap Get insight above once your pantry has a few items.</p>}
                   {profile.learnedInsights.map((insight, idx) => (
                     <div key={idx} className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-200 flex items-start gap-2">
-                      <span className="text-purple-400 font-bold">#{idx + 1}</span>
+                      <span className="text-teal-400 font-bold">#{idx + 1}</span>
                       <span>{insight}</span>
                     </div>
                   ))}
@@ -371,7 +368,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
 
               {/* Frequently Purchased Ingredients */}
               <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                <span className="text-xs font-bold text-slate-400 block">
                   Frequently Purchased Household Staples
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -391,7 +388,7 @@ export const HouseholdMemoryEngineModal: React.FC<HouseholdMemoryEngineModalProp
         <div className="px-6 py-3.5 bg-slate-950 border-t border-slate-800 flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-purple-500/25 hover:opacity-90 transition-all"
+            className="px-5 py-2 bg-surface-high text-white font-semibold text-xs rounded-xl shadow-lg shadow-teal-500/25 hover:opacity-90 transition-all"
           >
             Done
           </button>

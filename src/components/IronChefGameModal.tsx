@@ -51,27 +51,22 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col justify-between overflow-hidden text-slate-100">
+    <div className="fixed inset-0 z-50 tool-page">
       {/* Header */}
       <header className="px-6 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 p-0.5 flex items-center justify-center shadow-lg shadow-rose-500/20">
+          <div className="w-10 h-10 rounded-xl bg-surface-high p-0.5 flex items-center justify-center shadow-lg shadow-rose-500/20">
             <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
               <Trophy className="w-5 h-5 text-amber-400" />
             </div>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
-              Gamified Zero-Waste Arena
-            </span>
-            <h2 className="text-base font-extrabold text-white">
-              "Iron Chef" Mystery Box Challenge
-            </h2>
+            <h2 className="text-xl font-semibold text-on-surface leading-tight">Iron Chef</h2>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold font-mono">
+          <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold">
             <Trophy className="w-3.5 h-3.5 text-amber-400" />
             <span className="text-amber-400">{xpPoints} XP</span>
             <span className="text-slate-600">|</span>
@@ -91,12 +86,12 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
       {/* Main Content Arena */}
       <div className="flex-1 max-w-4xl mx-auto p-6 sm:p-8 flex flex-col justify-between overflow-y-auto space-y-6">
         {/* Banner Alert */}
-        <div className="bg-gradient-to-r from-rose-950/60 via-slate-900 to-amber-950/40 border border-rose-500/30 p-6 rounded-2xl space-y-2">
-          <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase">
+        <div className="bg-surface-high border border-rose-500/30 p-6 rounded-2xl space-y-2">
+          <div className="flex items-center gap-2 text-rose-400 text-xs font-bold">
             <ShieldAlert className="w-4 h-4" />
             <span>Strict Rules: External Ingredients Locked Out!</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white">
+          <h1 className="text-2xl font-semibold text-white">
             Cook a meal using ONLY these 3 mystery items from your fridge scan.
           </h1>
           <p className="text-xs text-slate-400">
@@ -106,7 +101,7 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
 
         {/* 3 Mystery Box Items Display */}
         <div className="space-y-3">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-slate-400">
             Your Scanned Mystery Box Ingredients
           </h3>
 
@@ -117,15 +112,15 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
                 className="bg-slate-900 border-2 border-amber-500/40 p-4 rounded-2xl space-y-2 shadow-xl hover:border-amber-400 transition-all"
               >
                 <div className="flex items-center justify-between">
-                  <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold flex items-center justify-center font-mono">
+                  <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold flex items-center justify-center">
                     #{idx + 1}
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold uppercase">
+                  <span className="text-xs px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold">
                     {item.freshness || 'Use Soon'}
                   </span>
                 </div>
-                <h4 className="text-base font-extrabold text-white">{item.name}</h4>
-                <p className="text-[11px] text-slate-400">{item.category}</p>
+                <h4 className="text-base font-semibold text-white">{item.name}</h4>
+                <p className="text-xs text-slate-400">{item.category}</p>
               </div>
             ))}
           </div>
@@ -133,7 +128,7 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
 
         {/* Challenge Achievements Bar */}
         <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2">
-          <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+          <h4 className="text-xs font-bold text-slate-300 flex items-center gap-2">
             <Award className="w-4 h-4 text-amber-400" />
             <span>Unlockable Badges on Completion:</span>
           </h4>
@@ -156,7 +151,7 @@ export const IronChefGameModal: React.FC<IronChefGameModalProps> = ({
             onStartCooking(mysteryRecipe);
             onClose();
           }}
-          className="w-full py-4 bg-gradient-to-r from-rose-500 via-amber-500 to-rose-500 text-slate-950 font-extrabold text-sm rounded-2xl shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+          className="w-full py-4 bg-surface-high text-slate-950 font-semibold text-sm rounded-2xl shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
         >
           <Play className="w-5 h-5 fill-slate-950" />
           <span>Accept Challenge & Start Cooking ({mysteryRecipe.title})</span>

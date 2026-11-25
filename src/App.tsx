@@ -1155,8 +1155,8 @@ export default function App() {
 
       {/* 🧬 Ingredient Substitution Intelligence Modal / Drawer */}
       {isSubstitutionsModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 tool-overlay">
+          <div className="tool-panel max-w-4xl overflow-y-auto">
             <IngredientSubstitutionLab
               currentIngredients={currentIngredients}
               initialTargetIngredient={substitutionTargetIngredient}

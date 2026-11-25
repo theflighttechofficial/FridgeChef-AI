@@ -69,22 +69,17 @@ export const ARPlatingGuideModal: React.FC<ARPlatingGuideModalProps> = ({
   useEffect(() => () => streamRef.current?.getTracks().forEach((track) => track.stop()), []);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col justify-between overflow-hidden text-slate-100">
+    <div className="fixed inset-0 z-50 tool-page">
       {/* Top Header */}
       <header className="px-6 py-4 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-emerald-400 p-0.5 flex items-center justify-center shadow-lg shadow-amber-500/20">
+          <div className="w-10 h-10 rounded-xl bg-surface-high p-0.5 flex items-center justify-center shadow-lg shadow-amber-500/20">
             <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
               <Award className="w-5 h-5 text-amber-400" />
             </div>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
-              3-Michelin-Star Plating Assistant
-            </span>
-            <h2 className="text-base font-extrabold text-white line-clamp-1">
-              AR Holographic Plating: {recipeTitle}
-            </h2>
+            <h2 className="text-xl font-semibold text-on-surface leading-tight">AR plating</h2>
           </div>
         </div>
 
@@ -108,7 +103,7 @@ export const ARPlatingGuideModal: React.FC<ARPlatingGuideModalProps> = ({
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-80 h-80 rounded-full border-2 border-dashed border-emerald-400/80 animate-spin-slow flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
                   <div className="w-52 h-52 rounded-full border border-teal-400/60 flex items-center justify-center">
-                    <span className="text-[11px] font-extrabold font-mono text-emerald-400 bg-slate-950/80 px-2 py-1 rounded-md border border-emerald-500/40">
+                    <span className="text-xs font-semibold text-emerald-400 bg-slate-950/80 px-2 py-1 rounded-md border border-emerald-500/40">
                       Center Protein Target
                     </span>
                   </div>
@@ -120,7 +115,7 @@ export const ARPlatingGuideModal: React.FC<ARPlatingGuideModalProps> = ({
                 <span className="text-slate-300 font-semibold">
                   Step {activeStep}: {activeStep === 1 ? 'Spoon base sauce arc' : activeStep === 2 ? 'Position protein in core circle' : 'Garnish micro-greens'}
                 </span>
-                <span className="text-emerald-400 font-bold font-mono">AR ALIGNED</span>
+                <span className="text-emerald-400 font-bold">AR ALIGNED</span>
               </div>
             </div>
           ) : (
@@ -136,7 +131,7 @@ export const ARPlatingGuideModal: React.FC<ARPlatingGuideModalProps> = ({
               </div>
               <button
                 onClick={startCamera}
-                className="px-6 py-3 bg-gradient-to-r from-amber-500 to-emerald-500 text-slate-950 font-extrabold text-xs rounded-xl hover:from-amber-400 hover:to-emerald-400 transition-all shadow-xl shadow-amber-500/20"
+                className="px-6 py-3 bg-surface-high text-slate-950 font-semibold text-xs rounded-xl hover:from-amber-400 hover:to-emerald-400 transition-all shadow-xl shadow-amber-500/20"
               >
                 Launch AR Camera Guide
               </button>
@@ -147,7 +142,7 @@ export const ARPlatingGuideModal: React.FC<ARPlatingGuideModalProps> = ({
         {/* Right: Plating Style Selector & Step Guide (4 cols) */}
         <div className="lg:col-span-4 bg-slate-900 p-6 overflow-y-auto space-y-6">
           <div className="space-y-2">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-xs font-bold text-slate-400 flex items-center gap-2">
               <Layers className="w-4 h-4 text-amber-400" />
               <span>Select Plating Template</span>
             </h3>
@@ -166,11 +161,11 @@ export const ARPlatingGuideModal: React.FC<ARPlatingGuideModalProps> = ({
                       : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
                   }`}
                 >
-                  <p className="text-xs font-extrabold text-white flex items-center justify-between">
+                  <p className="text-xs font-semibold text-white flex items-center justify-between">
                     <span>{st.name}</span>
                     {selectedStyle.id === st.id && <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />}
                   </p>
-                  <p className="text-[11px] text-slate-400 leading-snug">{st.description}</p>
+                  <p className="text-xs text-slate-400 leading-snug">{st.description}</p>
                 </button>
               ))}
             </div>
@@ -179,8 +174,8 @@ export const ARPlatingGuideModal: React.FC<ARPlatingGuideModalProps> = ({
           {/* Plating Execution Steps */}
           <div className="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3 text-xs">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="font-bold text-white uppercase text-[10px]">Plating Technique</span>
-              <span className="text-amber-400 font-mono font-bold">Step {activeStep} / 3</span>
+              <span className="font-bold text-white text-xs">Plating Technique</span>
+              <span className="text-amber-400 font-bold">Step {activeStep} / 3</span>
             </div>
 
             {activeStep === 1 && (

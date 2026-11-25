@@ -72,23 +72,23 @@ export const WhyThisRecipeModal: React.FC<WhyThisRecipeModalProps> = ({
   const totalScore = factors.reduce((acc, f) => acc + f.score, 0);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+        className="tool-panel max-w-2xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-cyan-950/70 via-slate-900 to-indigo-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 flex items-center justify-center">
-              <Brain className="w-5 h-5 text-cyan-400" />
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center">
+              <Brain className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">Why This Recipe?</h3>
-                <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-500/30">
+                <h3 className="text-base sm:text-lg font-semibold text-white">Why This Recipe?</h3>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
                   AI EXPLAINABILITY
                 </span>
               </div>
@@ -105,17 +105,17 @@ export const WhyThisRecipeModal: React.FC<WhyThisRecipeModalProps> = ({
         {/* Recipe Title & Score Ribbon */}
         <div className="p-6 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between gap-4">
           <div>
-            <span className="text-[10px] text-slate-400 uppercase font-mono font-bold">ANALYZING SELECTION FOR:</span>
-            <h4 className="text-base font-extrabold text-white mt-0.5">{recipe.title}</h4>
+            <span className="text-xs text-slate-400 font-bold">ANALYZING SELECTION FOR:</span>
+            <h4 className="text-base font-semibold text-white mt-0.5">{recipe.title}</h4>
             <span className="text-xs text-slate-400">{recipe.cuisine} • {recipe.cookTimeMinutes} mins • {recipe.calories} kcal</span>
           </div>
 
           <div className="text-right shrink-0">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-black text-cyan-400 font-mono">{totalScore}</span>
-              <span className="text-xs text-slate-500 font-mono">/100</span>
+              <span className="text-3xl font-semibold text-emerald-400">{totalScore}</span>
+              <span className="text-xs text-slate-500">/100</span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 font-bold border border-cyan-500/20 uppercase">
+            <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-bold border border-emerald-500/20">
               SELECTION CONFIDENCE
             </span>
           </div>
@@ -123,7 +123,7 @@ export const WhyThisRecipeModal: React.FC<WhyThisRecipeModalProps> = ({
 
         {/* Factor Breakdown List */}
         <div className="p-6 overflow-y-auto space-y-3 max-h-[55vh]">
-          <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">
+          <span className="text-xs font-bold text-slate-300 block mb-2">
             Weighted Decision Criteria:
           </span>
 
@@ -145,12 +145,12 @@ export const WhyThisRecipeModal: React.FC<WhyThisRecipeModalProps> = ({
                     {f.factor}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-snug">{f.detail}</p>
+                <p className="text-xs text-slate-400 leading-snug">{f.detail}</p>
               </div>
 
               <div className="shrink-0 text-right">
                 <span
-                  className={`text-sm font-black font-mono px-2 py-1 rounded-xl ${
+                  className={`text-sm font-semibold px-2 py-1 rounded-xl ${
                     f.isPositive
                       ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                       : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'

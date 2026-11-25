@@ -434,3 +434,84 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   .app-aurora::before, .app-aurora::after { animation: none; }
 }
+
+/* ---------- Tool screens (every tool in the tools sheet) ----------
+   Phones: a full-screen page that slides up, like the cooking screen.
+   Tablets and desktop: a large rounded dialog over a dimmed backdrop. */
+.tool-overlay {
+  background: color-mix(in oklab, black 55%, transparent);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+.tool-panel {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tool-page {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+/* The first row is the screen's top app bar */
+.tool-panel > .border-b:first-child,
+.tool-page > .border-b:first-child {
+  background: var(--md-surface-container-high);
+  border-bottom-color: transparent;
+  min-height: 4rem;
+}
+.tool-panel > .border-b:first-child h2,
+.tool-panel > .border-b:first-child h3,
+.tool-page > .border-b:first-child h2,
+.tool-page > .border-b:first-child h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+/* Cards and inputs inside tools pick up the app's rounder shapes and tonal surfaces */
+.tool-panel .rounded-xl,
+.tool-page .rounded-xl { border-radius: 1rem; }
+.tool-panel .rounded-2xl,
+.tool-page .rounded-2xl { border-radius: 1.5rem; }
+.tool-panel .border-slate-800,
+.tool-page .border-slate-800 { border-color: color-mix(in oklab, var(--md-outline-variant) 60%, transparent); }
+.tool-panel button:not([class*='rounded-full']):not([role='tab']).px-3,
+.tool-panel button:not([class*='rounded-full']):not([role='tab']).px-4,
+.tool-page button:not([class*='rounded-full']):not([role='tab']).px-4 { border-radius: 9999px; }
+.tool-panel input:not([type='checkbox']):not([type='radio']):not([type='range']),
+.tool-panel select,
+.tool-panel textarea,
+.tool-page input:not([type='checkbox']):not([type='radio']):not([type='range']),
+.tool-page select,
+.tool-page textarea {
+  border-radius: 1rem;
+  background: var(--md-surface-container-highest);
+}
+@media (min-width: 768px) {
+  .tool-overlay {
+    align-items: center;
+    padding: 1.5rem;
+  }
+  .tool-panel {
+    height: auto;
+    max-height: min(92vh, 980px);
+    border-radius: 28px;
+    background: var(--md-surface-container);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}

@@ -93,30 +93,25 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-5xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-purple-950/70 via-slate-900 to-indigo-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 text-purple-300 flex items-center justify-center">
-              <Users className="w-5 h-5 text-purple-400" />
+            <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-500/40 text-teal-300 flex items-center justify-center">
+              <Users className="w-5 h-5 text-teal-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">
-                  Multi-Person Household Profiles & “Dinner for Everyone”
-                </h3>
-                <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-mono font-bold border border-purple-500/30">
-                  DIETARY CONFLICT RESOLVER
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Dinner for everyone</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                Add everyone you are cooking for and get ONE dinner that works for all of them.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                Add everyone you are cooking for and get one dinner that works for all of them.
               </p>
             </div>
           </div>
@@ -135,7 +130,7 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
               >
                 <div>
                   <strong className="text-white block font-bold leading-tight">{m.name}</strong>
-                  <span className="text-[10px] text-purple-300 font-mono">{m.dietaryPreference}</span>
+                  <span className="text-xs text-teal-300">{m.dietaryPreference}</span>
                 </div>
                 {m.id !== 'self' && (
                   <button onClick={() => setMembers(members.filter((x) => x.id !== m.id))} aria-label={`Remove ${m.name}`} className="p-1 text-slate-500 hover:text-white">
@@ -157,19 +152,19 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Add person"
-                className="w-24 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-white outline-none focus:border-purple-500"
+                className="w-24 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-white outline-none focus:border-teal-500"
               />
-              <select value={newPref} onChange={(e) => setNewPref(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-[11px] text-slate-300 outline-none">
+              <select value={newPref} onChange={(e) => setNewPref(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-xs text-slate-300 outline-none">
                 {PREFERENCES.map((p) => <option key={p}>{p}</option>)}
               </select>
-              <button type="submit" className="px-2.5 py-2 rounded-xl bg-purple-500/20 text-purple-300 text-xs font-bold">+</button>
+              <button type="submit" className="px-2.5 py-2 rounded-xl bg-teal-500/20 text-teal-300 text-xs font-bold">+</button>
             </form>
           </div>
 
           <button
             onClick={handleSynthesize}
             disabled={isLoading}
-            className="shrink-0 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5"
+            className="shrink-0 px-4 py-2 bg-surface-high text-white font-semibold text-xs rounded-xl shadow-md flex items-center gap-1.5"
           >
             <Zap className="w-3.5 h-3.5" />
             <span>{isLoading ? 'Resolving Dietary Matrix...' : dinnerPlan ? 'Rebuild meal' : 'Build meal'}</span>
@@ -181,30 +176,30 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {/* Harmony Score Banner */}
-          <div className="p-5 bg-gradient-to-r from-purple-950/40 via-slate-950 to-indigo-950/40 rounded-2xl border border-purple-500/30 space-y-2">
+          <div className="p-5 bg-surface-high rounded-2xl border border-teal-500/30 space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <span className="text-[10px] font-mono text-purple-400 font-bold uppercase">
+                <span className="text-xs text-teal-400 font-bold">
                   UNIFIED HARMONY ARCHITECTURE
                 </span>
-                <h4 className="text-base sm:text-lg font-black text-white">{dinnerPlan.baseRecipeTitle}</h4>
+                <h4 className="text-base sm:text-lg font-semibold text-white">{dinnerPlan.baseRecipeTitle}</h4>
                 <p className="text-xs text-slate-300">{dinnerPlan.tagline}</p>
               </div>
 
               <div className="text-right shrink-0">
-                <span className="text-2xl font-black font-mono text-purple-400">{dinnerPlan.harmonyScore}%</span>
-                <span className="block text-[10px] text-slate-400 uppercase font-mono">DIETARY HARMONY</span>
+                <span className="text-2xl font-semibold text-teal-400">{dinnerPlan.harmonyScore}%</span>
+                <span className="block text-xs text-slate-400">DIETARY HARMONY</span>
               </div>
             </div>
 
-            <p className="text-xs text-purple-200/90 bg-purple-950/30 p-2.5 rounded-xl border border-purple-900/40 leading-relaxed">
+            <p className="text-xs text-teal-200/90 bg-teal-950/30 p-2.5 rounded-xl border border-teal-900/40 leading-relaxed">
               <strong>Diplomatic Strategy:</strong> {dinnerPlan.harmonyReason}
             </p>
           </div>
 
           {/* Individual Member Modular Modifications (3 Columns) */}
           <div className="space-y-3">
-            <span className="text-xs font-bold text-white uppercase tracking-wider block">
+            <span className="text-xs font-bold text-white block">
               Individual Member Plates (Cooked in Parallel with Shared Base)
             </span>
 
@@ -217,27 +212,27 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
                   <div className="space-y-2">
                     <div className="flex justify-between items-center pb-2 border-b border-slate-800">
                       <div>
-                        <strong className="text-white text-sm font-extrabold">{item.memberName}'s Plate</strong>
-                        <span className="text-[10px] text-slate-400 block">{item.memberDietary}</span>
+                        <strong className="text-white text-sm font-semibold">{item.memberName}'s Plate</strong>
+                        <span className="text-xs text-slate-400 block">{item.memberDietary}</span>
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 font-bold border border-purple-500/20">
+                      <span className="text-xs px-2 py-0.5 rounded bg-teal-500/10 text-teal-300 font-bold border border-teal-500/20">
                         {item.spiceAdjustment}
                       </span>
                     </div>
 
-                    <h5 className="text-xs font-bold text-purple-300">{item.personalizedDishName}</h5>
+                    <h5 className="text-xs font-bold text-teal-300">{item.personalizedDishName}</h5>
 
                     <div className="space-y-1.5 text-xs text-slate-300">
                       {item.modifications.map((mod, i) => (
-                        <div key={i} className="flex items-start gap-1.5 text-[11px]">
-                          <span className="text-purple-400 font-bold">•</span>
+                        <div key={i} className="flex items-start gap-1.5 text-xs">
+                          <span className="text-teal-400 font-bold">•</span>
                           <span>{mod}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
                     <span>{item.macros.protein} protein</span>
                     <span>{item.macros.carbs} carbs</span>
                     <span>{item.macros.fat} fat</span>
@@ -249,18 +244,18 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
 
           {/* Unified Cooking Steps Sequence */}
           <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
-            <span className="text-xs font-bold text-white uppercase tracking-wider block">
+            <span className="text-xs font-bold text-white block">
               Unified Cooking Steps (Single Pan Base + 2-Minute Parallel Finishing)
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {dinnerPlan.steps.map((st) => (
                 <div key={st.stepNumber} className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs space-y-1">
-                  <div className="flex justify-between items-center text-[10px] text-purple-400 font-mono font-bold">
+                  <div className="flex justify-between items-center text-xs text-teal-400 font-bold">
                     <span>STEP {st.stepNumber}</span>
                     {st.timerSeconds && <span>⏱{Math.round(st.timerSeconds / 60)} min</span>}
                   </div>
-                  <p className="text-slate-300 text-[11px] leading-relaxed">{st.instruction}</p>
+                  <p className="text-slate-300 text-xs leading-relaxed">{st.instruction}</p>
                 </div>
               ))}
             </div>
@@ -269,7 +264,7 @@ export const DinnerForEveryoneModal: React.FC<DinnerForEveryoneModalProps> = ({
           {/* 1-Click Launch Button */}
           <button
             onClick={handleCookDinnerForEveryone}
-            className="w-full py-3 bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-purple-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 bg-surface-high text-white font-semibold text-xs rounded-xl shadow-lg shadow-teal-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2"
           >
             <Play className="w-4 h-4 fill-white" />
             <span>Cook “Dinner for Everyone” (Guided Voice Session)</span>

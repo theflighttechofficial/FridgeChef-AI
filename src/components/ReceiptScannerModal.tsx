@@ -70,28 +70,25 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 tool-overlay">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="tool-panel max-w-3xl"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-teal-950/70 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-high border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-extrabold text-white">Receipt → Pantry AI</h3>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-500/30">
-                  SMART GROCERY OCR
-                </span>
+                <h3 className="text-xl font-semibold text-on-surface leading-tight">Receipt to pantry</h3>
               </div>
-              <p className="text-xs text-slate-400">
-                Snap or upload any supermarket bill to auto-populate fridge inventory and shelf-life estimates.
+              <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">
+                Snap a grocery bill to add everything to your fridge with shelf-life estimates.
               </p>
             </div>
           </div>
@@ -106,18 +103,18 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
             <label className="border-2 border-dashed border-slate-700 hover:border-emerald-400 bg-slate-950/50 hover:bg-slate-950 rounded-2xl p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2">
               <Upload className="w-6 h-6 text-emerald-400" />
               <strong className="text-xs text-white">Upload Supermarket Receipt</strong>
-              <span className="text-[10px] text-slate-400">PNG, JPG, or PDF Receipt</span>
+              <span className="text-xs text-slate-400">PNG, JPG, or PDF Receipt</span>
               <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
             </label>
 
             <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
               <div>
                 <span className="text-xs font-bold text-slate-300 block mb-1">Simulated Receipt Example</span>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-xs text-slate-400">
                   Demonstrates parsing a supermarket grocery purchase with weight, cost, and shelf-life prediction.
                 </p>
               </div>
-              <div className="mt-3 flex items-center justify-between text-xs font-mono">
+              <div className="mt-3 flex items-center justify-between text-xs">
                 <span className="text-emerald-400 font-bold">DMart Supercenter</span>
                 <span className="text-white font-bold">₹1,842.00</span>
               </div>
@@ -138,20 +135,20 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
               {/* Macro Summary Strip: ₹1,842 grocery purchase | Estimated 6.2 kg food | 91% pantry utilization */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Total Grocery Spend</span>
-                  <strong className="text-base font-extrabold text-emerald-400 font-mono">
+                  <span className="text-xs text-slate-400 block font-bold">Total Grocery Spend</span>
+                  <strong className="text-base font-semibold text-emerald-400">
                     {analysisResult.totalCost}
                   </strong>
                 </div>
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Estimated Food Mass</span>
-                  <strong className="text-base font-extrabold text-teal-400 font-mono">
+                  <span className="text-xs text-slate-400 block font-bold">Estimated Food Mass</span>
+                  <strong className="text-base font-semibold text-teal-400">
                     {analysisResult.totalWeightKg} kg
                   </strong>
                 </div>
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Pantry Utilization</span>
-                  <strong className="text-base font-extrabold text-purple-400 font-mono">
+                  <span className="text-xs text-slate-400 block font-bold">Pantry Utilization</span>
+                  <strong className="text-base font-semibold text-teal-400">
                     {analysisResult.estimatedPantryUtilizationPercent}%
                   </strong>
                 </div>
@@ -160,10 +157,10 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
               {/* Extracted Item List */}
               <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
                 <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  <span className="text-xs font-bold text-white">
                     Extracted Groceries ({analysisResult.items.length})
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">LOCATION & EXPIRY PREDICTED</span>
+                  <span className="text-xs text-slate-400">LOCATION & EXPIRY PREDICTED</span>
                 </div>
 
                 <div className="divide-y divide-slate-800/60 max-h-56 overflow-y-auto">
@@ -171,7 +168,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                     <div key={idx} className="py-2 flex items-center justify-between text-xs">
                       <div>
                         <strong className="text-white font-semibold">{item.name}</strong>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
                           <span>{item.quantity}</span>
                           <span>•</span>
                           <span className="text-teal-400">{item.storageLocation}</span>
@@ -188,15 +185,15 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
               </div>
 
               {/* Immediate Meal Suggestions from Receipt */}
-              <div className="bg-purple-950/30 p-4 rounded-2xl border border-purple-500/30 space-y-2">
-                <span className="text-xs font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="bg-teal-950/30 p-4 rounded-2xl border border-teal-500/30 space-y-2">
+                <span className="text-xs font-bold text-teal-300 flex items-center gap-1.5">
                   <ChefHat className="w-3.5 h-3.5" />
                   <span>Immediate Meal Ideas from this Receipt</span>
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {analysisResult.mealSuggestions.map((meal, idx) => (
                     <div key={idx} className="p-2.5 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-white font-medium flex items-center gap-2">
-                      <Zap className="w-3 h-3 text-purple-400 shrink-0" />
+                      <Zap className="w-3 h-3 text-teal-400 shrink-0" />
                       <span className="line-clamp-2">{meal}</span>
                     </div>
                   ))}

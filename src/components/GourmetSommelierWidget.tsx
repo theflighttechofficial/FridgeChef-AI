@@ -54,15 +54,12 @@ export const GourmetSommelierWidget: React.FC = () => {
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
+          <div className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400">
             <Wine className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-extrabold text-white">Gourmet Beverage & Sommelier Pairing</h3>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-bold">
-                SOMMELIER AI
-              </span>
+              <h3 className="text-base font-semibold text-white">Gourmet Beverage & Sommelier Pairing</h3>
             </div>
             <p className="text-xs text-slate-400">
               Curated fine wines, craft brews, and zero-proof artisanal mocktail pairings for your stashed recipes.
@@ -77,7 +74,7 @@ export const GourmetSommelierWidget: React.FC = () => {
               onClick={() => setSelectedPairingIndex(idx)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
                 selectedPairingIndex === idx
-                  ? 'bg-purple-500 text-slate-950 font-extrabold shadow-md shadow-purple-500/20'
+                  ? 'bg-teal-500 text-slate-950 font-semibold shadow-md shadow-teal-500/20'
                   : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'
               }`}
             >
@@ -90,18 +87,18 @@ export const GourmetSommelierWidget: React.FC = () => {
       <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 text-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase">Pairing Dish</span>
-            <h4 className="text-sm font-extrabold text-white">{activePairing.dish}</h4>
+            <span className="text-xs font-bold text-slate-400">Pairing Dish</span>
+            <h4 className="text-sm font-semibold text-white">{activePairing.dish}</h4>
           </div>
 
-          <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold font-mono self-start sm:self-auto">
+          <span className="px-2.5 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-bold self-start sm:self-auto">
             {activePairing.beverageType}
           </span>
         </div>
 
         <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
-          <span className="text-[10px] font-bold text-purple-400 uppercase">Sommelier Recommended Bottle</span>
-          <p className="text-sm font-extrabold text-slate-100">{activePairing.beverageName}</p>
+          <span className="text-xs font-bold text-teal-400">Sommelier Recommended Bottle</span>
+          <p className="text-sm font-semibold text-slate-100">{activePairing.beverageName}</p>
           <p className="text-slate-300 text-xs leading-relaxed mt-1">{activePairing.notes}</p>
         </div>
 

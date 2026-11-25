@@ -81,17 +81,11 @@ export const ShoppingListTab: React.FC<ShoppingListTabProps> = ({
   return (
     <div className="space-y-8 w-full">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-emerald-950/30 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-xl">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Smart Grocery Planning</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-            Shopping List
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400">
-            {items.length} total items ({checkedCount} purchased). Missing recipe ingredients are automatically added here.
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-on-surface">To buy</h1>
+          <p className="text-sm text-on-surface-variant">
+            {items.length ? `${items.length - checkedCount} to buy, ${checkedCount} in the basket.` : 'Empty for now.'} Missing recipe ingredients land here when you tap Add to list.
           </p>
         </div>
 
@@ -129,9 +123,9 @@ export const ShoppingListTab: React.FC<ShoppingListTabProps> = ({
 
       {/* Add Custom Item Form */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+        <h3 className="text-xs font-bold text-slate-400 flex items-center gap-2">
           <Plus className="w-4 h-4 text-emerald-400" />
-          <span>Add Custom Item to Shopping List</span>
+          <span>Add an item</span>
         </h3>
         <form onSubmit={handleFormSubmit} noValidate onInput={() => setFormError(null)} className="grid grid-cols-1 sm:grid-cols-12 gap-3">
           <input
@@ -213,11 +207,11 @@ export const ShoppingListTab: React.FC<ShoppingListTabProps> = ({
                 className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-xl"
               >
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                  <h3 className="text-xs font-bold text-emerald-400 flex items-center gap-2">
                     <Zap className="w-3.5 h-3.5" />
                     <span>{catKey}</span>
                   </h3>
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-xs text-slate-500">
                     {catItems.filter((i) => i.checked).length} / {catItems.length} bought
                   </span>
                 </div>
@@ -254,7 +248,7 @@ export const ShoppingListTab: React.FC<ShoppingListTabProps> = ({
                             </span>
                           </p>
                           {item.addedFromRecipe && (
-                            <p className="text-[10px] text-slate-500 italic truncate">
+                            <p className="text-xs text-slate-500 truncate">
                               Needed for: {item.addedFromRecipe}
                             </p>
                           )}
